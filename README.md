@@ -1,5 +1,11 @@
 # 系统设计中文精讲
 
+**在线阅读（推荐）**：<https://castorhrio.github.io/system-design-guide/>
+
+> 阅读站比在 GitHub 上直接看更适合学习：左侧有完整的章节目录，右上角能全文搜索（中文或英文术语都可以搜），
+> 每页有「本页目录」和上一页 / 下一页，支持深色与浅色主题。
+> 而且它不会像仓库文件列表那样，在每一行后面显示一列提交信息。
+
 > 面向初级开发者的系统设计教程 —— 译自并大幅增补自 [liquidslr/system-design-notes](https://github.com/liquidslr/system-design-notes)
 
 这套笔记基于 Alex Xu 的《系统设计面试：内幕指南》（System Design Interview: An Insider's Guide，第 1、2 卷）。
@@ -228,3 +234,19 @@
 - **第 16–28 章**：找对应的开源项目读源码（Kafka、MinIO、HBase、Redis）
 
 各章的「延伸阅读」里给了具体资料。
+
+---
+
+## 本地重建阅读站
+
+上面的在线阅读站就是本仓库的 Markdown 编译出来的，编译脚本在 `tools/build_site.py`：
+
+```bash
+pip install markdown-it-py linkify-it-py
+python tools/build_site.py        # 产物在 .site/（已加入 .gitignore）
+```
+
+脚本会渲染全部 35 个 Markdown、生成侧边目录、本页目录、上下页导航和全文搜索索引，
+输出纯静态 HTML（不需要 Jekyll）。把 `.site/` 的内容推到 `gh-pages` 分支即可更新线上站点。
+
+修改任何一章后重新执行一次，线上内容就会跟着更新。
