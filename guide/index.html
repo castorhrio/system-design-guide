@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>学习指南 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item active" href="./">学习指南</a><a class="nav-item" href="prerequisites.html">前置知识清单</a><a class="nav-item" href="roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../ch/01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../ch/02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../ch/03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../ch/04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../ch/05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../ch/06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../ch/07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../ch/08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../ch/09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../ch/10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../ch/11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../ch/12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../ch/13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../ch/14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../ch/15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../ch/16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../ch/17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../ch/18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../ch/19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../ch/20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../ch/21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../ch/22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../ch/23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../ch/24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../ch/25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../ch/26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../ch/27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../ch/28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../appendix/glossary.html">术语表</a><a class="nav-item" href="../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="学习指南">学习指南</h1>
+<blockquote>
+<p>这套笔记怎么用，以及怎么判断自己是不是真的学懂了。</p>
+</blockquote>
+<h2 id="一这套笔记是什么">一、这套笔记是什么</h2>
+<p>它是一份<strong>读书笔记的重写版</strong>。原项目 <code>liquidslr/system-design-notes</code> 把 Alex Xu《系统设计面试》两卷书的内容压缩成了 28 章速查笔记——很适合复习，但不适合<strong>第一次学</strong>。</p>
+<p>原因有三：</p>
+<ol>
+<li><strong>它假设你已经懂了。</strong> 原笔记直接说&quot;用一致性哈希解决&quot;，但没解释为什么需要一致性哈希。</li>
+<li><strong>它省略了工程细节。</strong> 知道&quot;用 Redis 存计数器&quot;和知道&quot;为什么必须用 Lua 脚本保证原子性&quot;是两件事。</li>
+<li><strong>它有错误和过时内容。</strong> 详见<a href="../appendix/errata.html">勘误与补充汇总</a>。</li>
+</ol>
+<p>所以这套笔记在保留原文全部信息量的基础上，补上了讲解、勘误和缺失内容。</p>
+<h2 id="二每章的结构以及各节怎么用">二、每章的结构，以及各节怎么用</h2>
+<p>每一章都是同一个骨架。熟悉之后，你可以按需跳读。</p>
+<h3 id="本章导读">本章导读</h3>
+<p><strong>3–6 句话，回答&quot;这章要解决什么问题&quot;。</strong></p>
+<p>建议<strong>必读</strong>。它会告诉你这章在整个体系里的位置，以及学完能回答什么问题。如果你读完后觉得&quot;这章跟我没关系&quot;，可以跳过整章——这是设计意图。</p>
+<h3 id="你将学到">你将学到</h3>
+<p>要点清单。用来自查：读完后能不能把每一条讲给别人听。</p>
+<h3 id="正文编号小节">正文（编号小节）</h3>
+<p>按原项目结构逐节展开。<strong>这是主体，篇幅最长。</strong></p>
+<p>阅读时注意两种标记：</p>
+<ul>
+<li><strong>引用块（<code>&gt;</code>）</strong> 里通常是我补充的<strong>工程实践、常见误区或勘误提示</strong>。这些是原笔记没有的，往往比正文更有价值。</li>
+<li><strong>表格</strong> 用来做横向对比（比如五种限流算法的取舍）。<strong>表格是速查入口</strong>，复习时先看表格。</li>
+</ul>
+<h3 id="勘误与补充">勘误与补充</h3>
+<p><strong>这是这套笔记最重要的部分。</strong></p>
+<ul>
+<li><strong>勘误</strong>：原文哪里说错了、为什么错、正确说法是什么、初学者该知道的延伸背景。</li>
+<li><strong>补充</strong>：原文完全没讲、但对理解这章很关键的主题。</li>
+</ul>
+<p>如果你只有 10 分钟读一章，读这一节 + 面试速记。</p>
+<h3 id="常见误区">常见误区</h3>
+<p>表格形式：<code>错误理解 → 为什么错 → 正确理解</code>。</p>
+<p>这些是<strong>面试中的减分项</strong>——说出错误理解比不说话更糟。建议通读。</p>
+<h3 id="面试速记">面试速记</h3>
+<p>四个部分：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>部分</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一句话概括</td>
+<td>面试时被问&quot;介绍下 X&quot;，先用这句定调</td>
+</tr>
+<tr>
+<td>必答要点</td>
+<td>不提到就是没答完整</td>
+</tr>
+<tr>
+<td>加分项</td>
+<td>提到能体现深度</td>
+</tr>
+<tr>
+<td>高频追问</td>
+<td>面试官接下来大概率问什么，附简答</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="延伸阅读">延伸阅读</h3>
+<p>原项目的链接 + 我补充的资料。<strong>真想把某章学透，必须读原文资料</strong>——笔记永远替代不了原始论文和官方文档。</p>
+<hr />
+<h2 id="三三种读法">三、三种读法</h2>
+<h3 id="读法-a精读推荐适合系统学习">读法 A：精读（推荐，适合系统学习）</h3>
+<p>按<a href="roadmap.html">学习路线图</a>分阶段推进。每章：</p>
+<ol>
+<li>读「本章导读」，确认这章要解决什么问题</li>
+<li>读正文，遇到不懂的概念先记下来，继续往下读（很多概念会在后面章节展开）</li>
+<li>读「勘误与补充」，修正刚才形成的认知</li>
+<li>读「常见误区」，对照自己有没有中招</li>
+<li>合上笔记，<strong>用自己的话把这一章讲一遍</strong>（可以对着空气讲，或写下来）</li>
+</ol>
+<p><strong>关键在最后一步。</strong> 看得懂和讲得出是两回事。</p>
+<h3 id="读法-b速通适合面试前突击">读法 B：速通（适合面试前突击）</h3>
+<ol>
+<li>先读<a href="../appendix/interview.html">高频面试题速查</a></li>
+<li>对不熟悉的章节，只读该章的「勘误与补充」+「面试速记」</li>
+<li>面试前一晚，过一遍「常见误区」表格</li>
+</ol>
+<h3 id="读法-c查漏适合已有经验的人">读法 C：查漏（适合已有经验的人）</h3>
+<ol>
+<li>打开<a href="../appendix/errata.html">勘误与补充汇总</a></li>
+<li>只看第一节「按错误类型速查」的五张表</li>
+<li><strong>每一条都问自己：&quot;我原来是不是也这么理解的？&quot;</strong> 凡是答&quot;是&quot;的，去读对应章节</li>
+</ol>
+<p>这是投入产出比最高的读法——直接检查你认知里的错误，而不是从头学一遍已经会的东西。</p>
+<hr />
+<h2 id="四五个常见的学习误区">四、五个常见的学习误区</h2>
+<h3 id="误区-1把术语背下来就算学会了">误区 1：把术语背下来就算学会了</h3>
+<p>&quot;一致性哈希&quot;这四个字谁都会说。真正的问题是：</p>
+<ul>
+<li>加一个节点，具体有多少 key 需要迁移？</li>
+<li>节点很少的时候分布会不会不均？不均到什么程度？</li>
+<li>虚拟节点是解决什么问题的？加多少个合适？</li>
+<li>它解决不了什么问题？</li>
+</ul>
+<p><strong>判断标准</strong>：你能不能给出具体数字和边界条件。</p>
+<h3 id="误区-2只看方案不看代价">误区 2：只看方案，不看代价</h3>
+<p>每个技术方案都是<strong>交易</strong>，不是纯粹的进步。</p>
+<ul>
+<li>缓存 → 换来性能，付出<strong>一致性</strong>和<strong>内存成本</strong></li>
+<li>分片 → 换来扩展性，付出<strong>跨片 JOIN 能力</strong>和<strong>运维复杂度</strong></li>
+<li>消息队列 → 换来解耦和削峰，付出<strong>最终一致性</strong>和<strong>运维一套中间件</strong>的成本</li>
+</ul>
+<p><strong>面试时只说好处不提代价，是明显的减分项。</strong></p>
+<h3 id="误区-3以为存在标准答案">误区 3：以为存在&quot;标准答案&quot;</h3>
+<p>系统设计没有最优解，只有<strong>在给定约束下的合理选择</strong>。</p>
+<p>同样设计一个信息流：日活 10 万和日活 1 亿，架构完全不同；能容忍 5 秒延迟和必须 100 毫秒响应，架构也不同。</p>
+<p><strong>永远先问约束</strong>（这也是第 3 章框架的第一步）。</p>
+<h3 id="误区-4跳过无聊的基础章">误区 4：跳过&quot;无聊&quot;的基础章</h3>
+<p>第 1 章（扩展）、第 2 章（估算）、第 3 章（框架）看起来最没技术含量，但：</p>
+<ul>
+<li>后面 27 章都在用第 1 章的组件</li>
+<li>第 2 章的估算能力直接决定你设计的方案规模对不对</li>
+<li>第 3 章的框架是你回答任何一道题的<strong>流程</strong></li>
+</ul>
+<p>跳过它们，后面会处处卡壳。</p>
+<h3 id="误区-5读完不做题">误区 5：读完不做题</h3>
+<p>系统设计是<strong>技能</strong>，不是知识。就像读游泳教材不会让你会游泳。</p>
+<p>每读完一个阶段，必须找真题练手，并且<strong>限时、写下来</strong>。写下来才会发现：脑子里想清楚的东西，落到纸上全是漏洞。</p>
+<hr />
+<h2 id="五怎么判断自己真的学懂了">五、怎么判断自己真的学懂了</h2>
+<p>用这三个问题自查每一章：</p>
+<ol>
+<li>
+<p><strong>能不能讲给一个没学过的人听？</strong>
+如果必须用术语才能解释清楚，说明你没真懂。比如&quot;缓存击穿就是热点 key 失效&quot;，这句话没有解释任何东西。</p>
+</li>
+<li>
+<p><strong>能不能说出它解决什么问题、代价是什么？</strong>
+任何只讲好处不讲代价的理解，都是不完整的。</p>
+</li>
+<li>
+<p><strong>能不能举出一个它不适用的场景？</strong>
+知道边界才算真正掌握。比如&quot;一致性哈希不适合什么场景&quot;——它不适合需要强一致顺序的场景，也不解决热点 key。</p>
+</li>
+</ol>
+<p>三个问题都答得上来，这一章就算过了。</p>
+<hr />
+<h2 id="六配套资源">六、配套资源</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>资源</th>
+<th>什么时候用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="prerequisites.html">前置知识清单</a></td>
+<td>开始之前，检查基础够不够</td>
+</tr>
+<tr>
+<td><a href="roadmap.html">学习路线图</a></td>
+<td>规划学习节奏</td>
+</tr>
+<tr>
+<td><a href="../appendix/glossary.html">术语表</a></td>
+<td>遇到不认识的术语随时查</td>
+</tr>
+<tr>
+<td><a href="../appendix/errata.html">勘误与补充汇总</a></td>
+<td>想快速检查自己的认知有没有问题</td>
+</tr>
+<tr>
+<td><a href="../appendix/interview.html">高频面试题速查</a></td>
+<td>面试前突击</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="七最后一句">七、最后一句</h2>
+<p>系统设计能力的本质是<strong>在信息不完备的情况下做权衡</strong>。</p>
+<p>这套笔记能给你的是&quot;别人已经踩过的坑&quot;和&quot;已经被验证过的模式&quot;。但它给不了你<strong>判断力</strong>——判断力只能来自：自己设计、自己搞砸、自己复盘。</p>
+<p>所以，<strong>读完一章就去设计一个东西</strong>。哪怕只是给你现在做的项目画一张架构图，也比读完 28 章不动手强。</p>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../"><span class="pg-label">&larr; 上一页</span><span class="pg-title">首页</span></a><a class="next" href="prerequisites.html"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">前置知识清单</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#一这套笔记是什么">一、这套笔记是什么</a>
+<a class="lv2" href="#二每章的结构以及各节怎么用">二、每章的结构，以及各节怎么用</a>
+<a class="lv3" href="#本章导读">本章导读</a>
+<a class="lv3" href="#你将学到">你将学到</a>
+<a class="lv3" href="#正文编号小节">正文（编号小节）</a>
+<a class="lv3" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#常见误区">常见误区</a>
+<a class="lv3" href="#面试速记">面试速记</a>
+<a class="lv3" href="#延伸阅读">延伸阅读</a>
+<a class="lv2" href="#三三种读法">三、三种读法</a>
+<a class="lv3" href="#读法-a精读推荐适合系统学习">读法 A：精读（推荐，适合系统学习）</a>
+<a class="lv3" href="#读法-b速通适合面试前突击">读法 B：速通（适合面试前突击）</a>
+<a class="lv3" href="#读法-c查漏适合已有经验的人">读法 C：查漏（适合已有经验的人）</a>
+<a class="lv2" href="#四五个常见的学习误区">四、五个常见的学习误区</a>
+<a class="lv3" href="#误区-1把术语背下来就算学会了">误区 1：把术语背下来就算学会了</a>
+<a class="lv3" href="#误区-2只看方案不看代价">误区 2：只看方案，不看代价</a>
+<a class="lv3" href="#误区-3以为存在标准答案">误区 3：以为存在&quot;标准答案&quot;</a>
+<a class="lv3" href="#误区-4跳过无聊的基础章">误区 4：跳过&quot;无聊&quot;的基础章</a>
+<a class="lv3" href="#误区-5读完不做题">误区 5：读完不做题</a>
+<a class="lv2" href="#五怎么判断自己真的学懂了">五、怎么判断自己真的学懂了</a>
+<a class="lv2" href="#六配套资源">六、配套资源</a>
+<a class="lv2" href="#七最后一句">七、最后一句</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../"};</script>
+<script src="../assets/app.js" defer></script>
+</body>
+</html>

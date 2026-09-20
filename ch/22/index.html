@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 22 章：酒店预订系统 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item active" href="./"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-22-章酒店预订系统">第 22 章：酒店预订系统</h1>
+<blockquote>
+<p>原章节：Hotel Reservation System · 原项目路径 <code>22. Hotel Reservation System/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>订酒店这件事看起来很简单：选日期、选房型、点「预订」、付款。但你有没有想过——<strong>同一间房，如果有 100 个人在同一秒点了「预订」，系统怎么保证只有 1 个人成功？</strong></p>
+<p>这就是本章的核心。它和前面章节最大的不同在于：<strong>这一章的难点不是「量」，而是「对」</strong>。酒店预订系统的 QPS 只有个位数（每天约 24 万笔订单，平均每秒不到 3 笔），量级小到单台数据库都能扛。但它的<strong>并发正确性</strong>要求极高——一次超卖就意味着有客人到了酒店却无房可住，这是真实世界里的重大事故。</p>
+<p>学完这一章，你会理解「查库存 → 扣库存」这个两步操作里藏着什么样的竞态条件，以及为什么「让数据库来做裁决」往往是最简洁可靠的方案。</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>预订类系统的需求澄清要点，以及「超卖 10%」这种业务规则怎么落到设计里</li>
+<li>为什么这类系统应该选关系型数据库，以及 ACID 在这里到底保护了什么</li>
+<li>「房间维度」和「房型维度」两种数据模型的区别，以及为什么酒店必须用房型</li>
+<li><strong>并发控制的五种方案对比</strong>：悲观锁、乐观锁、数据库约束、唯一索引、Redis 分布式锁</li>
+<li>库存预占模式：下单后 15 分钟未支付自动释放库存，这个「延迟任务」怎么实现</li>
+<li>幂等性：用户重复点击「提交订单」为什么只会生成一个订单</li>
+<li>分布式事务的四种取舍：2PC、TCC、Saga、本地消息表</li>
+<li>搜索与预订的一致性难题：「搜索页显示有房，点进去却售罄」怎么缓解</li>
+</ul>
+<hr />
+<h2 id="1-需求澄清与量级估算step-1">1. 需求澄清与量级估算（Step 1）</h2>
+<p>我们要设计一个类似万豪国际（Marriott）的酒店预订系统。这套设计同样适用于 Airbnb、机票预订、电影票选座——<strong>凡是「有限资源 + 时间维度 + 强一致扣减」的场景，都是同一个骨架</strong>。</p>
+<h3 id="需求澄清">需求澄清</h3>
+<p>面试第一步是把边界问清楚。原文的对话值得完整走一遍：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>提问</th>
+<th>回答</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>系统规模多大？</td>
+<td>连锁酒店，5000 家酒店、100 万间房</td>
+</tr>
+<tr>
+<td>用户是预订时付款，还是到店付款？</td>
+<td><strong>预订时全额付款</strong></td>
+</tr>
+<tr>
+<td>只能通过网站订吗？需要支持电话预订吗？</td>
+<td>只支持网站和 App</td>
+</tr>
+<tr>
+<td>用户可以取消预订吗？</td>
+<td>可以</td>
+</tr>
+<tr>
+<td>还有什么要考虑的？</td>
+<td><strong>允许超卖（Overbooking）10%</strong>。酒店会故意卖出比实际房间更多的房间，因为预期有客人会取消</td>
+</tr>
+<tr>
+<td>范围收敛</td>
+<td>聚焦于：酒店页面、房型详情页、预订、管理后台、支持超卖</td>
+</tr>
+<tr>
+<td>补充</td>
+<td><strong>酒店价格每天都会变</strong></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>「允许超卖 10%」是本章最重要的业务输入。</strong>
+这不是技术决策，而是酒店行业延续了几十年的收益管理（Revenue Management）实践：基于历史数据，酒店知道大约有 5%~15% 的预订会被取消或客人爽约（No-Show）。与其让这些房间空着，不如超额售卖，用「万一都来了就给客人升级房型或安排附近酒店」的代价换取更高的入住率。</p>
+<p><strong>注意：这个规则必须在数据模型和校验逻辑里被显式表达出来</strong>，而不是靠工程师「顺手」写个 <code>&lt;=</code> 判断。原文后面的 CHECK 约束就在这里出了错，我们会在勘误里详细讨论。</p>
+</blockquote>
+<h3 id="非功能需求">非功能需求</h3>
+<ul>
+<li><strong>支持高并发</strong>：旺季时可能大量用户抢订同一家酒店。</li>
+<li><strong>中等延迟</strong>：用户下单时延迟越低越好，但<strong>几秒钟也可以接受</strong>。</li>
+</ul>
+<blockquote>
+<p>「几秒钟也可以接受」这个回答很关键。它意味着你<strong>不需要</strong>为了极致性能牺牲一致性——这个宽松的延迟预算，让「用数据库事务来保证正确性」成为一个完全可行的方案。<strong>如果面试官要求 100 毫秒内完成扣库存，整个设计思路就得换成 Redis + 异步落库了。</strong></p>
+</blockquote>
+<h3 id="量级估算">量级估算</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>计算</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>总房间数</td>
+<td>题设</td>
+<td>100 万间</td>
+</tr>
+<tr>
+<td>平均入住率</td>
+<td>题设</td>
+<td>70%</td>
+</tr>
+<tr>
+<td>平均入住天数</td>
+<td>题设</td>
+<td>3 天</td>
+</tr>
+<tr>
+<td>每日预订数</td>
+<td>100 万 × 0.7 ÷ 3</td>
+<td><strong>约 24 万笔/天</strong></td>
+</tr>
+<tr>
+<td>平均预订 TPS</td>
+<td>24 万 ÷ 86,400 秒</td>
+<td><strong>约 3 笔/秒</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>平均每秒 3 笔预订——这个量级小得惊人。</strong> 单台 MySQL 轻松扛住。</p>
+<h4 id="但真正要估算的是读-qps">但真正要估算的是「读 QPS」</h4>
+<p>预订只是漏斗的最后一环。原文给出了一个很实用的<strong>转化漏斗反推法</strong>：</p>
+<p>假设从「浏览酒店详情页」到「打开预订页」再到「完成预订」，每一步的转化率是 <strong>10%</strong>：</p>
+<pre><code>酒店详情页浏览   300 次/秒
+      ↓ 10% 转化
+预订页面打开      30 次/秒
+      ↓ 10% 转化
+完成预订           3 次/秒
+</code></pre>
+<div align="center"><img src="./images/qps-estimation.png" alt="从预订量反推各页面的 QPS 漏斗" width="520" loading="lazy" decoding="async"></div>
+<p><strong>为什么要这样反推？</strong> 因为它决定了缓存和 CDN 的设计重点：</p>
+<ul>
+<li><strong>酒店详情页 300 QPS</strong>：这是最大的一股流量，而且内容是<strong>静态的</strong>（酒店介绍、图片、设施）。→ 适合<strong>强缓存 + CDN</strong>。</li>
+<li><strong>预订页 30 QPS</strong>：需要展示实时房态和价格。→ 适合<strong>短 TTL 缓存</strong>。</li>
+<li><strong>预订 3 TPS</strong>：必须走数据库事务。→ <strong>不能缓存，必须强一致</strong>。</li>
+</ul>
+<blockquote>
+<p><strong>这套「读多写少 + 读写要求完全不同」的流量特征，是预订类系统的通用形态。</strong> 面试时主动把这个漏斗画出来，能立刻体现出你在思考「流量从哪来、瓶颈在哪」。</p>
+</blockquote>
+<hr />
+<h2 id="2-api-设计">2. API 设计</h2>
+<p>原文聚焦核心接口（RESTful 风格）。一个完整的系统还需要大量「按各种条件搜索房间」的接口，但那些<strong>技术上没有挑战性</strong>，属于范围外。</p>
+<p><strong>酒店相关</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>路径</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/hotels/{id}</code></td>
+<td>获取酒店详情</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/hotels</code></td>
+<td>新增酒店（仅运营人员）</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><code>/v1/hotels/{id}</code></td>
+<td>更新酒店信息（仅运营人员）</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/v1/hotels/{id}</code></td>
+<td>删除酒店（仅运营人员）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>房间相关</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>路径</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/hotels/{id}/rooms/{id}</code></td>
+<td>获取房间详情</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/hotels/{id}/rooms</code></td>
+<td>新增房间（仅运营人员）</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><code>/v1/hotels/{id}/rooms/{id}</code></td>
+<td>更新房间信息（仅运营人员）</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/v1/hotels/{id}/rooms/{id}</code></td>
+<td>删除房间（仅运营人员）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>预订相关</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>路径</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/reservations</code></td>
+<td>获取当前用户的预订历史</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/v1/reservations/{id}</code></td>
+<td>获取预订详情</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/v1/reservations</code></td>
+<td>创建预订</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/v1/reservations/{id}</code></td>
+<td>取消预订</td>
+</tr>
+</tbody>
+</table></div>
+<p>创建预订的请求体：</p>
+<pre><code class="language-json">{
+  &quot;startDate&quot;: &quot;2021-04-28&quot;,
+  &quot;endDate&quot;: &quot;2021-04-30&quot;,
+  &quot;hotelID&quot;: &quot;245&quot;,
+  &quot;roomID&quot;: &quot;U12354673389&quot;,
+  &quot;reservationID&quot;: &quot;13422445&quot;
+}
+</code></pre>
+<blockquote>
+<p><strong>注意 <code>reservationID</code> 这个字段——它是一个幂等键（Idempotency Key）</strong>，用来防止重复预订。原文特别标注了这一点，第 6 节会详细展开。</p>
+<p><strong>它的设计很巧妙</strong>：这个 ID <strong>不是</strong>后端在收到请求时生成的，而是<strong>前端在用户打开填写页面时就生成好的</strong>（比如用 UUID）。这样用户重复提交时，携带的是同一个 ID，后端一眼就能识别出这是重复请求。<strong>这是幂等键的通用模式</strong>：客户端生成、服务端校验。</p>
+</blockquote>
+<hr />
+<h2 id="3-数据模型">3. 数据模型</h2>
+<h3 id="为什么选关系型数据库">为什么选关系型数据库</h3>
+<p>选型前先看访问模式。系统要支持四类查询：</p>
+<ul>
+<li>查看酒店详情</li>
+<li><strong>在给定日期范围内查找可用房型</strong></li>
+<li>记录一笔预订</li>
+<li>查询某笔预订或历史记录</li>
+</ul>
+<p>原文给出的四条理由，条条都指向关系型数据库：</p>
+<ol>
+<li><strong>关系型数据库适合读多写少的系统</strong>。我们算过，预订只有 3 TPS，而页面浏览有 300 QPS——典型的读多写少。</li>
+<li><strong>NoSQL 通常为写入优化，但我们的写入很少</strong>。用户从浏览到下单的转化率很低，写压力天然就小。</li>
+<li><strong>关系型数据库提供 ACID 保证</strong>。原文说得非常直接：<strong>没有 ACID，我们就无法防止「余额变成负数」「重复扣款」这类问题。</strong></li>
+<li><strong>数据结构清晰，关系型模型天然贴合</strong>。</li>
+</ol>
+<blockquote>
+<p><strong>第 3 条是本章的灵魂。</strong> 很多人学 NoSQL 时会觉得「NoSQL 更现代、更容易扩展」，但在<strong>扣减类业务</strong>上，ACID 是无可替代的。</p>
+<p>我们具体说说 ACID 在这里保护了什么：</p>
+<ul>
+<li><strong>原子性（Atomicity）</strong>：扣库存和写订单必须同生共死。不能出现「库存扣了但订单没写」。</li>
+<li><strong>一致性（Consistency）</strong>：库存不能变成负数。</li>
+<li><strong>隔离性（Isolation）</strong>：两个并发事务不能都看到「还剩 1 间」然后都去扣。</li>
+<li><strong>持久性（Durability）</strong>：用户付了钱，订单就绝对不能丢。</li>
+</ul>
+<p><strong>如果你用 NoSQL，这四条都要自己在应用层重新实现一遍</strong>，而且极难做对。<strong>在写入量不大的场景下，用关系型数据库换 ACID，是一笔极其划算的交易。</strong></p>
+</blockquote>
+<h3 id="初始-schema">初始 Schema</h3>
+<div align="center"><img src="./images/schema-design.png" alt="初始数据模型：hotel、room、reservation、room_type_rate、guest" width="520" loading="lazy" decoding="async"></div>
+<p>初始设计里有五张表，分属三个服务：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>服务</th>
+<th>表</th>
+<th>关键字段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hotel Service</td>
+<td><code>hotel</code></td>
+<td><code>hotel_id</code>(PK)、name、address、location</td>
+</tr>
+<tr>
+<td>Hotel Service</td>
+<td><code>room</code></td>
+<td><code>room_id</code>(PK)、<code>room_type_id</code>、floor、number、<code>hotel_id</code>、name、<code>is_available</code></td>
+</tr>
+<tr>
+<td>Rate Service</td>
+<td><code>room_type_rate</code></td>
+<td><code>hotel_id</code>(PK)、date(PK)、rate</td>
+</tr>
+<tr>
+<td>Reservation Service</td>
+<td><code>reservation</code></td>
+<td><code>reservation_id</code>(PK)、<code>hotel_id</code>、<code>room_id</code>、start_date、end_date、status、<code>guest_id</code></td>
+</tr>
+<tr>
+<td>Guest Service</td>
+<td><code>guest</code></td>
+<td><code>guest_id</code>(PK)、first_name、last_name、email</td>
+</tr>
+</tbody>
+</table></div>
+<p>原文说「大部分字段都是自解释的，唯一值得提的是 <code>status</code> 字段，它代表某个房间的状态机」：</p>
+<div align="center"><img src="./images/status-state-machine.png" alt="预订状态机：Pending → Paid / Canceled / Rejected，Paid → Refunded" width="520" loading="lazy" decoding="async"></div>
+<p>状态机的流转是：</p>
+<pre><code>                ┌─→ Canceled（用户取消）
+                │
+Pending ────────┼─→ Paid（付款成功）─→ Refunded（退款）
+                │
+                └─→ Rejected（预订被拒，如库存不足）
+</code></pre>
+<blockquote>
+<p><strong>这里原文的表述有一处小错误</strong>：它说 <code>status</code> 代表「某个房间的状态机」，但从状态机图来看，Pending / Paid / Canceled / Rejected / Refunded 显然是<strong>一笔预订（reservation）的生命周期</strong>，而不是房间的。房间的状态只有「可用 / 不可用」。详见勘误 4。</p>
+<p>另外，<strong>这个状态机在后面的并发设计里会扮演关键角色</strong>——「取消预订」不是删除记录，而是把 <code>status</code> 从 <code>Paid</code> 改成 <code>Canceled</code> 并<strong>把库存加回去</strong>。<strong>用状态机而不是删除，是为了保留审计轨迹</strong>（谁在什么时候取消了哪笔订单），这在涉及资金的系统里是必须的。</p>
+</blockquote>
+<p>原文还诚实地指出了这个模型的局限：<strong>它适合 Airbnb，但不适合酒店。</strong></p>
+<p>为什么？因为在 Airbnb 上你订的是<strong>一整套具体的房源</strong>（这个房东的这套房子），而在酒店里，你订的是<strong>一种房型</strong>（比如「大床房」），<strong>具体住哪一间是入住时才分配的</strong>。所以 <code>reservation</code> 表里存一个 <code>room_id</code> 是错的。这个缺陷会在第 5 节修正。</p>
+<hr />
+<h2 id="4-高层设计">4. 高层设计</h2>
+<p>原文选择<strong>微服务架构（Microservice Architecture）</strong>：</p>
+<div align="center"><img src="./images/high-level-design.png" alt="酒店预订系统的高层微服务架构" width="520" loading="lazy" decoding="async"></div>
+<p>各个组件：</p>
+<ul>
+<li><strong>用户（Users）</strong>：通过手机或电脑预订房间。</li>
+<li><strong>管理员（Admin）</strong>：执行退款、取消付款等管理操作。</li>
+<li><strong>CDN</strong>：缓存 JS 包、图片、视频等静态资源。</li>
+<li><strong>公共 API 网关（Public API Gateway）</strong>：全托管服务，负责限流、鉴权等。</li>
+<li><strong>内部 API（Internal APIs）</strong>：只对授权人员可见，通常由 VPN 保护。</li>
+<li><strong>酒店服务（Hotel Service）</strong>：提供酒店和房间的详情。<strong>酒店和房间数据是静态的，所以可以激进地缓存。</strong></li>
+<li><strong>价格服务（Rate Service）</strong>：提供未来不同日期的房价。原文指出了一个有趣的领域特征：<strong>房价取决于酒店当天的入住率</strong>——住得越满，价格越高。</li>
+<li><strong>预订服务（Reservation Service）</strong>：接收预订请求、锁定房间，并随着预订/取消<strong>追踪房间库存</strong>。</li>
+<li><strong>支付服务（Payment Service）</strong>：处理支付，成功后更新预订状态。</li>
+<li><strong>酒店管理服务（Hotel Management Service）</strong>：仅授权人员可用，提供管理和查看预订、酒店等后台功能。</li>
+</ul>
+<p>服务间通信用 <strong>RPC 框架</strong>，比如 <strong>gRPC</strong>。</p>
+<blockquote>
+<p><strong>为什么用 gRPC 而不是 REST？</strong> 服务内部通信的两个诉求是<strong>低延迟</strong>和<strong>强类型契约</strong>：</p>
+<ul>
+<li>gRPC 基于 HTTP/2，支持多路复用和头部压缩，比 HTTP/1.1 的 REST 更省带宽、延迟更低。</li>
+<li>用 Protocol Buffers 定义接口，<strong>编译期就能发现接口不匹配</strong>，而不是等运行时 500。</li>
+<li>自动生成多语言客户端代码。</li>
+</ul>
+<p>但 gRPC 对外部客户端不友好（浏览器支持有限），所以通常是<strong>对外 REST / 对内 gRPC</strong> 的组合。</p>
+</blockquote>
+<h3 id="一个关键的架构取舍">一个关键的架构取舍</h3>
+<p>注意原文在预订服务里做的一个决定：<strong>预订服务和库存管理被放在同一个服务里</strong>，共享同一个关系型数据库。</p>
+<p>这个决定在后面「服务间数据一致性」一节会被面试官挑战（因为它不是「纯」微服务——纯微服务要求每个服务有独立数据库）。原文对此的解释是：<strong>我们想利用关系型数据库的 ACID 来保证一致性</strong>。</p>
+<p><strong>这是一个非常成熟、非常务实的判断</strong>，我们在第 11 节详细展开。</p>
+<hr />
+<h2 id="5-改进的数据模型从具体房间到房型">5. 改进的数据模型：从「具体房间」到「房型」</h2>
+<h3 id="api-的修正">API 的修正</h3>
+<p>预订 API 不再预订 <code>roomID</code>，而是预订 <code>roomTypeID</code>：</p>
+<pre><code class="language-json">POST /v1/reservations
+{
+  &quot;startDate&quot;: &quot;2021-04-28&quot;,
+  &quot;endDate&quot;: &quot;2021-04-30&quot;,
+  &quot;hotelID&quot;: &quot;245&quot;,
+  &quot;roomTypeID&quot;: &quot;12354673389&quot;,
+  &quot;roomCount&quot;: &quot;3&quot;,
+  &quot;reservationID&quot;: &quot;13422445&quot;
+}
+</code></pre>
+<p>新增了 <code>roomCount</code>——用户可以一次订多间。</p>
+<h3 id="修正后的-schema">修正后的 Schema</h3>
+<div align="center"><img src="./images/updated-schema.png" alt="改进后的数据模型：新增 room_type_inventory 表" width="520" loading="lazy" decoding="async"></div>
+<p>关键变化：</p>
+<ul>
+<li><code>reservation.room_id</code> → <code>reservation.room_type_id</code>（订的是房型）</li>
+<li>新增 <strong><code>room_type_inventory</code></strong> 表（库存表）</li>
+</ul>
+<p><code>room_type_inventory</code> 的字段：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hotel_id</code></td>
+<td>酒店 ID</td>
+</tr>
+<tr>
+<td><code>room_type_id</code></td>
+<td>房型 ID</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td><strong>单个日期</strong></td>
+</tr>
+<tr>
+<td><code>total_inventory</code></td>
+<td>总房间数，减去被临时下架的房间</td>
+</tr>
+<tr>
+<td><code>total_reserved</code></td>
+<td>该（酒店、房型、日期）已预订的房间数</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>这张表的设计精髓在于「日期粒度」</strong>：不是存「入住区间」，而是<strong>把每个日期拆成独立的一行</strong>。</p>
+<blockquote>
+<p><strong>为什么要这么拆？</strong> 这是本章最值得学习的一个设计手法。</p>
+<p>假设不拆日期，直接存 <code>(start_date, end_date, total_reserved)</code>。那么「判断某几天是否有房」就变成了<strong>区间重叠判断</strong>：</p>
+<pre><code class="language-sql">-- 判断新预订 [S2, E2) 与已有预订 [S1, E1) 是否冲突
+WHERE NOT (E2 &lt;= S1 OR S2 &gt;= E1)
+</code></pre>
+<p>这类查询<strong>用不上索引</strong>（因为不是等值匹配），而且<strong>并发控制的粒度会变得很粗</strong>——你没法简单地「锁定某一天」。</p>
+<p>拆成「一行一天」之后：</p>
+<ul>
+<li>查询变成<strong>等值 + 范围</strong>匹配，索引友好。</li>
+<li><strong>并发控制的粒度精确到「某酒店某房型的某一天」</strong>，锁的冲突范围最小。</li>
+<li>统计某天的入住率、某天的收入，都是一句简单的聚合。</li>
+</ul>
+<p><strong>代价是数据行数膨胀</strong>。住 3 天的订单要写 3 行。我们来算一下总量。</p>
+</blockquote>
+<p>原文的存储估算：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>项</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>酒店数</td>
+<td>5,000</td>
+</tr>
+<tr>
+<td>每家酒店的房型数</td>
+<td>20</td>
+</tr>
+<tr>
+<td>时间跨度</td>
+<td>2 年</td>
+</tr>
+<tr>
+<td>天数</td>
+<td>365 × 2 = 730</td>
+</tr>
+<tr>
+<td><strong>总行数</strong></td>
+<td>5,000 × 20 × 730 = <strong>7,300 万行</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>7300 万行不算大，单台数据库服务器就能处理。</strong> 但为了高可用，原文建议做<strong>读复制（Read Replication）</strong>，最好是**跨可用区（Zone）**部署。</p>
+<blockquote>
+<p>补充一个量级感知：7300 万行、每行大约 60 字节（4 个字段），总数据量约 <strong>4~5 GB</strong>。这在今天连一台普通服务器的内存都装得下。<strong>所以本章的瓶颈从头到尾都不是「数据量」，而是「并发正确性」。</strong></p>
+</blockquote>
+<h3 id="表是怎么被填充的">表是怎么被填充的</h3>
+<p><code>room_type_inventory</code> 的行由**每日定时任务（Daily CRON Job）**预先生成。例如今天生成「从明天起未来两年」的所有行。</p>
+<p>示例数据：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>hotel_id</th>
+<th>room_type_id</th>
+<th>date</th>
+<th>total_inventory</th>
+<th>total_reserved</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>211</td>
+<td>1001</td>
+<td>2021-06-01</td>
+<td>100</td>
+<td>80</td>
+</tr>
+<tr>
+<td>211</td>
+<td>1001</td>
+<td>2021-06-02</td>
+<td>100</td>
+<td>82</td>
+</tr>
+<tr>
+<td>211</td>
+<td>1001</td>
+<td>2021-06-03</td>
+<td>100</td>
+<td>86</td>
+</tr>
+<tr>
+<td>211</td>
+<td>1001</td>
+<td>...</td>
+<td>...</td>
+<td></td>
+</tr>
+<tr>
+<td>211</td>
+<td>1001</td>
+<td>2023-05-31</td>
+<td>100</td>
+<td>0</td>
+</tr>
+<tr>
+<td>211</td>
+<td>1002</td>
+<td>2021-06-01</td>
+<td>200</td>
+<td>16</td>
+</tr>
+<tr>
+<td>2210</td>
+<td>101</td>
+<td>2021-06-01</td>
+<td>30</td>
+<td>23</td>
+</tr>
+<tr>
+<td>2210</td>
+<td>101</td>
+<td>2021-06-02</td>
+<td>30</td>
+<td>25</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="查询可用性">查询可用性</h3>
+<p>检查某个房型在日期范围内的库存：</p>
+<pre><code class="language-sql">SELECT date, total_inventory, total_reserved
+FROM room_type_inventory
+WHERE room_type_id = ${roomTypeId}
+  AND hotel_id = ${hotelId}
+  AND date BETWEEN ${startDate} AND ${endDate};
+</code></pre>
+<p>判断是否有足够房间（注意：支持 10% 超卖）：</p>
+<pre><code>if (total_reserved + ${numberOfRoomsToReserve}) &lt;= 110% * total_inventory
+</code></pre>
+<blockquote>
+<p><strong>注意这里的 <code>110%</code> 是一个硬编码的业务规则。</strong> 生产环境里它应该是一个<strong>可配置参数</strong>，甚至可以按酒店、按房型、按日期区间分别配置（旺季超卖比例低，淡季可以更高）。<strong>把业务规则写死在 SQL 里，是初学者最容易埋下的技术债之一。</strong></p>
+</blockquote>
+<h3 id="如果数据量再大-100-倍怎么办">如果数据量再大 100 倍怎么办</h3>
+<p>原文给出了两个追问方向的答案：</p>
+<ol>
+<li><strong>只存当前和未来的预订数据</strong>。历史预订可以归档到<strong>冷存储</strong>。</li>
+<li><strong>数据库分片（Sharding）</strong>。可以按 <code>hash(hotel_id) % server_count</code> 分片，因为<strong>我们所有的查询都带 <code>hotel_id</code></strong>。</li>
+</ol>
+<blockquote>
+<p><strong>第 2 点的理由非常重要</strong>：分片键的选择标准就是「<strong>是不是查询的主要维度</strong>」。如果所有查询都带 <code>hotel_id</code>，那么按 <code>hotel_id</code> 分片后，每个查询都只会落到<strong>一个分片</strong>上，不需要跨分片聚合。<strong>这就是「分片键要让查询局部化」的含义。</strong></p>
+</blockquote>
+<hr />
+<h2 id="6-并发问题本章的核心">6. 并发问题：本章的核心</h2>
+<p>原文把重复预订（Double Booking）分成两类问题：</p>
+<ol>
+<li><strong>同一个用户点了两次「预订」按钮</strong></li>
+<li><strong>多个用户同时抢订同一间房</strong></li>
+</ol>
+<p>这两类问题的<strong>根因不同，解法也完全不同</strong>——这是初学者最容易混淆的地方。</p>
+<h3 id="问题一同一用户重复提交">问题一：同一用户重复提交</h3>
+<div align="center"><img src="./images/double-booking-single-user.png" alt="同一用户重复点击预订按钮导致两笔订单" width="520" loading="lazy" decoding="async"></div>
+<p><strong>根因</strong>：用户手抖、网络慢导致用户以为没点上又点一次、或者浏览器重试。<strong>这是「同一个请求被执行了多次」的问题。</strong></p>
+<p><strong>方案 A：前端处理</strong>——点击后禁用按钮。</p>
+<blockquote>
+<p><strong>原文的评价非常到位</strong>：「如果用户禁用了 JavaScript，他们就看不到按钮变灰了。」
+换句话说：<strong>前端校验只是体验优化，不是正确性保证。</strong> 任何依赖前端来保证数据正确的设计，都是错的。前端可以被绕过（禁用 JS、改请求、直接调 API），<strong>正确性必须由服务端保证</strong>。</p>
+</blockquote>
+<p><strong>方案 B：幂等 API（Idempotent API）</strong>——在 API 里加一个幂等键，让「无论调用多少次，动作只执行一次」。</p>
+<div align="center"><img src="./images/idempotency.png" alt="用 reservation_id 作为幂等键避免重复下单" width="520" loading="lazy" decoding="async"></div>
+<p>完整流程：</p>
+<ol>
+<li>用户进入填写信息页面时，系统就<strong>生成一个预订订单号</strong>（全局唯一标识符）。</li>
+<li>提交预订时，携带这个 <code>reservation_id</code>。</li>
+<li>如果用户第二次点「完成预订」，携带的是<strong>同一个 <code>reservation_id</code></strong>，后端能识别出这是重复请求。</li>
+<li>去重靠的是 <strong><code>reservation_id</code> 列上的唯一约束（Unique Constraint）</strong>——数据库层面拒绝写入两条相同 ID 的记录。</li>
+</ol>
+<div align="center"><img src="./images/unique-constraint-violation.png" alt="唯一约束冲突：数据库拒绝写入重复的 reservation_id" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>为什么这个方案是对的？</strong> 因为它把「去重」这个职责交给了<strong>唯一可靠的裁决者——数据库</strong>。</p>
+<p>应用层的去重（先查一下有没有、再决定插不插）永远有竞态窗口：两个请求同时查到「不存在」，然后都去插入。<strong>只有数据库的唯一索引是在存储引擎层面原子生效的</strong>，天然没有竞态。</p>
+<p><strong>这是本章反复出现的核心思想：把并发裁决权交给数据库，而不是交给应用代码。</strong></p>
+</blockquote>
+<p><strong>幂等 API 的完整工程实现</strong>（原文只讲了唯一约束，这里补充生产环境的做法）：</p>
+<pre><code>① 客户端生成 Idempotency-Key（UUID），随请求发送
+② 服务端在「幂等表」里尝试 INSERT 这个 key
+   - 成功 → 继续执行业务逻辑
+   - 唯一约束冲突 → 说明是重复请求，直接返回上次的结果
+③ 幂等表记录：key、请求参数指纹、响应结果、状态、创建时间
+④ 幂等表设 TTL（如 24 小时），定期清理
+</code></pre>
+<p><strong>两个必须注意的细节：</strong></p>
+<ul>
+<li><strong>要存「响应结果」而不只是「key」</strong>。否则第二次请求虽然知道是重复，但拿不到第一次的结果，用户界面还是错的。</li>
+<li><strong>要校验「请求参数指纹」</strong>。如果有人用同一个 key 发了不同的参数（客户端 bug 或恶意），应该拒绝而不是返回旧结果。</li>
+</ul>
+<h3 id="问题二多用户并发抢订">问题二：多用户并发抢订</h3>
+<div align="center"><img src="./images/double-booking-multiple-users.png" alt="两个用户并发抢订导致超卖" width="520" loading="lazy" decoding="async"></div>
+<p>这是<strong>真正的并发问题</strong>。原文的推演（假设事务隔离级别<strong>不是</strong>可串行化 Serializable）：</p>
+<pre><code>初始：total_inventory = 100, total_reserved = 99
+
+时间 →
+  事务1: SELECT ... → 看到 99 &lt; 100，有房 ✓
+  事务2: SELECT ... → 看到 99 &lt; 100，有房 ✓     ← 两个事务都通过了检查
+  事务2: UPDATE total_reserved = 100 → COMMIT
+  事务1: UPDATE total_reserved = 101 → COMMIT   ← 事务1 基于过期的快照做决定
+</code></pre>
+<p><strong>结果：卖出去了 101 间房，但只有 100 间。</strong></p>
+<blockquote>
+<p><strong>这个问题的学名叫「检查后使用竞态」（Time-of-Check to Time-of-Use，TOCTOU）。</strong>
+它的通用形态是：<strong>你先读一个值做判断，然后基于这个判断去写。如果读和写之间没有原子性保证，判断就可能已经过期了。</strong></p>
+<p>这个模式在系统设计里无处不在：</p>
+<ul>
+<li>检查用户名是否被占用 → 然后注册</li>
+<li>检查余额是否足够 → 然后扣款</li>
+<li>检查库存是否足够 → 然后扣库存</li>
+<li>检查文件是否存在 → 然后创建文件</li>
+</ul>
+<p><strong>识别出「这是一段 check-then-act 代码」，是解决所有并发问题的第一步。</strong></p>
+</blockquote>
+<p>原文给出的原始 SQL：</p>
+<pre><code class="language-sql">-- 第 1 步：检查库存
+SELECT date, total_inventory, total_reserved
+FROM room_type_inventory
+WHERE room_type_id = ${roomTypeId}
+  AND hotel_id = ${hotelId}
+  AND date BETWEEN ${startDate} AND ${endDate};
+
+-- 对第 1 步返回的每一行：
+-- if ((total_reserved + ${numberOfRoomsToReserve}) &gt; 110% * total_inventory) {
+--   Rollback;
+-- }
+
+-- 第 2 步：扣减库存
+UPDATE room_type_inventory
+SET total_reserved = total_reserved + ${numberOfRoomsToReserve}
+WHERE room_type_id = ${roomTypeId}
+  AND date BETWEEN ${startDate} AND ${endDate};
+
+COMMIT;
+</code></pre>
+<blockquote>
+<p><strong>⚠️ 上面这段 SQL 有一个真实的 bug</strong>：第 2 步的 <code>UPDATE</code> <strong>漏掉了 <code>hotel_id</code> 过滤条件</strong>。如果不同酒店存在相同的 <code>room_type_id</code>，这个 UPDATE 会误改其他酒店的库存。原文的示例代码和前面给出的 SELECT 不一致。详见勘误 2。</p>
+</blockquote>
+<p>原文提出三类解法：<strong>悲观锁、乐观锁、数据库约束</strong>。我们逐一分析，并补充另外两类在真实工程里常用的方案。</p>
+<hr />
+<h2 id="7-并发控制方案对比原文三方案">7. 并发控制方案对比（原文三方案）</h2>
+<h3 id="方案一悲观锁pessimistic-locking">方案一：悲观锁（Pessimistic Locking）</h3>
+<p><strong>核心思想</strong>：假设冲突一定会发生，所以在读取时就直接加锁，把并发变成串行。</p>
+<p>在 MySQL 里用 <code>SELECT ... FOR UPDATE</code> 实现——它锁定查询选中的行，直到事务提交才释放。</p>
+<div align="center"><img src="./images/pessimistic-locking.png" alt="悲观锁：SELECT FOR UPDATE 锁定库存行" width="520" loading="lazy" decoding="async"></div>
+<pre><code class="language-sql">BEGIN;
+-- 加排他锁，其他事务的 FOR UPDATE 会被阻塞
+SELECT date, total_inventory, total_reserved
+FROM room_type_inventory
+WHERE hotel_id = ${hotelId}
+  AND room_type_id = ${roomTypeId}
+  AND date BETWEEN ${startDate} AND ${endDate}
+FOR UPDATE;
+
+-- 检查（此时锁已持有，其他事务看不到中间状态）
+-- 若不满足，ROLLBACK
+
+UPDATE room_type_inventory
+SET total_reserved = total_reserved + ${numberOfRoomsToReserve}
+WHERE hotel_id = ${hotelId}
+  AND room_type_id = ${roomTypeId}
+  AND date BETWEEN ${startDate} AND ${endDate};
+
+COMMIT;  -- 释放锁
+</code></pre>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>阻止应用更新「正在被修改」的数据</li>
+<li><strong>实现简单</strong>，通过串行化更新来避免冲突。<strong>数据争用（Data Contention）严重时很有效</strong></li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>锁定多个资源时<strong>可能死锁（Deadlock）</strong></li>
+<li><strong>扩展性差</strong>——如果事务锁太久，会影响所有试图访问该资源的其他事务</li>
+<li>当查询选中大量行、且事务很长时，影响尤其严重</li>
+</ul>
+<p><strong>原文作者的结论：由于扩展性问题，不推荐这个方案。</strong></p>
+<blockquote>
+<p><strong>补充两个原文没讲、但工程上必须知道的关键细节：</strong></p>
+<p><strong>① <code>FOR UPDATE</code> 的锁范围取决于索引。</strong> 在 MySQL InnoDB 里，如果 <code>WHERE</code> 条件用不上索引，<code>FOR UPDATE</code> 会<strong>锁住扫描过的所有行</strong>，极端情况下相当于锁表。所以用悲观锁的前提是——<strong><code>(hotel_id, room_type_id, date)</code> 上必须有合适的复合索引</strong>。</p>
+<p><strong>② 死锁的常见诱因是「加锁顺序不一致」。</strong> 如果事务 A 先锁 6 月 1 日再锁 6 月 2 日，事务 B 先锁 6 月 2 日再锁 6 月 1 日，就会死锁。<strong>标准解法是让所有事务按同一个顺序加锁</strong>——比如在应用层<strong>把日期排序后再依次加锁</strong>。这是一个非常实用的小技巧。</p>
+<p><strong>③ 悲观锁并非一无是处。</strong> 原文说「不推荐」，理由是高争用下会阻塞。但在<strong>争用极高</strong>的场景下，乐观锁的失败率会接近 100%（所有人都在重试），此时悲观锁反而更稳定——因为它把「大量重试」变成了「有序排队」。<strong>准确的说法是：低争用用乐观锁，高争用用悲观锁或排队机制。</strong> 本章的预订场景（3 TPS）属于低争用，所以乐观锁更合适。</p>
+</blockquote>
+<h3 id="方案二乐观锁optimistic-locking">方案二：乐观锁（Optimistic Locking）</h3>
+<p><strong>核心思想</strong>：假设冲突很少发生，所以<strong>不加锁</strong>，但在写入时检查「数据有没有被别人改过」。如果改过了，就失败重试。</p>
+<p>两种常见实现：<strong>版本号（Version Number）</strong> 和 <strong>时间戳（Timestamp）</strong>。<strong>推荐用版本号，因为服务器时钟可能不准。</strong></p>
+<div align="center"><img src="./images/optimistic-locking.png" alt="乐观锁：通过 version 列检测并发修改" width="520" loading="lazy" decoding="async"></div>
+<p>工作流程：</p>
+<ol>
+<li>在表里加一个 <code>version</code> 列。</li>
+<li>修改前先<strong>读出</strong>版本号。</li>
+<li>更新时把版本号 +1 写回。</li>
+<li><strong>数据库校验：如果新的版本号没有超过之前的版本号，就拒绝这次更新。</strong></li>
+</ol>
+<pre><code class="language-sql">-- 读取时拿到 version
+SELECT total_reserved, version FROM room_type_inventory
+WHERE hotel_id = ${hotelId} AND room_type_id = ${roomTypeId} AND date = ${date};
+-- 假设读到 version = 7, total_reserved = 99
+
+-- 更新时带上 version 条件
+UPDATE room_type_inventory
+SET total_reserved = total_reserved + ${n},
+    version = version + 1
+WHERE hotel_id = ${hotelId}
+  AND room_type_id = ${roomTypeId}
+  AND date = ${date}
+  AND version = 7;          -- ← 关键：版本不匹配则影响 0 行
+
+-- 应用层检查：affected_rows == 0 说明有人抢先改了，需要重试或报错
+</code></pre>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>阻止应用修改<strong>过期数据（Stale Data）</strong></li>
+<li><strong>不需要在数据库里加锁</strong></li>
+<li><strong>数据争用低时（很少发生更新冲突）是首选</strong></li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><strong>数据争用高时性能很差</strong>（大量失败重试）</li>
+</ul>
+<p><strong>原文结论：预订 QPS 不高，所以乐观锁对本系统是个好选择。</strong></p>
+<blockquote>
+<p><strong>这里要补充一个原文说得不够精确的地方</strong>：原文说「数据库校验会阻止插入，如果新版本号没超过之前的版本号」。准确的说法是——<strong><code>UPDATE ... WHERE version = 7</code> 在版本不匹配时「影响 0 行」，而不是「报错」</strong>。应用必须<strong>主动检查受影响行数</strong>，否则会静默地什么都不做，用户以为下单成功了但其实没有。这是一个真实且高频的 bug。</p>
+<p><strong>另外，乐观锁的「重试」要小心</strong>：必须设置<strong>最大重试次数</strong>（比如 3 次）和<strong>退避（Backoff）</strong>，否则高并发下会形成「重试风暴」，把数据库打得更惨。</p>
+</blockquote>
+<h3 id="方案三数据库约束database-constraints">方案三：数据库约束（Database Constraints）</h3>
+<p>原文的说法是：<strong>这个方案和乐观锁非常相似，只是把守卫（Guardrail）换成了数据库约束。</strong></p>
+<pre><code class="language-sql">CONSTRAINT `check_room_count` CHECK((`total_inventory - total_reserved` &gt;= 0))
+</code></pre>
+<div align="center"><img src="./images/database-constraint.png" alt="数据库 CHECK 约束拦截超卖" width="520" loading="lazy" decoding="async"></div>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>实现最简单</strong></li>
+<li>数据争用小的时候工作良好</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>和乐观锁类似，<strong>数据争用高时性能差</strong></li>
+<li><strong>数据库约束不像应用代码那样容易做版本控制</strong>（迁移脚本管理麻烦）</li>
+<li><strong>不是所有数据库都支持约束</strong>（MySQL 8.0.16 之前会静默忽略 CHECK 约束）</li>
+</ul>
+<p><strong>原文结论：因为实现简单，这对酒店预订系统也是一个好选择。</strong></p>
+<blockquote>
+<p><strong>⚠️ 这里原文有一个真实且重要的错误，必须指出：</strong></p>
+<p>上面那条约束是 <code>CHECK(total_inventory - total_reserved &gt;= 0)</code>，也就是**「已预订不能超过总库存」<strong>。但本章的需求明确说了</strong>要支持 10% 的超卖**！这条约束会<strong>直接禁止超卖</strong>，和业务需求矛盾。</p>
+<p>正确的约束应该是：</p>
+<pre><code class="language-sql">CONSTRAINT `check_room_count`
+  CHECK (total_reserved &lt;= total_inventory * 1.1)
+</code></pre>
+<p>详见勘误 1。</p>
+<p><strong>另外，原文说这个方案「和乐观锁非常相似」也不准确。</strong> 一条 <code>UPDATE ... SET total_reserved = total_reserved + n</code> 本身就会<strong>在 InnoDB 里对目标行加排他锁</strong>，并发事务会<strong>排队等待</strong>，而不是像乐观锁那样「失败重试」。所以从并发行为上看，<strong>它更接近悲观锁</strong>。CHECK 约束只是最后一道安全网，不是并发控制机制本身。详见勘误 5。</p>
+</blockquote>
+<hr />
+<h2 id="8-并发控制方案对比补充两方案">8. 并发控制方案对比（补充两方案）</h2>
+<p>原文只给了三个方案。但在真实工程里，另外两个方案同样常见，而且其中一个可能是<strong>最简洁可靠的</strong>。这一节是本章最重要的补充。</p>
+<h3 id="方案四原子条件更新atomic-conditional-update-最推荐">方案四：原子条件更新（Atomic Conditional Update）—— 最推荐</h3>
+<p><strong>核心思想</strong>：<strong>把「检查」和「更新」合并成一条 SQL</strong>，让数据库在一次原子操作里完成判断和修改。</p>
+<pre><code class="language-sql">UPDATE room_type_inventory
+SET total_reserved = total_reserved + ${numberOfRoomsToReserve}
+WHERE hotel_id = ${hotelId}
+  AND room_type_id = ${roomTypeId}
+  AND date BETWEEN ${startDate} AND ${endDate}
+  AND total_reserved + ${numberOfRoomsToReserve} &lt;= total_inventory * 1.1;
+  -- ↑ 检查条件直接写在 WHERE 里
+
+-- 应用层：检查 affected_rows
+-- 如果 affected_rows == 期望的行数（比如 3 天就是 3 行）→ 成功
+-- 如果 affected_rows &lt; 期望行数 → 说明某一天库存不足，ROLLBACK
+</code></pre>
+<p><strong>为什么这是最好的方案？</strong></p>
+<ol>
+<li><strong>彻底消除了 TOCTOU 窗口</strong>。判断和修改在<strong>同一条语句</strong>里完成，数据库保证它的原子性。不再有「读到的值已经过期」的问题。</li>
+<li><strong>不需要显式的锁语句</strong>。<code>UPDATE</code> 自带行锁，但持锁时间极短（就是这一条语句），阻塞窗口最小。</li>
+<li><strong>不需要重试逻辑</strong>。要么成功要么失败，没有「读-改-写」的重试循环。</li>
+<li><strong>实现简单</strong>，代码量最少。</li>
+<li><strong><code>affected_rows</code> 天然给出了结果</strong>——不用额外查询就知道成没成功。</li>
+</ol>
+<p><strong>唯一需要注意的坑</strong>：</p>
+<ul>
+<li><strong>多天预订要么全成功、要么全失败</strong>。住 3 天就要更新 3 行，如果第 3 天库存不足，必须把前 2 天回滚。<strong>把整个操作放在一个事务里就能解决</strong>（这也再次说明了为什么必须用支持事务的数据库）。</li>
+<li><strong>必须校验 <code>affected_rows</code> 等于期望值</strong>，不能只看「没报错」。</li>
+<li><strong><code>date BETWEEN</code> 的顺序</strong>：多个并发事务更新同一组日期时，InnoDB 会按索引顺序加锁，所以死锁风险比手工 <code>FOR UPDATE</code> 低，但<strong>给日期加索引仍然是必须的</strong>。</li>
+</ul>
+<blockquote>
+<p><strong>为什么原文没有提到这个方案？</strong> 因为原笔记是「面试速查」性质，篇幅有限。但在实际工作中，<strong>「把条件写进 WHERE」是处理扣减类并发问题的第一选择</strong>——它比悲观锁轻、比乐观锁简单、比约束更可控。</p>
+<p><strong>面试时如果你能主动提出这个方案，是明确的加分项。</strong></p>
+</blockquote>
+<h3 id="方案五唯一索引unique-constraint-适用于具体房间模型">方案五：唯一索引（Unique Constraint）—— 适用于「具体房间」模型</h3>
+<p>这是用户提到的最简洁方案，<strong>但它只适用于特定的数据模型</strong>，必须讲清楚适用边界。</p>
+<p><strong>做法</strong>：不存「已预订数量」这个计数器，而是<strong>为每一个「房间 + 日期」组合存一行占用记录</strong>：</p>
+<pre><code class="language-sql">CREATE TABLE room_occupancy (
+  room_id    BIGINT NOT NULL,
+  stay_date  DATE   NOT NULL,
+  reservation_id BIGINT NOT NULL,
+  PRIMARY KEY (room_id, stay_date)   -- ← 唯一索引，由数据库裁决
+);
+</code></pre>
+<p>预订时直接 <code>INSERT</code>：</p>
+<pre><code class="language-sql">INSERT INTO room_occupancy (room_id, stay_date, reservation_id)
+VALUES (101, '2021-06-01', 13422445);
+-- 如果 (101, '2021-06-01') 已被占用 → 唯一约束冲突 → 数据库自动拒绝
+</code></pre>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>彻底没有竞态</strong>。唯一索引的冲突检测是在存储引擎层面<strong>原子完成</strong>的，比任何应用层判断都可靠。</li>
+<li><strong>不需要计数器，不需要加锁，不需要重试</strong>。</li>
+<li><strong>天然精确</strong>——不用算「还剩几间」，直接尝试占位。</li>
+</ul>
+<p><strong>关键限制（这是必须讲清的边界）</strong>：</p>
+<ul>
+<li><strong>它只适用于「订具体房间」的模型</strong>（Airbnb 式的整套房源、电影院选座、机票选座）。因为你要在<strong>下单时就确定</strong> <code>room_id</code>。</li>
+<li><strong>本章的酒店场景是「订房型」</strong>，下单时并不分配具体房间（房间是入住时前台分配的）。所以<strong>不能</strong>直接对 <code>(room_type_id, date)</code> 建唯一索引——那样意味着「同一房型同一天只能卖一间」。</li>
+<li><strong>不解决「超卖 10%」需求</strong>。唯一索引保证的是「一间房一天只能被占一次」，是<strong>零超卖</strong>；而酒店业务需要<strong>允许超卖 10%</strong>。要支持超卖，就得引入「虚拟房间」的概念（把 100 间房扩展成 110 个虚拟位），这会显著复杂化数据模型。</li>
+</ul>
+<blockquote>
+<p><strong>所以，正确的结论是：</strong></p>
+<ul>
+<li><strong>房型模型（本章场景）</strong> → 用<strong>方案四（原子条件更新 + CHECK 约束兜底）</strong>。</li>
+<li><strong>具体房间模型（选座、Airbnb）</strong> → 用<strong>方案五（唯一索引）</strong>，这是最简洁可靠的。</li>
+</ul>
+<p><strong>面试时如果你能主动区分这两种模型并说明各自的方案，会显得非常专业。</strong> 很多候选人会不加区分地说「用唯一索引就行」，然后被面试官追问「酒店是订房型，你怎么建唯一索引」时卡住。</p>
+</blockquote>
+<h3 id="方案六延伸redis-分布式锁">方案六（延伸）：Redis 分布式锁</h3>
+<p><strong>做法</strong>：在 Redis 里对 <code>lock:hotel:{hotelId}:roomType:{roomTypeId}:date:{date}</code> 这个 key 加锁，拿到锁的请求才能去操作数据库。</p>
+<pre><code class="language-bash">SET lock:inventory:211:1001:20210601 &lt;uuid&gt; NX PX 5000
+</code></pre>
+<p>（<code>NX</code> = 不存在才设置，<code>PX 5000</code> = 5 秒后自动过期，防止持有者崩溃导致死锁）</p>
+<p><strong>为什么在酒店预订场景下不推荐？</strong> 三个原因：</p>
+<ol>
+<li><strong>多了一层故障点</strong>。Redis 挂了或网络分区，整个预订功能就不可用。而数据库本来就在链路里，用它自带的锁<strong>不增加任何新依赖</strong>。</li>
+<li><strong>性能没有收益</strong>。本章只有 3 TPS，数据库行锁的开销完全可以忽略。分布式锁是为「数据库锁扛不住的高并发」准备的，这里用不上。</li>
+<li><strong>锁的正确性很难保证</strong>——见下面的 Redlock 争议。</li>
+</ol>
+<h4 id="redlock-的争议">Redlock 的争议</h4>
+<p>「单机 Redis 锁」的问题是：Redis 主从<strong>异步复制</strong>，如果主节点在把锁同步给副本前宕机，副本升主后就<strong>不知道这把锁存在</strong>，另一个客户端能立刻拿到同一把锁 → <strong>两个客户端同时持锁</strong>。</p>
+<p>为解决这个问题，Redis 作者 antirez 提出了 <strong>Redlock</strong> 算法：向 <strong>N 个（通常 5 个）独立的 Redis 实例</strong>请求加锁，<strong>超过半数成功</strong>且总耗时小于锁的有效期，才算加锁成功。</p>
+<p><strong>但 Redlock 引发了著名的争论</strong>，双方的观点值得了解：</p>
+<p><strong>质疑方（Martin Kleppmann，分布式系统研究者）的核心论点</strong>：</p>
+<ul>
+<li>Redlock 依赖<strong>时钟假设</strong>——它假定各节点的时钟漂移有界。但真实系统里，一次 <strong>GC 停顿（Stop-the-world GC）</strong> 或<strong>时钟跳变</strong>就可能让锁提前过期，导致两个客户端同时持锁。</li>
+<li>Redlock <strong>没有 fencing token（隔离令牌）</strong>。即使锁机制本身偶尔出错，只要下游能通过单调递增的令牌拒绝过期持有者的写入，系统仍然是安全的。<strong>问题不在于锁，而在于锁保护的操作没有防重入机制。</strong></li>
+<li>结论：Redlock 是一个「对效率友好、对正确性不友好」的锁。<strong>如果你需要的是正确性（比如防止超卖），不要用 Redlock，应该用数据库事务或带 fencing token 的方案。</strong></li>
+</ul>
+<p><strong>支持方（antirez，Redis 作者）的回应要点</strong>：</p>
+<ul>
+<li>Kleppmann 描述的时钟跳变场景需要人为修改系统时间等极端条件。</li>
+<li>Redlock 的设计目标是「比单机 Redis 锁更可靠」，而不是「达到共识算法的正确性级别」。</li>
+<li>如果业务真的需要严格互斥，本来就应该用 Paxos/Raft 类共识系统。</li>
+</ul>
+<p><strong>对我们这个系统的实际意义</strong>：</p>
+<blockquote>
+<p><strong>双方其实都同意一件事——如果目标是「防止超卖」这类正确性要求，Redis 锁（无论是否 Redlock）都不是最佳选择。</strong></p>
+<p>正确的层级是：</p>
+<ol>
+<li><strong>能用数据库事务解决，就用数据库事务</strong>（本章属于这一类）。</li>
+<li>需要跨服务协调且必须严格互斥时，用<strong>基于共识的协调服务</strong>（ZooKeeper、etcd），或者<strong>带 fencing token 的锁</strong>。</li>
+<li>Redis 锁适合**「用错也不会造成数据损坏」的乐观场景**——比如「避免多个节点重复执行同一个耗时的缓存重建任务」（重复执行只是浪费资源，不会出错）。</li>
+</ol>
+<p><strong>注意：Redis 官方文档本身也建议配合 fencing token 使用锁</strong>——这个细节常被忽略。</p>
+</blockquote>
+<hr />
+<h2 id="9-超卖与库存预占15-分钟未支付自动释放">9. 超卖与库存预占：15 分钟未支付自动释放</h2>
+<p>原文的需求是「预订时全额付款」，所以链路里没有「等待支付」这一步。但<strong>真实世界的预订系统绝大多数都有支付窗口</strong>——下单后给你 15 分钟付款，超时释放库存。这一节补充这个缺失的设计。</p>
+<h3 id="为什么需要预占">为什么需要「预占」？</h3>
+<p>假设没有预占，直接「下单即扣减、付款即确认」，会有两个问题：</p>
+<ol>
+<li><strong>恶意占座</strong>：用户可以无限下单不付款，把库存全部占死。</li>
+<li><strong>支付失败</strong>：用户下单成功但支付失败，库存需要回退，链路变复杂。</li>
+</ol>
+<p><strong>预占（Reservation / Hold）模式</strong>把流程拆成两段：</p>
+<pre><code>下单 → 预占库存（reserved_hold +1，15 分钟内有效）
+        ↓
+     支付成功 → 转为正式占用（reserved_hold -1, total_reserved +1），状态 Paid
+        ↓
+     支付失败 / 15 分钟超时 → 释放预占（reserved_hold -1），状态 Canceled
+</code></pre>
+<p>对应的表结构可以这样设计：</p>
+<pre><code class="language-sql">ALTER TABLE room_type_inventory
+  ADD COLUMN total_reserved INT NOT NULL DEFAULT 0,   -- 已确认占用
+  ADD COLUMN total_held     INT NOT NULL DEFAULT 0;   -- 预占（待支付）
+
+-- 可用量 = total_inventory - total_reserved - total_held
+</code></pre>
+<h3 id="核心问题15-分钟超时这个延迟任务怎么实现">核心问题：15 分钟超时这个「延迟任务」怎么实现？</h3>
+<p>这是面试高频追问。原文完全没有涉及，这里给出四种主流实现及其取舍。</p>
+<p><strong>方案 A：定时任务扫描（Scheduled Scan）</strong></p>
+<pre><code class="language-sql">-- 每分钟跑一次
+SELECT * FROM reservation
+WHERE status = 'Pending' AND created_at &lt; NOW() - INTERVAL 15 MINUTE;
+-- 对每条记录执行释放库存 + 更新状态
+</code></pre>
+<ul>
+<li><strong>优点</strong>：实现最简单，不需要额外组件。</li>
+<li><strong>缺点</strong>：<strong>精度差</strong>（最多延迟一个扫描周期）；<strong>扫描压力大</strong>（订单表大了以后，每分钟扫全表代价高）；<strong>瞬时批量释放</strong>可能造成数据库尖峰。</li>
+<li><strong>优化</strong>：给 <code>(status, created_at)</code> 建索引，用游标分页扫描，并限制每批处理的条数。</li>
+</ul>
+<p><strong>方案 B：延时队列（Delayed Queue）</strong></p>
+<p>下单时投递一条「15 分钟后检查」的消息，消息到期后消费者执行释放逻辑。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>实现</th>
+<th>机制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RabbitMQ</strong></td>
+<td>用 <code>TTL</code> + <strong>死信交换机（DLX）</strong> 组合实现延时</td>
+</tr>
+<tr>
+<td><strong>RocketMQ</strong></td>
+<td>原生支持<strong>定时/延时消息</strong>（<code>delayLevel</code>），最省事</td>
+</tr>
+<tr>
+<td><strong>Kafka</strong></td>
+<td><strong>不原生支持延时消息</strong>，需要自己用时间轮或外部调度实现</td>
+</tr>
+<tr>
+<td><strong>Redis</strong></td>
+<td>用 <strong>ZSET</strong>：<code>ZADD delay_queue &lt;execute_at_timestamp&gt; &lt;reservation_id&gt;</code>，再用一个轮询任务 <code>ZRANGEBYSCORE ... 0 now</code> 取出到期的</td>
+</tr>
+<tr>
+<td><strong>时间轮（Timing Wheel）</strong></td>
+<td>Netty、Kafka 内部都用的数据结构，适合海量定时任务</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>优点</strong>：<strong>精度高</strong>（可以精确到秒）；<strong>天然削峰</strong>（消息分散到期，不会集中爆发）。</li>
+<li><strong>缺点</strong>：引入额外组件；<strong>消息可能丢失</strong>（需要持久化 + 重试），所以<strong>必须有兜底扫描</strong>。</li>
+</ul>
+<p><strong>方案 C：Redis 过期回调（Keyspace Notification）</strong></p>
+<pre><code class="language-bash"># 开启通知
+CONFIG SET notify-keyspace-events Ex
+# 下单时
+SET hold:{reservation_id} 1 EX 900
+# 订阅过期事件
+SUBSCRIBE __keyevent@0__:expired
+</code></pre>
+<ul>
+<li><strong>优点</strong>：不用自己写调度，Redis 自动触发。</li>
+<li><strong>缺点</strong>：<strong>Redis 的过期事件是「尽力而为」的，不保证可靠投递</strong>——如果那一刻没有订阅者，事件就丢了。而且 Redis 的过期删除策略是<strong>惰性 + 定期采样</strong>，过期时间到不代表立刻触发。<strong>所以这个方案只能作为辅助，不能作为唯一机制。</strong></li>
+</ul>
+<p><strong>方案 D：数据库 TTL + 查询时惰性处理</strong></p>
+<p>不主动释放，而是在<strong>查询库存时顺便过滤掉过期的预占</strong>：</p>
+<pre><code class="language-sql">SELECT total_inventory - total_reserved
+     - (SELECT COUNT(*) FROM reservation
+        WHERE status = 'Pending' AND expires_at &gt; NOW() AND ...) AS available
+FROM room_type_inventory WHERE ...;
+</code></pre>
+<ul>
+<li><strong>优点</strong>：零额外组件，绝对不会有「预占泄漏」。</li>
+<li><strong>缺点</strong>：查询变复杂、变慢；<code>total_held</code> 不能作为单一数字缓存。</li>
+</ul>
+<h3 id="推荐的生产组合">推荐的生产组合</h3>
+<blockquote>
+<p><strong>方案 B（延时队列）+ 方案 A（兜底扫描）</strong> 是最稳的组合：</p>
+<ul>
+<li><strong>延时队列负责「准时」</strong>：99% 的订单在 15 分钟时被准时释放，用户体验好。</li>
+<li><strong>兜底扫描负责「不漏」</strong>：每 5 分钟扫一次「已经过期但状态还是 Pending」的订单，处理那些消息丢失、消费者崩溃、异常路径遗漏的订单。</li>
+<li><strong>释放逻辑必须幂等</strong>：因为延时消息可能重复投递。用「<code>UPDATE ... WHERE status = 'Pending' AND expires_at &lt; NOW()</code>」这种<strong>条件更新</strong>来保证同一条订单只会被释放一次（<code>affected_rows == 0</code> 就说明已经被处理过了）。</li>
+</ul>
+<p><strong>核心思想</strong>：<strong>任何「延迟触发」机制都可能失效，所以永远要有一个「周期性对账」的兜底。</strong> 这和上一章的对账思路完全一致——<strong>主动触发 + 周期对账</strong>是分布式系统的通用安全模式。</p>
+</blockquote>
+<hr />
+<h2 id="10-可扩展性分片与缓存">10. 可扩展性：分片与缓存</h2>
+<h3 id="分片sharding">分片（Sharding）</h3>
+<p>原文指出：酒店预订系统的负载通常不高，但面试官可能问「如果这套系统被 <a href="http://booking.com" target="_blank" rel="noopener noreferrer">booking.com</a> 这样的旅游大站采用，QPS 放大 1000 倍怎么办」。</p>
+<p><strong>QPS 放大 1000 倍后</strong>：预订 3 TPS → 3000 TPS；总 QPS 约 30,000。</p>
+<p><strong>所有服务都是无状态的，所以可以简单地复制扩展。</strong> 唯一的瓶颈是<strong>有状态的数据库</strong>。</p>
+<p>分片方案：<strong>按 <code>hotel_id</code> 分片</strong>，因为所有查询都带 <code>hotel_id</code>。</p>
+<div align="center"><img src="./images/database-sharding.png" alt="按 hotel_id 分库分表，16 个分片" width="520" loading="lazy" decoding="async"></div>
+<p><strong>原文的容量推算</strong>：假设 QPS 是 30,000，分成 <strong>16 个分片</strong>后，每个分片承担：</p>
+<pre><code>30,000 ÷ 16 = 1,875 QPS
+</code></pre>
+<p><strong>1,875 QPS 在单台 MySQL 集群的承载能力范围内。</strong></p>
+<blockquote>
+<p><strong>这个推算的思路值得学习</strong>：不是笼统地说「加机器」，而是「先算出单机上限，再用总量除以单机上限得到分片数」。面试时能给出这个推理链，比说「分 16 片」有价值得多。</p>
+<p><strong>补充分片带来的两个新问题</strong>（原文没提，但面试必问）：</p>
+<ul>
+<li><strong>跨分片查询</strong>：「查询某个用户的所有订单」如果按 <code>hotel_id</code> 分片，就会打到所有分片。解法是<strong>建一张按 <code>guest_id</code> 分片的订单索引表</strong>（异构索引），或者用<strong>基因法</strong>（把 <code>hotel_id</code> 的哈希位嵌进 <code>reservation_id</code>，让订单 ID 自带路由信息）。</li>
+<li><strong>热点酒店</strong>。某个网红酒店的所有请求都落在一个分片上。解法是<strong>缓存</strong>（见下）和<strong>二级分片</strong>（把热点酒店按日期再拆）。</li>
+</ul>
+</blockquote>
+<h3 id="缓存">缓存</h3>
+<p>原文建议用 <strong>Redis</strong> 缓存<strong>房态（Room Inventory）和预订信息</strong>，并设置 TTL 让过去的日期自动过期：</p>
+<div align="center"><img src="./images/inventory-cache.png" alt="用 Redis 缓存房态，通过 CDC 异步同步" width="520" loading="lazy" decoding="async"></div>
+<p><strong>缓存的 key 设计</strong>：</p>
+<pre><code>key:   hotelID_roomTypeID_{date}
+value: 该（酒店、房型、日期）的可用房间数
+</code></pre>
+<p><strong>缓存与数据库的一致性</strong>：通过 <strong>CDC（Change Data Capture）流式同步</strong>机制异步维护——读取数据库的变更日志，应用到独立系统。<strong>Debezium 是把数据库变更同步到 Redis 的流行选择。</strong></p>
+<p><strong>原文对不一致的态度非常重要，值得完整引用</strong>：</p>
+<blockquote>
+<p>「用这种机制，缓存和数据库可能在一段时间内不一致。<strong>但在我们的场景里这是可以接受的，因为数据库会阻止我们做出无效的预订。</strong>」</p>
+</blockquote>
+<p><strong>这句话是整章的架构精髓</strong>：</p>
+<blockquote>
+<p><strong>数据库是唯一的事实来源（Source of Truth）和最终裁决者。缓存只负责「让大部分请求更快」，不负责「保证正确」。</strong></p>
+<p>具体来说：</p>
+<ul>
+<li>缓存说「有房」→ 用户去下单 → 数据库检查后可能说「没有」→ <strong>下单失败</strong>。用户看到一次失败，但<strong>数据没有出错</strong>。</li>
+<li>缓存说「没房」→ 用户看到售罄 → 但数据库其实还有。这会导致<strong>少卖</strong>，需要靠缓存 TTL 自然过期来纠正。</li>
+</ul>
+<p><strong>两种不一致的后果是完全不对称的</strong>：</p>
+<ul>
+<li>「假有房」→ 用户失望一次，<strong>可接受</strong>。</li>
+<li>「假没房」→ <strong>损失订单</strong>，需要缩短 TTL 或主动失效来缓解。</li>
+<li>「错误扣减」→ <strong>数据损坏</strong>，绝对不可接受——而这正是我们通过「数据库裁决」杜绝的。</li>
+</ul>
+<p><strong>所以设计缓存时必须问自己：这个缓存错了会怎样？</strong> 如果答案是「会损坏数据」，那这个数据就不该被缓存，或者必须走强一致路径。</p>
+</blockquote>
+<p><strong>缓存的优点</strong>：</p>
+<ul>
+<li>降低数据库负载</li>
+<li>高性能（Redis 在内存中管理数据）</li>
+</ul>
+<p><strong>缓存的缺点</strong>：</p>
+<ul>
+<li><strong>维护缓存与数据库的一致性很难</strong>。必须仔细考虑不一致会如何影响用户体验。</li>
+</ul>
+<h3 id="补充价格缓存策略">补充：价格缓存策略</h3>
+<p>原文提到「酒店价格每天都会变」，但没有讲价格怎么缓存。价格和库存的缓存策略<strong>完全不同</strong>，值得单独说明：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>库存</th>
+<th>价格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>变化频率</td>
+<td><strong>高</strong>（每次下单/取消都变）</td>
+<td><strong>低</strong>（每天变一次，甚至更低）</td>
+</tr>
+<tr>
+<td>一致性要求</td>
+<td>高（错一次就可能超卖）</td>
+<td>中（价格显示错一次影响可接受）</td>
+</tr>
+<tr>
+<td>缓存 TTL</td>
+<td><strong>短</strong>（几秒~几十秒）</td>
+<td><strong>长</strong>（几小时~一天）</td>
+</tr>
+<tr>
+<td>失效方式</td>
+<td>CDC 主动失效 + 短 TTL</td>
+<td><strong>按日期边界主动失效</strong>（每天 00:00 刷新）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>价格缓存的推荐做法</strong>：</p>
+<ol>
+<li><strong>长 TTL + 定时刷新</strong>。<code>room_type_rate</code> 每天变一次，所以可以缓存一整天，在每天凌晨价格更新后<strong>批量刷新缓存</strong>。</li>
+<li><strong>给 TTL 加随机抖动</strong>。如果所有价格 key 都在 00:00 过期，会形成<strong>缓存雪崩</strong>。应该让过期时间散布在几分钟内。</li>
+<li><strong>按「酒店 + 日期」维度缓存</strong>，而不是按「用户」。价格对所有用户是一样的（除非有个性化定价），所以缓存命中率极高。</li>
+<li><strong>预取（Pre-fetch）</strong>。用户浏览酒店详情页时，可以<strong>异步预热</strong>未来 30 天的价格，这样进入预订页时缓存已经就绪。</li>
+</ol>
+<blockquote>
+<p><strong>价格和库存分开缓存，是一个重要的设计判断。</strong> 初学者常见的错误是把它们塞进同一个缓存对象、用同一个 TTL——结果要么是价格缓存被库存的高频失效拖累，要么是库存缓存因为 TTL 太长而不准。<strong>按「数据的变化频率」和「错误的后果」来分组设计缓存策略</strong>，是缓存设计的通用原则。</p>
+</blockquote>
+<hr />
+<h2 id="11-服务间数据一致性">11. 服务间数据一致性</h2>
+<h3 id="单体-vs-微服务的取舍">单体 vs 微服务的取舍</h3>
+<p>原文坦诚地讨论了这个问题：</p>
+<ul>
+<li>**单体应用（Monolith）**可以用一个共享的关系型数据库来保证一致性。</li>
+<li>我们的微服务设计采用了<strong>混合方案</strong>：一部分服务是独立的，但<strong>预订 API 和库存 API 由同一个服务处理</strong>。</li>
+</ul>
+<p><strong>为什么？</strong> 因为<strong>我们想利用关系型数据库的 ACID 保证来确保一致性</strong>。</p>
+<div align="center"><img src="./images/microservices-vs-monolith.png" alt="纯微服务（每服务独立数据库）与单体共享数据库的对比" width="520" loading="lazy" decoding="async"></div>
+<p>但面试官可能会挑战这个方案——<strong>因为它不是「纯」微服务架构</strong>（纯微服务要求每个服务有独立数据库）。</p>
+<p><strong>这会导致什么问题？</strong> 看下面两张图：</p>
+<div align="center"><img src="./images/atomicity-monolith.png" alt="单体架构下用数据库事务保证原子性" width="520" loading="lazy" decoding="async"></div>
+<p>在单体服务里，我们可以利用关系型数据库的<strong>事务能力</strong>实现原子操作——扣库存和写订单在同一个事务里，要么都成功要么都失败。</p>
+<div align="center"><img src="./images/microservice-non-atomic-operation.png" alt="跨服务操作无法用单个数据库事务保证原子性" width="520" loading="lazy" decoding="async"></div>
+<p>但当操作<strong>跨越多个服务</strong>（比如预订服务扣库存、支付服务扣款），<strong>保证原子性就变得困难了</strong>——因为它们是两个数据库，一个数据库的事务管不到另一个。</p>
+<h3 id="四种分布式事务方案对比">四种分布式事务方案对比</h3>
+<p>原文只提到了 <strong>2PC</strong> 和 <strong>Saga</strong>。这里补全四种主流方案的完整对比。</p>
+<h4 id="①-两阶段提交two-phase-commit2pc">① 两阶段提交（Two-Phase Commit，2PC）</h4>
+<p><strong>原文描述</strong>：一个数据库协议，保证跨多个节点的原子事务提交。<strong>性能不好，因为单个节点滞后会导致所有节点阻塞。</strong></p>
+<p><strong>工作流程</strong>：</p>
+<pre><code>阶段一（准备 Prepare）：
+  协调者 → 所有参与者：「你能提交吗？」
+  参与者：执行事务但【不提交】，锁定资源，回复「可以」或「不行」
+
+阶段二（提交 Commit）：
+  如果所有人都说「可以」→ 协调者通知所有人「提交」
+  只要有一个人说「不行」→ 协调者通知所有人「回滚」
+</code></pre>
+<p><strong>优点</strong>：强一致（ACID），实现相对成熟（XA 规范）。</p>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><strong>同步阻塞</strong>。参与者在准备阶段之后要一直<strong>持有锁</strong>等待协调者的决定。原文说的「单个节点滞后导致所有节点阻塞」就是这个意思——<strong>这是 2PC 最致命的问题</strong>。</li>
+<li><strong>协调者单点</strong>。协调者在阶段二崩溃，参与者会一直挂着（<strong>这就是著名的「阻塞式 2PC」问题</strong>）。</li>
+<li><strong>性能差</strong>。两次网络往返 + 全程持锁，吞吐量很低。</li>
+<li><strong>不适用于微服务</strong>。微服务之间通常是 HTTP/gRPC 调用，没有 XA 事务上下文。</li>
+</ul>
+<blockquote>
+<p><strong>补充</strong>：业界有 <strong>3PC（三阶段提交）</strong> 试图解决阻塞问题（加一个「预询问」阶段 + 参与者超时机制），但它引入了新的不一致窗口，实际很少使用。<strong>更主流的替代是 Saga 或 TCC。</strong></p>
+</blockquote>
+<h4 id="②-tcctry-confirm-cancel">② TCC（Try-Confirm-Cancel）</h4>
+<p><strong>核心思想</strong>：把每个参与者的操作<strong>显式拆成三个阶段</strong>，由业务代码自己实现。</p>
+<pre><code>Try     ：预留资源（不是直接扣减！）
+          例：把「可用库存 -1，冻结库存 +1」
+Confirm ：确认，把预留转为正式
+          例：把「冻结库存 -1」
+Cancel  ：取消，把预留还回去
+          例：把「可用库存 +1，冻结库存 -1」
+</code></pre>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>不依赖数据库锁</strong>，性能远好于 2PC。</li>
+<li><strong>最终一致 + 业务可控</strong>，每个阶段都是本地事务。</li>
+<li>适合<strong>资金、库存</strong>这类需要显式预留的场景。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><strong>业务侵入性极强</strong>。每个服务都要实现 Try / Confirm / Cancel 三个接口，开发成本高。</li>
+<li>**需要处理空回滚（Cancel 在 Try 之前到达）、幂等、悬挂（Cancel 比 Try 先到）**这三类异常。这是 TCC 最容易被踩坑的地方。</li>
+<li><strong>Confirm / Cancel 必须幂等</strong>，否则重试会造成数据错误。</li>
+</ul>
+<blockquote>
+<p><strong>TCC 和本章的「库存预占」是同一个思想</strong>——都是「先把资源占住，再决定确认还是释放」。所以本章第 9 节的「预占 + 超时释放」在架构上就是一种 TCC 的简化形态。</p>
+</blockquote>
+<h4 id="③-saga">③ Saga</h4>
+<p><strong>原文描述</strong>：<strong>一系列本地事务的序列，如果工作流中任何一步失败，就触发补偿事务（Compensating Transaction）。这是一种最终一致的方案。</strong></p>
+<pre><code>正常流程：T1 → T2 → T3 → T4
+失败流程：T1 → T2 → T3 ✗  → 执行 C3 → C2 → C1（反向补偿）
+</code></pre>
+<p><strong>两种协调方式</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>编排（Orchestration）</strong></td>
+<td>有一个中心协调器（Saga Orchestrator）负责按顺序调用各服务，并决定何时补偿。逻辑集中，易理解和调试</td>
+</tr>
+<tr>
+<td><strong>协同（Choreography）</strong></td>
+<td>各服务通过事件互相触发，没有中心协调器。耦合更低，但流程难以追踪</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>无长事务、无锁</strong>，性能好。</li>
+<li><strong>天然适配微服务</strong>（每个步骤都是本地事务）。</li>
+<li>适合<strong>长流程</strong>（比如「订机票 + 订酒店 + 租车」这种跨越几分钟甚至几天的业务流程）。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><strong>只保证最终一致</strong>，中间状态对外可见（比如「订单已创建但支付未完成」）。</li>
+<li><strong>补偿逻辑必须自己写</strong>，而且<strong>补偿不总是可能的</strong>——「已发送的邮件」没法撤销，「已出票的机票」只能走退款流程。所以 Saga 的补偿通常是<strong>业务语义上的补偿</strong>，不是技术上的回滚。</li>
+<li><strong>没有隔离性（Isolation）</strong>。其他事务可能看到中间状态，需要额外处理（比如用 <code>status</code> 字段标记「处理中」）。</li>
+</ul>
+<h4 id="④-本地消息表transactional-outbox">④ 本地消息表（Transactional Outbox）</h4>
+<p><strong>核心思想</strong>：把「业务操作」和「发送消息」放进<strong>同一个本地数据库事务</strong>，然后用一个后台任务把消息投递出去。</p>
+<pre><code class="language-sql">BEGIN;
+  UPDATE room_type_inventory SET total_reserved = total_reserved + 1 WHERE ...;
+  INSERT INTO outbox (event_type, payload, status)
+    VALUES ('ReservationCreated', '{&quot;reservation_id&quot;: 13422445}', 'PENDING');
+COMMIT;   -- ← 两步在同一个本地事务里，天然原子
+</code></pre>
+<p>然后由一个**中继（Relay）**进程读取 <code>outbox</code> 表，把消息发到消息队列，成功后把状态标记为 <code>SENT</code>（或直接删除）。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>不需要分布式事务协议</strong>，只用本地事务 + 一个后台任务。</li>
+<li><strong>实现简单，可靠性高</strong>。消息和业务数据同生共死。</li>
+<li><strong>是业界最常用的方案之一</strong>（配合 Debezium 之类的 CDC 工具可以做到完全不侵入业务代码——直接读 binlog 里的 outbox 表变更）。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><strong>需要额外一张表和一套中继逻辑</strong>。</li>
+<li><strong>中继可能重复投递</strong>（发出去但没来得及标记 <code>SENT</code> 就崩了）→ <strong>消费者必须幂等</strong>。</li>
+<li>消息投递有<strong>延迟</strong>（取决于中继的轮询频率，通常毫秒到秒级）。</li>
+</ul>
+<h4 id="四种方案速查对比">四种方案速查对比</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>一致性</th>
+<th>性能</th>
+<th>业务侵入性</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2PC</strong></td>
+<td>强一致</td>
+<td><strong>差</strong>（全程持锁、阻塞）</td>
+<td>低（框架支持）</td>
+<td>传统数据库间、短事务。<strong>微服务里不推荐</strong></td>
+</tr>
+<tr>
+<td><strong>TCC</strong></td>
+<td>最终一致</td>
+<td><strong>好</strong></td>
+<td><strong>极高</strong>（三接口）</td>
+<td>资金、库存等需要显式预留的场景</td>
+</tr>
+<tr>
+<td><strong>Saga</strong></td>
+<td>最终一致</td>
+<td><strong>好</strong></td>
+<td>高（需写补偿逻辑）</td>
+<td>长流程业务（旅行套餐、订单履约）</td>
+</tr>
+<tr>
+<td><strong>本地消息表</strong></td>
+<td>最终一致</td>
+<td><strong>好</strong></td>
+<td><strong>低</strong>（可借 CDC 免侵入）</td>
+<td>事件驱动的服务间通知。<strong>最常用</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="原文的务实结论">原文的务实结论</h3>
+<p>原文在最后给出了一个非常成熟的判断，值得完整引用：</p>
+<blockquote>
+<p>「值得注意的是，解决微服务间的数据不一致是一个很有挑战性的问题，它会显著提高系统复杂度。<strong>考虑到我们把相互依赖的操作封装在同一个关系型数据库里这个更务实的做法，值得想一想这个成本是否划算。</strong>」</p>
+</blockquote>
+<p><strong>这句话应该被每个初学者记住。</strong></p>
+<blockquote>
+<p><strong>架构选择的本质是成本收益分析，不是「先进技术排行榜」。</strong></p>
+<p>在酒店预订这个场景里：</p>
+<ul>
+<li>业务规模小（3 TPS），不需要为了扩展性牺牲一致性。</li>
+<li>核心操作（扣库存 + 写订单）本来就该是原子的，把它们放在同一个数据库里是<strong>最自然的做法</strong>。</li>
+<li>引入 Saga / TCC 会带来：额外的开发工作量、额外的故障模式（补偿失败怎么办）、额外的运维复杂度（监控补偿流程）。</li>
+</ul>
+<p><strong>为了「架构纯洁性」而引入这些成本，是不划算的。</strong></p>
+<p><strong>面试时的正确表述</strong>：「我选择把预订和库存放在同一个服务、共享一个数据库，因为这个操作需要原子性，而关系型数据库的 ACID 天然提供了它。代价是这个服务不能独立扩展，但在我们的量级下这不是问题。如果未来预订服务的负载成为瓶颈，我会考虑按 <code>hotel_id</code> 分片，或者把库存操作独立出来并用 TCC 处理跨服务一致性。」</p>
+<p><strong>这段话体现了三件事</strong>：知道取舍、知道代价、知道演进的触发条件。<strong>这正是系统设计面试想听到的。</strong></p>
+</blockquote>
+<hr />
+<h2 id="12-搜索与预订的一致性以及幂等性">12. 搜索与预订的一致性，以及幂等性</h2>
+<h3 id="搜索显示有房点进去却已售罄">搜索显示「有房」，点进去却「已售罄」</h3>
+<p>这是预订类系统<strong>最常见的用户体验问题</strong>，原文只在缓存一节顺带提了一句（「用户需要刷新页面才能看到没房了」）。这里展开讲。</p>
+<p><strong>问题的成因</strong>（有三层，很多人只知道第一层）：</p>
+<ol>
+<li><strong>缓存延迟</strong>：搜索结果来自缓存（或搜索引擎），缓存更新有延迟。</li>
+<li><strong>时间差（这是更根本的原因）</strong>：用户看到搜索结果的那一刻，库存是有的；等他点进去、填完信息、点提交，<strong>可能已经过去了几十秒甚至几分钟</strong>。在这段时间里，最后一间房被卖掉了。</li>
+<li><strong>漏斗放大</strong>：搜索页有 300 QPS，但只有 3 TPS 真正下单。<strong>这意味着「看到有房」和「抢到房」的比例是 100:1</strong>——在旺季的热门酒店上，供不应求是常态。</li>
+</ol>
+<blockquote>
+<p><strong>关键认知</strong>：<strong>第 2 层是物理上无法消除的。</strong> 只要存在「用户思考时间」，就必然存在「看到时还有、下单时没了」的情况。<strong>这不是 bug，这是分布式系统的本质。</strong></p>
+<p>所以目标不是「消除它」，而是「<strong>让它发生得更少、发生时体验更好</strong>」。</p>
+</blockquote>
+<p><strong>四层缓解策略：</strong></p>
+<p><strong>① 库存预占（Hold）</strong></p>
+<p>用户进入预订页时，<strong>立即为这个会话预占库存 15 分钟</strong>。这样他在填信息的过程中，房间已经被占住了，不会被人抢走。</p>
+<ul>
+<li>优点：<strong>体验最好</strong>，用户不会白填表单。</li>
+<li>缺点：<strong>容易被恶意占座</strong>。需要限制「单个用户同时只能持有 N 个预占」。</li>
+<li>实现：见第 9 节的延时队列。</li>
+</ul>
+<p><strong>② 短 TTL 缓存 + 主动失效</strong></p>
+<ul>
+<li>搜索结果缓存 TTL 设<strong>很短</strong>（几秒到几十秒），而不是几小时。</li>
+<li>库存变化时通过 <strong>CDC 主动失效</strong>相关 key。</li>
+<li><strong>给 TTL 加随机抖动</strong>，避免大量 key 同时过期（缓存雪崩）。</li>
+</ul>
+<p><strong>③ 前端兜底（这是投入产出比最高的一层）</strong></p>
+<ul>
+<li>在下单页<strong>实时展示剩余房量</strong>（「仅剩 2 间」），制造紧迫感的同时也管理了预期。</li>
+<li>提交失败时，<strong>明确告知原因</strong>（「很抱歉，该房型刚刚售罄」），而不是一个含糊的「系统错误」。</li>
+<li><strong>推荐替代方案</strong>：售罄时立刻给出「同酒店其他房型」「附近同价位酒店」，把一次失败的转化变成一次新的机会。</li>
+<li><strong>不要让用户重新填一遍表单</strong>。保留已填信息，一键切换到替代房型。</li>
+</ul>
+<p><strong>④ 异步确认 + 超时兜底（用于秒杀类极端场景）</strong></p>
+<p>极端场景下（比如限量特价房），可以把「同步下单」改成「提交排队 + 异步通知结果」。用户提交后立即收到「排队中」，几秒后通过站内信/短信告知结果。</p>
+<ul>
+<li>优点：<strong>彻底避免「点了没反应」</strong>，而且<strong>保护了后端</strong>（把瞬时流量转成队列）。</li>
+<li>缺点：体验有延迟；实现复杂（需要消息推送）。</li>
+</ul>
+<blockquote>
+<p><strong>面试时的标准回答框架</strong>：「这个问题在物理上无法完全消除，因为用户从『看到』到『下单』之间有时间差。我的策略是四层：<strong>预占库存</strong>减少抢单、<strong>短 TTL 缓存 + CDC 失效</strong>减少脏读、<strong>前端明确反馈 + 推荐替代</strong>改善失败体验、<strong>极端场景用异步排队</strong>保护系统。核心原则是——<strong>缓存可以不准，但数据库必须准；体验可以降级，但数据不能错。</strong>」</p>
+</blockquote>
+<h3 id="幂等性idempotency总结">幂等性（Idempotency）总结</h3>
+<p>原文在「同一用户重复提交」一节讲得很好（用 <code>reservation_id</code> + 唯一约束），这里做一个工程化的总结。</p>
+<p><strong>幂等性的定义</strong>：<strong>同一个操作执行一次和执行多次，对系统状态的影响相同。</strong></p>
+<p><strong>为什么必须做？</strong> 因为分布式系统里<strong>重复是必然的</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>重复来源</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户行为</td>
+<td>手抖双击、以为没点上又点一次</td>
+</tr>
+<tr>
+<td>网络重试</td>
+<td>超时后客户端/网关自动重试</td>
+</tr>
+<tr>
+<td>消息队列</td>
+<td>至少一次投递语义天然会重复</td>
+</tr>
+<tr>
+<td>服务端重试</td>
+<td>调用下游失败后的重试策略</td>
+</tr>
+<tr>
+<td>运维操作</td>
+<td>人工重放、故障恢复时的数据重放</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>幂等实现的三层模式</strong>（按推荐顺序）：</p>
+<p><strong>第一层：数据库唯一约束（最简单、最可靠）</strong></p>
+<pre><code class="language-sql">-- reservation_id 上加唯一索引
+ALTER TABLE reservation ADD UNIQUE KEY uk_reservation_id (reservation_id);
+</code></pre>
+<ul>
+<li>冲突时数据库抛异常（<code>Duplicate entry</code>），应用捕获并返回上次的结果。</li>
+<li><strong>不依赖任何应用层判断</strong>，天然无竞态。</li>
+</ul>
+<p><strong>第二层：幂等键表（需要返回上次结果时）</strong></p>
+<pre><code class="language-sql">CREATE TABLE idempotency_record (
+  idempotency_key VARCHAR(64) NOT NULL,
+  request_hash    VARCHAR(64) NOT NULL,   -- 请求参数指纹
+  response_body   TEXT,                    -- 缓存的响应
+  status          TINYINT,                 -- 0=处理中 1=成功 2=失败
+  created_at      DATETIME,
+  PRIMARY KEY (idempotency_key)
+);
+</code></pre>
+<p>处理流程：</p>
+<pre><code>① 尝试 INSERT (key, hash, status=处理中)
+   - 唯一约束冲突 → 走 ②
+   - 成功 → 执行业务逻辑 → 更新记录为成功 + 写入响应
+② 读到已有记录：
+   - status = 成功 → 直接返回缓存的 response_body
+   - status = 处理中 → 返回「处理中，请稍候」（或让客户端轮询）
+   - request_hash 不一致 → 拒绝（同一个 key 发了不同请求，说明是客户端 bug 或攻击）
+</code></pre>
+<p><strong>第三层：状态机约束（用于状态流转类操作）</strong></p>
+<p>用条件更新保证「同一个状态只能流转一次」：</p>
+<pre><code class="language-sql">-- 只有 Pending 状态的订单才能被确认为 Paid
+UPDATE reservation
+SET status = 'Paid'
+WHERE reservation_id = 13422445 AND status = 'Pending';
+
+-- affected_rows == 0 → 说明已经被处理过了（或状态不对），直接返回成功
+</code></pre>
+<ul>
+<li>这就是<strong>幂等</strong>：第二次执行时 <code>affected_rows == 0</code>，状态没变，结果一致。</li>
+</ul>
+<p><strong>幂等键的 TTL</strong>：幂等记录不能永久保存（会无限增长），但<strong>也不能太短</strong>（要覆盖客户端的重试窗口）。实践建议 <strong>24 小时到 7 天</strong>，配合定期归档。</p>
+<blockquote>
+<p><strong>一个重要的区分：幂等 ≠ 去重。</strong></p>
+<ul>
+<li><strong>去重</strong>是「重复的请求我不处理」。</li>
+<li><strong>幂等</strong>是「重复的请求我处理了，但结果和只处理一次一样」。</li>
+</ul>
+<p>幂等是更强的性质——它不要求你识别出重复，只要求结果一致。<strong>在分布式系统里，幂等比去重更容易实现，也更可靠</strong>（因为识别重复本身就需要一个可靠的去重存储）。<strong>所以优先设计幂等，而不是去重。</strong></p>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>本节逐条指出原笔记中不准确、过时或缺失的地方。</p>
+</blockquote>
+<h3 id="勘误-1check-约束与允许超卖-10的需求自相矛盾">勘误 1：CHECK 约束与「允许超卖 10%」的需求自相矛盾</h3>
+<ul>
+<li><strong>原文说法</strong>：需求部分明确写了「我们允许超卖 10%（allow overbooking by 10%）」，库存判断公式是 <code>if (total_reserved + n) &lt;= 110% * total_inventory</code>。但「数据库约束」一节给出的约束是：<pre><code class="language-sql">CONSTRAINT `check_room_count` CHECK((`total_inventory - total_reserved` &gt;= 0))
+</code></pre>
+</li>
+<li><strong>问题</strong>：<code>total_inventory - total_reserved &gt;= 0</code> 等价于 <code>total_reserved &lt;= total_inventory</code>，也就是**「已预订不能超过 100% 总库存」<strong>。这条约束会</strong>直接禁止超卖**，与本章的核心业务需求（允许 110%）<strong>完全冲突</strong>。如果照这个约束建表，所有超过 100% 的预订都会被数据库拒绝——超卖功能根本用不了。</li>
+<li><strong>正确说法</strong>：约束应该与业务规则一致：<pre><code class="language-sql">CONSTRAINT `check_room_count`
+  CHECK (total_reserved &lt;= total_inventory * 1.1)
+</code></pre>
+更规范的做法是<strong>把超卖比例参数化</strong>（存到配置表或按酒店/房型分别配置），而不是把 <code>1.1</code> 硬编码在 DDL 里——因为超卖比例通常由收益管理系统动态调整，旺季低、淡季高。</li>
+<li><strong>延伸</strong>：这个错误很典型——<strong>业务规则和技术约束写在了两个地方，然后忘了同步</strong>。工程上的防呆手段是：
+<ol>
+<li>把业务规则写成<strong>显式常量或配置</strong>，让代码和 DDL 引用同一个来源。</li>
+<li>写<strong>集成测试</strong>专门验证「超卖 110% 时应该成功、111% 时应该失败」。</li>
+<li>在数据库约束上写注释，说明它对应哪条业务规则。</li>
+</ol>
+</li>
+</ul>
+<h3 id="勘误-2扣减库存的-update-语句漏掉了-hotel-id-过滤条件">勘误 2：扣减库存的 UPDATE 语句漏掉了 <code>hotel_id</code> 过滤条件</h3>
+<ul>
+<li><strong>原文说法</strong>：「reserve a room」的 SQL 是：<pre><code class="language-sql">UPDATE room_type_inventory
+SET total_reserved = total_reserved + ${numberOfRoomsToReserve}
+WHERE room_type_id = ${roomTypeId}
+  AND date between ${startDate} and ${endDate}
+</code></pre>
+</li>
+<li><strong>问题</strong>：<strong>漏掉了 <code>hotel_id = ${hotelId}</code> 这个过滤条件</strong>。而前一步的 <code>SELECT</code> 查询里是<strong>有</strong> <code>hotel_id</code> 的。这是两处不一致。
+后果很严重：<strong><code>room_type_id</code> 只在酒店内部唯一，不是全局唯一的</strong>。比如酒店 211 和酒店 2210 可能都有 <code>room_type_id = 101</code>。这条 UPDATE 会把<strong>所有酒店</strong>中匹配该房型和日期的库存全部扣减，造成<strong>大规模数据错误</strong>——这是生产环境下会导致资金损失级别的 bug。</li>
+<li><strong>正确说法</strong>：<pre><code class="language-sql">UPDATE room_type_inventory
+SET total_reserved = total_reserved + ${numberOfRoomsToReserve}
+WHERE hotel_id = ${hotelId}          -- ← 必须加上
+  AND room_type_id = ${roomTypeId}
+  AND date BETWEEN ${startDate} AND ${endDate};
+</code></pre>
+</li>
+<li><strong>延伸</strong>：这个 bug 暴露了一个更普遍的问题——<strong>在 UPDATE / DELETE 语句上忘了 WHERE 条件，是 SQL 世界里最危险的错误</strong>。工程上的防呆措施：
+<ol>
+<li><strong><code>room_type_inventory</code> 的主键应该是 <code>(hotel_id, room_type_id, date)</code></strong>，让所有写操作都必须带上完整的键。</li>
+<li>生产环境开启 <strong><code>sql_safe_updates</code></strong>（MySQL）或类似机制，<strong>禁止不带索引条件的 UPDATE/DELETE</strong>。</li>
+<li>所有 UPDATE / DELETE 先写成 SELECT 验证影响范围，再改写成写操作。</li>
+<li>上线前用<strong>从库或影子表</strong>验证 <code>affected_rows</code> 是否等于预期。</li>
+</ol>
+</li>
+</ul>
+<h3 id="勘误-3room-type-rate-表缺少-room-type-id-列无法存储分房型价格">勘误 3：<code>room_type_rate</code> 表缺少 <code>room_type_id</code> 列，无法存储分房型价格</h3>
+<ul>
+<li><strong>原文说法</strong>：初始 Schema 和改进后的 Schema 中，<code>room_type_rate</code> 表的字段都是 <code>hotel_id</code>(PK)、<code>date</code>(PK)、<code>rate</code>，主键是 <code>(hotel_id, date)</code>。</li>
+<li><strong>问题</strong>：<strong>这张表名为「room_type_rate（房型价格）」，却没有任何字段标识房型</strong>。按照这个结构，同一家酒店在同一个日期只能有一个价格——但真实酒店里，「标准大床房」和「行政套房」在同一天的价格显然不同。<strong>这张表无法表达「不同房型不同价格」这个最基本的业务事实。</strong></li>
+<li><strong>正确说法</strong>：主键应该是 <code>(hotel_id, room_type_id, date)</code>，并增加 <code>room_type_id</code> 列：<pre><code class="language-sql">CREATE TABLE room_type_rate (
+  hotel_id     BIGINT NOT NULL,
+  room_type_id BIGINT NOT NULL,
+  date         DATE   NOT NULL,
+  rate         DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY (hotel_id, room_type_id, date)
+);
+</code></pre>
+</li>
+<li><strong>延伸</strong>：注意这和 <code>room_type_inventory</code> 的主键结构是<strong>完全一致的</strong>——这其实是个好信号：<strong>价格表和库存表都是「酒店 × 房型 × 日期」的二维事实表</strong>，它们可以按同样的方式分片、同样的方式缓存。原笔记可能是绘图时的简化，但如果照图实现，业务上是跑不通的。
+另外，真实系统的价格表通常还要区分<strong>币种（currency）</strong>、<strong>价格类型（含早/不含早、会员价/散客价）</strong>、<strong>取消政策</strong>，会比这张表复杂得多。</li>
+</ul>
+<h3 id="勘误-4status-字段的归属描述错误">勘误 4：<code>status</code> 字段的归属描述错误</h3>
+<ul>
+<li><strong>原文说法</strong>：「唯一值得提的字段是 <code>status</code>，它代表**某个房间（a given room）**的状态机。」</li>
+<li><strong>问题</strong>：从紧随其后的状态机图来看，状态是 <code>Pending → Paid / Canceled / Rejected</code>、<code>Paid → Refunded</code>——这显然是<strong>一笔预订（reservation）的生命周期</strong>，而不是房间的状态。房间的状态只有「可用 / 不可用 / 维护中」，而且它不随订单流转（一间房今天被订了，明天还是同一间房）。</li>
+<li><strong>正确说法</strong>：<code>status</code> 是<strong>预订（reservation）的状态机</strong>，描述一笔订单从创建到完结的流转过程。它属于 <code>reservation</code> 表。</li>
+<li><strong>延伸</strong>：这个区分不只是措辞问题，它决定了<strong>状态变更时要做哪些副作用</strong>：
+<ul>
+<li><code>Pending → Paid</code>：扣减预占、增加已确认占用。</li>
+<li><code>Pending → Canceled</code>（用户取消）：释放预占。</li>
+<li><code>Paid → Refunded</code>：<strong>库存要加回去</strong>、<strong>触发退款流程</strong>。</li>
+<li><code>Pending → Rejected</code>（库存不足或被风控拦截）：释放预占。
+<strong>每一个状态转换都是一次业务动作</strong>，所以状态机必须画清楚、写进代码，并且<strong>状态变更必须幂等</strong>（见第 12 节）。
+<strong>另外，状态机应该有明确的不变量</strong>：比如 <code>Refunded</code> 只能从 <code>Paid</code> 来，不能从 <code>Pending</code> 直接跳到 <code>Refunded</code>（没付过钱退什么款）。</li>
+</ul>
+</li>
+</ul>
+<h3 id="勘误-5把-check-约束描述为与乐观锁非常相似是不准确的">勘误 5：把 CHECK 约束描述为「与乐观锁非常相似」是不准确的</h3>
+<ul>
+<li><strong>原文说法</strong>：「这个方案（数据库约束）和乐观锁非常相似，只是守卫（guardrails）换成了数据库约束。」</li>
+<li><strong>问题</strong>：从<strong>并发行为</strong>上看，两者是<strong>相反的</strong>：
+<ul>
+<li><strong>乐观锁</strong>：不加锁，靠 <code>WHERE version = ?</code> 检测冲突。冲突时<strong>更新影响 0 行</strong>，应用层<strong>失败并重试</strong>。<strong>高并发下会产生大量重试。</strong></li>
+<li><strong>数据库约束 + 普通 UPDATE</strong>：<code>UPDATE ... SET total_reserved = total_reserved + n</code> 这条语句本身会<strong>在 InnoDB 中对目标行加排他锁（X Lock）</strong>。并发事务会<strong>阻塞排队</strong>，等前一个事务提交后再执行，然后 CHECK 约束在<strong>最新的值</strong>上被求值。<strong>不会产生重试。</strong>
+所以从并发行为看，<strong>「普通 UPDATE + CHECK 约束」更接近悲观锁</strong>（排队等待），而不是乐观锁（失败重试）。</li>
+</ul>
+</li>
+<li><strong>正确说法</strong>：
+<ul>
+<li><strong>乐观锁</strong> = 无锁 + 冲突检测 + 重试。</li>
+<li><strong>普通 UPDATE + CHECK 约束</strong> = 行锁排队 + 约束兜底。</li>
+<li><strong>CHECK 约束是「安全网」，不是「并发控制机制」</strong>。真正提供并发控制的是 <code>UPDATE</code> 语句持有的行锁。</li>
+</ul>
+</li>
+<li><strong>延伸</strong>：这个区别有实际影响。如果面试官问「数据库约束方案在高并发下会怎样」，正确答案是「<strong>它会串行化这些更新，导致锁等待和响应时间上升</strong>」，而不是「它会失败重试」。
+同时值得补充：<strong>MySQL 8.0.16 之前的版本会静默忽略 CHECK 约束</strong>（解析但不执行）。这是一个非常危险的陷阱——你在旧版本 MySQL 上写的 CHECK 约束看起来没问题，实际根本没生效。<strong>生产环境必须验证约束确实在工作</strong>（比如手工插入一条违反约束的数据试试）。</li>
+</ul>
+<h3 id="勘误-6缺少检查后使用toctou问题的命名与原子解法">勘误 6：缺少「检查后使用（TOCTOU）」问题的命名与原子解法</h3>
+<ul>
+<li><strong>原文说法</strong>：原文非常准确地描述了「两个事务都看到 99 &lt; 100，然后都提交，结果变成 101」的问题，并给出了三个基于锁/约束的解法。</li>
+<li><strong>问题</strong>：原文没有：
+<ol>
+<li>指出这个问题的<strong>通用名称</strong>（TOCTOU / 检查后使用竞态），导致读者难以把这个问题迁移到其他场景（注册用户名、扣余额、创建文件都是同一个模式）。</li>
+<li>给出<strong>最简洁的解法</strong>——把检查条件直接写进 <code>UPDATE ... WHERE</code>，用一条原子语句完成判断和修改。</li>
+</ol>
+</li>
+<li><strong>正确说法</strong>：
+<ul>
+<li>这个问题叫 <strong>TOCTOU（Time-of-Check to Time-of-Use）</strong>，是所有「先读后写」并发场景的通用形态。</li>
+<li>最简洁的解法是<strong>原子条件更新</strong>：<pre><code class="language-sql">UPDATE room_type_inventory
+SET total_reserved = total_reserved + ${n}
+WHERE hotel_id = ? AND room_type_id = ? AND date BETWEEN ? AND ?
+  AND total_reserved + ${n} &lt;= total_inventory * 1.1;
+-- 检查 affected_rows 是否为期望行数
+</code></pre>
+判断和修改在同一条语句里，数据库保证其原子性，<strong>彻底消除了 TOCTOU 窗口</strong>，而且不需要显式锁、不需要重试逻辑。</li>
+</ul>
+</li>
+<li><strong>延伸</strong>：为什么这个方案比原文的三个都更好？
+<ul>
+<li>比<strong>悲观锁</strong>轻：持锁时间只有一条语句，而不是整个事务。</li>
+<li>比<strong>乐观锁</strong>简单：不需要版本号列，不需要重试循环。</li>
+<li>比<strong>约束</strong>可控：能精确表达「某天库存不足」这个业务语义（<code>affected_rows</code> 少了几行），而约束只能抛出笼统的「违反约束」异常。
+<strong>面试时主动提出这个方案是明确的加分项。</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="补充-1redis-分布式锁与-redlock-争议">补充 1：Redis 分布式锁与 Redlock 争议</h3>
+<p>原笔记完全没有提到分布式锁。已在第 8 节补全，包括：</p>
+<ul>
+<li>为什么在酒店预订场景下<strong>不推荐</strong>用 Redis 锁（多一层故障点、性能无收益、正确性难保证）。</li>
+<li><strong>Redlock 的争议</strong>：Martin Kleppmann 质疑（依赖时钟假设、缺 fencing token）与 antirez 的回应。</li>
+<li>双方共同认可的结论：<strong>正确性要求高的场景（防超卖）不该用 Redis 锁，应该用数据库事务或带 fencing token 的方案。</strong></li>
+<li><strong>Redis 官方文档本身也建议配合 fencing token 使用锁</strong>——这个细节常被忽略。</li>
+</ul>
+<h3 id="补充-2库存预占与15-分钟超时释放的实现">补充 2：库存预占与「15 分钟超时释放」的实现</h3>
+<p>原笔记的需求是「预订时全额付款」，所以没有支付窗口。但真实系统普遍有。已在第 9 节补全：</p>
+<ul>
+<li>为什么需要预占（防恶意占座、简化支付失败回退）。</li>
+<li>表结构怎么改（<code>total_reserved</code> + <code>total_held</code> 双字段）。</li>
+<li><strong>延迟任务的四种实现</strong>及取舍：定时扫描 / 延时队列 / Redis 过期回调 / 惰性处理。</li>
+<li><strong>推荐组合</strong>：延时队列（准时）+ 兜底扫描（不漏）+ 释放逻辑幂等（防重复）。</li>
+<li>核心原则：<strong>任何「延迟触发」机制都可能失效，所以永远要有周期性对账兜底。</strong></li>
+</ul>
+<h3 id="补充-3分布式事务的完整对比tcc本地消息表">补充 3：分布式事务的完整对比（TCC、本地消息表）</h3>
+<p>原笔记只提到了 <strong>2PC</strong> 和 <strong>Saga</strong>。已在第 11 节补全四种方案的完整对比（2PC / TCC / Saga / 本地消息表），包括一致性、性能、业务侵入性三个维度的取舍，以及各自的失败场景。</p>
+<p><strong>最关键的一条</strong>：原文「2PC 性能不好，因为单个节点滞后会导致所有节点阻塞」这个描述是准确的——这确实是阻塞式 2PC 的致命缺陷（准备阶段之后参与者要一直持有锁）。</p>
+<h3 id="补充-4搜索与预订的一致性">补充 4：搜索与预订的一致性</h3>
+<p>原笔记只在缓存一节顺带提了一句「用户需要刷新页面才能看到没房了」。已在第 12 节展开：</p>
+<ul>
+<li>问题有<strong>三层成因</strong>（缓存延迟 / 用户思考的时间差 / 100:1 的漏斗放大）。</li>
+<li><strong>第 2 层在物理上无法消除</strong>——这不是 bug，是分布式系统的本质。</li>
+<li><strong>四层缓解策略</strong>：库存预占 / 短 TTL + CDC 主动失效 / 前端兜底与替代推荐 / 异步排队。</li>
+<li>核心原则：<strong>缓存可以不准，但数据库必须准；体验可以降级，但数据不能错。</strong></li>
+</ul>
+<h3 id="补充-5价格缓存策略与库存缓存的区别">补充 5：价格缓存策略（与库存缓存的区别）</h3>
+<p>原笔记说「酒店价格每天变」，也说了要缓存库存，但没说价格怎么缓存。已在第 10 节补全。核心判断是：<strong>价格和库存的变化频率、错误后果完全不同，所以缓存策略必须分开设计</strong>——库存用短 TTL + CDC 失效，价格用长 TTL + 每日定时刷新 + 随机抖动 + 预取。</p>
+<h3 id="补充-6幂等的三层实现模式">补充 6：幂等的三层实现模式</h3>
+<p>原笔记对幂等的讲解（<code>reservation_id</code> + 唯一约束）是<strong>准确且优秀</strong>的。这里补充工程化的三层模式（唯一约束 / 幂等键表 / 状态机条件更新）、幂等键表应该存什么（key + 参数指纹 + 响应结果 + 状态）、TTL 该设多久，以及一个重要的概念区分：<strong>幂等 ≠ 去重，幂等是更强的性质，也更容易实现</strong>。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前端禁用按钮就能防重复下单</td>
+<td>前端可以被绕过（禁用 JS、直接调 API、重放请求）。<strong>前端校验只是体验优化</strong></td>
+<td>正确性必须由<strong>服务端 + 数据库唯一约束</strong>保证</td>
+</tr>
+<tr>
+<td>用户点两次，我用 Redis 去重就行</td>
+<td>去重逻辑放在缓存里，缓存失效/宕机就失效了</td>
+<td><strong>能用数据库唯一约束解决，就不要用缓存去重</strong>。数据库的唯一索引是原子的、持久的</td>
+</tr>
+<tr>
+<td>库存和订单应该拆成两个微服务</td>
+<td>拆开后「扣库存 + 写订单」就不是原子的了，需要引入分布式事务</td>
+<td>相互依赖、必须原子的操作应该<strong>放在同一个数据库事务里</strong>。拆分要等到有明确的扩展需求时再做</td>
+</tr>
+<tr>
+<td>用 <code>SELECT</code> 查库存够不够，然后 <code>UPDATE</code> 扣减</td>
+<td>这是 TOCTOU 竞态。两个事务可能都读到「有房」，然后都扣</td>
+<td><strong>把检查条件写进 <code>UPDATE ... WHERE</code></strong>，让判断和修改在同一条原子语句里完成</td>
+</tr>
+<tr>
+<td>加了唯一索引就不会超卖</td>
+<td>唯一索引保证的是「一条记录只能插一次」，它不理解「还剩几间房」</td>
+<td>唯一索引适合<strong>具体房间模型</strong>；<strong>房型模型</strong>要用<strong>条件更新 + CHECK 约束</strong></td>
+</tr>
+<tr>
+<td>乐观锁一定比悲观锁快</td>
+<td>高并发下乐观锁失败率接近 100%，大量重试反而更慢</td>
+<td><strong>低争用用乐观锁，高争用用悲观锁/排队</strong>。要看争用程度，不是看哪个「先进」</td>
+</tr>
+<tr>
+<td><code>UPDATE</code> 没报错就说明扣减成功了</td>
+<td><code>UPDATE ... WHERE version = ?</code> 在版本不匹配时影响 0 行，<strong>不报错</strong></td>
+<td><strong>必须检查 <code>affected_rows</code></strong>。这是乐观锁最常见的实现 bug</td>
+</tr>
+<tr>
+<td>把业务规则（超卖 10%）直接硬编码在 SQL 里</td>
+<td>业务规则会变，硬编码后每次调整都要改代码、发版、迁移</td>
+<td>超卖比例应该是<strong>可配置参数</strong>，最好能按酒店/房型/季节分别配置</td>
+</tr>
+<tr>
+<td>缓存和数据库不一致就是 bug</td>
+<td>缓存天然是最终一致的。关键看<strong>不一致的后果</strong>是什么</td>
+<td>「假有房」→ 下单失败（可接受）；「假没房」→ 少卖（靠短 TTL 缓解）；「错误扣减」→ <strong>不可接受，必须由数据库裁决</strong></td>
+</tr>
+<tr>
+<td>幂等和去重是一回事</td>
+<td>去重是「识别并跳过重复」；幂等是「处理了但结果一样」</td>
+<td><strong>幂等是更强的性质，也更容易实现</strong>。优先设计幂等，而不是去重</td>
+</tr>
+<tr>
+<td>状态机只是给前端展示用的</td>
+<td>状态机定义了<strong>每个状态转换要触发的业务副作用</strong>（释放库存、退款、通知）</td>
+<td>状态机是<strong>业务逻辑的核心</strong>，必须有明确的不变量（如 <code>Refunded</code> 只能从 <code>Paid</code> 来），且每次转换都要<strong>幂等</strong></td>
+</tr>
+<tr>
+<td>分布式事务是「高级方案」，应该优先用</td>
+<td>分布式事务会显著提高系统复杂度，引入新的故障模式</td>
+<td><strong>先用本地事务把问题关在一个数据库里</strong>。只有在明确需要跨服务原子性、且成本可接受时才上 Saga/TCC</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：这是一个<strong>读多写少、量级不大、但并发正确性要求极高</strong>的系统——核心是「用数据库的原子性来裁决有限资源的竞争」，而不是靠应用层的加锁。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>量级很小但要求很高</strong>：约 24 万笔预订/天、3 TPS，单库可扛。真正的难点是<strong>并发正确性</strong>，不是性能。</li>
+<li><strong>选关系型数据库的理由</strong>：ACID 保护了「库存不能为负」「不能重复扣款」这两条底线。<strong>NoSQL 需要自己重新实现这些保证，代价极高。</strong></li>
+<li><strong>数据模型的关键设计</strong>：把「入住区间」拆成「一行一天」（<code>room_type_inventory</code>），让并发控制粒度精确到「某酒店某房型的某一天」。总行数 5000 × 20 × 730 = <strong>7300 万行</strong>，单库可扛。</li>
+<li><strong>并发控制方案</strong>：<strong>原子条件更新（检查写进 WHERE）+ CHECK 约束兜底</strong>是首选；乐观锁适合低争用；悲观锁适合高争用；唯一索引适合「具体房间」模型。</li>
+<li><strong>两类重复预订要分开解</strong>：<strong>同一用户重复提交</strong> → 幂等键（<code>reservation_id</code>）+ 唯一约束；<strong>多用户并发抢订</strong> → 数据库原子性裁决。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动指出**「先查后改」是 TOCTOU 竞态**，并给出「把条件写进 <code>UPDATE ... WHERE</code>」这个最简洁的解法。</li>
+<li>主动<strong>区分「订房型」和「订具体房间」两种模型</strong>，说明唯一索引只适用于后者（酒店是前者）。</li>
+<li>主动说明<strong>缓存和数据库的分工</strong>：数据库是唯一裁决者，缓存只负责加速。<strong>「缓存可以不准，数据库必须准。」</strong></li>
+<li>主动提到<strong>超卖比例应该是可配置参数</strong>，而不是硬编码的 <code>1.1</code>。</li>
+<li>主动给出<strong>分布式事务的取舍框架</strong>，并说明为什么在本场景<strong>不需要</strong>（本地事务已经够了）。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;两个用户同时抢最后一间房怎么办？&quot;</em>
+→ 先识别这是 <strong>TOCTOU 竞态</strong>。最简解法是把检查写进 UPDATE：<code>UPDATE ... SET total_reserved = total_reserved + 1 WHERE ... AND total_reserved + 1 &lt;= total_inventory * 1.1</code>，然后<strong>检查 <code>affected_rows</code></strong>——等于 1 说明抢到了，等于 0 说明售罄。再配一条 CHECK 约束兜底。<strong>整个操作放在一个事务里</strong>，保证多天预订要么全成功要么全失败。</li>
+<li><em>&quot;用户重复点「提交订单」怎么办？&quot;</em>
+→ <strong>幂等键</strong>。前端在打开填写页时生成 UUID 作为 <code>reservation_id</code>，提交时携带。数据库在 <code>reservation_id</code> 上加<strong>唯一约束</strong>——重复提交会撞唯一键，后端识别后返回上次的结果。前端禁用按钮只是体验优化，<strong>不是正确性保证</strong>。</li>
+<li><em>&quot;搜索页显示有房，点进去售罄，怎么解决？&quot;</em>
+→ 这个问题的成因有三层，其中「用户思考的时间差」<strong>物理上无法消除</strong>。策略是四层：<strong>库存预占</strong>（进预订页就占 15 分钟）、<strong>短 TTL 缓存 + CDC 主动失效</strong>、<strong>前端明确反馈 + 推荐替代房型</strong>、<strong>极端场景异步排队</strong>。核心原则是<strong>数据不能错，体验可以降级</strong>。</li>
+<li><em>&quot;下单后 15 分钟未支付，怎么自动释放库存？&quot;</em>
+→ <strong>延时队列（准时）+ 兜底扫描（不漏）+ 释放逻辑幂等（防重复）</strong>。延时队列用 RocketMQ 定时消息或 RabbitMQ 的 TTL + 死信队列。兜底扫描每 5 分钟扫一次「已过期但状态还是 Pending」的订单。释放时用<strong>条件更新</strong>（<code>WHERE status = 'Pending' AND expires_at &lt; NOW()</code>），靠 <code>affected_rows</code> 保证只释放一次。<strong>任何延迟触发机制都可能失效，所以必须有兜底。</strong></li>
+<li><em>&quot;为什么不用纯微服务架构，每个服务一个数据库？&quot;</em>
+→ 因为「扣库存 + 写订单」<strong>必须是原子的</strong>。拆成两个库后，就需要分布式事务（Saga / TCC）来保证一致性，引入额外的开发量、故障模式和运维成本。在我们 3 TPS 的量级下，<strong>这个成本换不来任何收益</strong>。如果未来预订服务成为瓶颈，我会先按 <code>hotel_id</code> 分片，再考虑把库存独立出来用 TCC 处理。</li>
+<li><em>&quot;Redis 分布式锁能解决超卖吗？&quot;</em>
+→ 技术上可以，但<strong>不该用</strong>。三个理由：① 多一层故障点（Redis 挂了预订就不可用，而数据库本来就在链路里）；② 本章 3 TPS，数据库行锁的开销可以忽略，<strong>分布式锁没有性能收益</strong>；③ <strong>Redis 锁的正确性难以保证</strong>——主从异步复制下可能出现两个客户端同时持锁，Redlock 也因为依赖时钟假设、缺少 fencing token 而受到质疑。<strong>正确性要求高的场景应该用数据库事务。</strong></li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html" target="_blank" rel="noopener noreferrer">MySQL InnoDB 锁机制官方文档</a> — 理解 <code>SELECT ... FOR UPDATE</code>、间隙锁、死锁的权威资料</li>
+<li><a href="https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html" target="_blank" rel="noopener noreferrer">Martin Kleppmann: How to do distributed locking</a> — 质疑 Redlock 的经典文章</li>
+<li><a href="http://antirez.com/news/101" target="_blank" rel="noopener noreferrer">antirez: Is Redlock safe?</a> — Redis 作者对上述质疑的回应</li>
+<li><a href="https://redis.io/docs/manual/patterns/distributed-locks/" target="_blank" rel="noopener noreferrer">Redis 官方文档：Distributed Locks</a> — 官方对锁的说明，<strong>注意其中也建议配合 fencing token</strong></li>
+<li><a href="https://microservices.io/patterns/data/saga.html" target="_blank" rel="noopener noreferrer">Chris Richardson: Saga Pattern</a> — Saga 模式的权威说明，含编排与协同两种实现</li>
+<li><a href="https://microservices.io/patterns/data/transactional-outbox.html" target="_blank" rel="noopener noreferrer">microservices.io: Transactional Outbox</a> — 本地消息表模式</li>
+<li><a href="https://debezium.io/" target="_blank" rel="noopener noreferrer">Debezium</a> — CDC 工具，用于把数据库变更同步到 Redis 或消息队列</li>
+<li><a href="https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/" target="_blank" rel="noopener noreferrer">AWS: Idempotent API 设计</a> — 亚马逊构建者文库中关于幂等 API 的实践</li>
+<li><a href="https://rocketmq.apache.org/docs/featureBehavior/02delaymessage/" target="_blank" rel="noopener noreferrer">RocketMQ 定时消息</a> — 延时队列的一种主流实现</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../21/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">广告点击聚合</span></a><a class="next" href="../23/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">分布式邮件服务</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求澄清与量级估算step-1">1. 需求澄清与量级估算（Step 1）</a>
+<a class="lv3" href="#需求澄清">需求澄清</a>
+<a class="lv3" href="#非功能需求">非功能需求</a>
+<a class="lv3" href="#量级估算">量级估算</a>
+<a class="lv2" href="#2-api-设计">2. API 设计</a>
+<a class="lv2" href="#3-数据模型">3. 数据模型</a>
+<a class="lv3" href="#为什么选关系型数据库">为什么选关系型数据库</a>
+<a class="lv3" href="#初始-schema">初始 Schema</a>
+<a class="lv2" href="#4-高层设计">4. 高层设计</a>
+<a class="lv3" href="#一个关键的架构取舍">一个关键的架构取舍</a>
+<a class="lv2" href="#5-改进的数据模型从具体房间到房型">5. 改进的数据模型：从「具体房间」到「房型」</a>
+<a class="lv3" href="#api-的修正">API 的修正</a>
+<a class="lv3" href="#修正后的-schema">修正后的 Schema</a>
+<a class="lv3" href="#表是怎么被填充的">表是怎么被填充的</a>
+<a class="lv3" href="#查询可用性">查询可用性</a>
+<a class="lv3" href="#如果数据量再大-100-倍怎么办">如果数据量再大 100 倍怎么办</a>
+<a class="lv2" href="#6-并发问题本章的核心">6. 并发问题：本章的核心</a>
+<a class="lv3" href="#问题一同一用户重复提交">问题一：同一用户重复提交</a>
+<a class="lv3" href="#问题二多用户并发抢订">问题二：多用户并发抢订</a>
+<a class="lv2" href="#7-并发控制方案对比原文三方案">7. 并发控制方案对比（原文三方案）</a>
+<a class="lv3" href="#方案一悲观锁pessimistic-locking">方案一：悲观锁（Pessimistic Locking）</a>
+<a class="lv3" href="#方案二乐观锁optimistic-locking">方案二：乐观锁（Optimistic Locking）</a>
+<a class="lv3" href="#方案三数据库约束database-constraints">方案三：数据库约束（Database Constraints）</a>
+<a class="lv2" href="#8-并发控制方案对比补充两方案">8. 并发控制方案对比（补充两方案）</a>
+<a class="lv3" href="#方案四原子条件更新atomic-conditional-update-最推荐">方案四：原子条件更新（Atomic Conditional Update）—— 最推荐</a>
+<a class="lv3" href="#方案五唯一索引unique-constraint-适用于具体房间模型">方案五：唯一索引（Unique Constraint）—— 适用于「具体房间」模型</a>
+<a class="lv3" href="#方案六延伸redis-分布式锁">方案六（延伸）：Redis 分布式锁</a>
+<a class="lv2" href="#9-超卖与库存预占15-分钟未支付自动释放">9. 超卖与库存预占：15 分钟未支付自动释放</a>
+<a class="lv3" href="#为什么需要预占">为什么需要「预占」？</a>
+<a class="lv3" href="#核心问题15-分钟超时这个延迟任务怎么实现">核心问题：15 分钟超时这个「延迟任务」怎么实现？</a>
+<a class="lv3" href="#推荐的生产组合">推荐的生产组合</a>
+<a class="lv2" href="#10-可扩展性分片与缓存">10. 可扩展性：分片与缓存</a>
+<a class="lv3" href="#分片sharding">分片（Sharding）</a>
+<a class="lv3" href="#缓存">缓存</a>
+<a class="lv3" href="#补充价格缓存策略">补充：价格缓存策略</a>
+<a class="lv2" href="#11-服务间数据一致性">11. 服务间数据一致性</a>
+<a class="lv3" href="#单体-vs-微服务的取舍">单体 vs 微服务的取舍</a>
+<a class="lv3" href="#四种分布式事务方案对比">四种分布式事务方案对比</a>
+<a class="lv3" href="#原文的务实结论">原文的务实结论</a>
+<a class="lv2" href="#12-搜索与预订的一致性以及幂等性">12. 搜索与预订的一致性，以及幂等性</a>
+<a class="lv3" href="#搜索显示有房点进去却已售罄">搜索显示「有房」，点进去却「已售罄」</a>
+<a class="lv3" href="#幂等性idempotency总结">幂等性（Idempotency）总结</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1check-约束与允许超卖-10的需求自相矛盾">勘误 1：CHECK 约束与「允许超卖 10%」的需求自相矛盾</a>
+<a class="lv3" href="#勘误-2扣减库存的-update-语句漏掉了-hotel-id-过滤条件">勘误 2：扣减库存的 UPDATE 语句漏掉了 hotel_id 过滤条件</a>
+<a class="lv3" href="#勘误-3room-type-rate-表缺少-room-type-id-列无法存储分房型价格">勘误 3：room_type_rate 表缺少 room_type_id 列，无法存储分房型价格</a>
+<a class="lv3" href="#勘误-4status-字段的归属描述错误">勘误 4：status 字段的归属描述错误</a>
+<a class="lv3" href="#勘误-5把-check-约束描述为与乐观锁非常相似是不准确的">勘误 5：把 CHECK 约束描述为「与乐观锁非常相似」是不准确的</a>
+<a class="lv3" href="#勘误-6缺少检查后使用toctou问题的命名与原子解法">勘误 6：缺少「检查后使用（TOCTOU）」问题的命名与原子解法</a>
+<a class="lv3" href="#补充-1redis-分布式锁与-redlock-争议">补充 1：Redis 分布式锁与 Redlock 争议</a>
+<a class="lv3" href="#补充-2库存预占与15-分钟超时释放的实现">补充 2：库存预占与「15 分钟超时释放」的实现</a>
+<a class="lv3" href="#补充-3分布式事务的完整对比tcc本地消息表">补充 3：分布式事务的完整对比（TCC、本地消息表）</a>
+<a class="lv3" href="#补充-4搜索与预订的一致性">补充 4：搜索与预订的一致性</a>
+<a class="lv3" href="#补充-5价格缓存策略与库存缓存的区别">补充 5：价格缓存策略（与库存缓存的区别）</a>
+<a class="lv3" href="#补充-6幂等的三层实现模式">补充 6：幂等的三层实现模式</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

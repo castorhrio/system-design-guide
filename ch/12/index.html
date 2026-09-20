@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 12 章：设计聊天系统 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item active" href="./"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-12-章设计聊天系统">第 12 章：设计聊天系统</h1>
+<blockquote>
+<p>原章节：Design a Chat System · 原项目路径 <code>12. Chat System/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>聊天系统是系统设计面试里出现频率最高的题目之一，也是最容易&quot;讲得对但讲得浅&quot;的题目。很多人能说出&quot;用 WebSocket&quot;，但答不上来：WebSocket 连接断了怎么办？消息怎么保证不丢？两个人同时发消息谁在前？群聊里&quot;已读&quot;状态怎么算？</p>
+<p>这一章要解决的核心问题是：<strong>如何设计一个支撑 5000 万日活的实时聊天系统，并且保证消息不丢、不重、不乱序。</strong></p>
+<p>学完这一章，你应该能回答：为什么聊天服务器必须&quot;有状态&quot;，这是第 1 章&quot;无状态&quot;原则的例外吗？轮询、长轮询、WebSocket、SSE 各自适合什么场景？端到端加密为什么会让服务端搜索和内容审核变得不可能？&quot;在线状态&quot;这个看起来最简单的功能，为什么工程代价极高？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>四种通信协议（轮询 / 长轮询 / WebSocket / SSE）的完整对比与选型</li>
+<li>为什么 WebSocket 必须配合服务发现或共享状态——以及它如何呼应第 1 章的&quot;无状态&quot;原则</li>
+<li>消息可靠投递的三要素：客户端 ACK、离线消息存储、会话内有序性</li>
+<li>多设备同步机制（<code>cur_max_message_id</code>）</li>
+<li>在线状态（Presence）的工程代价：心跳频率、过期判定、广播风暴的量化</li>
+<li>已读回执的实现与它的放大效应</li>
+<li>端到端加密（E2EE）的基本原理，以及它对服务端能力的根本性限制</li>
+</ul>
+<hr />
+<h2 id="1-需求与规模">1. 需求与规模</h2>
+<h3 id="功能需求">功能需求</h3>
+<ul>
+<li><strong>一对一聊天</strong></li>
+<li><strong>群聊</strong>，单个群最多 100 人</li>
+<li><strong>在线状态指示</strong>（在线 / 离线）</li>
+<li><strong>多设备支持</strong>（手机 + 平板 + 桌面端同时在线）</li>
+<li><strong>推送通知</strong>（用户离线时）</li>
+</ul>
+<h3 id="规模与约束">规模与约束</h3>
+<ul>
+<li><strong>5000 万日活用户（DAU）</strong></li>
+<li><strong>消息永久保存</strong>（chat history 永久留存）</li>
+<li>单条消息最长 10 万字符</li>
+<li>文本消息（媒体消息属于扩展项）</li>
+</ul>
+<h3 id="一个关键的规模数字并发连接数">一个关键的规模数字：并发连接数</h3>
+<p>聊天系统和前面几章最大的不同在于：<strong>它不是&quot;请求-响应&quot;模型，而是&quot;长连接&quot;模型。</strong></p>
+<p>5000 万日活用户在高峰时段同时在线，意味着系统要<strong>同时维持几千万个 TCP 连接</strong>。这个数字决定了整个架构的形态。</p>
+<p>我们来估算需要多少台聊天服务器：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>单机承载连接数</th>
+<th>需要的服务器数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10 万</td>
+<td>500 台</td>
+<td>保守估计，未做深度调优</td>
+</tr>
+<tr>
+<td>50 万</td>
+<td>100 台</td>
+<td>需要 epoll / IOCP 等事件驱动模型</td>
+</tr>
+<tr>
+<td>100 万</td>
+<td>50 台</td>
+<td>需要 64 GB 以上内存 + 精心调优</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>单个连接要占用多少内存？</strong> 大致包括：内核的 socket 收发缓冲区（默认几十 KB，可调小）、应用层的连接对象（用户 ID、会话状态、心跳时间戳等，通常 1–10 KB）。所以一个 64 GB 内存的服务器，理论上能扛 100 万个连接，但实际要留足余量。</p>
+<p><strong>这也是为什么聊天服务器的实现语言很关键</strong>：用&quot;一个连接一个线程&quot;的模型（比如传统 Java Servlet）是不可能扛住百万连接的——100 万个线程光是栈空间就要几百 GB。必须用事件驱动（epoll / kqueue / IOCP）或协程模型，比如 Go 的 goroutine、Erlang/Elixir 的进程、Node.js 的事件循环。</p>
+</blockquote>
+<p><strong>记住这个&quot;几千万并发连接&quot;的约束，本章后面的所有设计——有状态、心跳、广播风暴——都源于它。</strong></p>
+<hr />
+<h2 id="2-通信协议从轮询到-websocket">2. 通信协议：从轮询到 WebSocket</h2>
+<p>发送和接收是两个方向的问题，但<strong>接收方向更难</strong>：服务器怎么把消息&quot;推&quot;给客户端？</p>
+<p>原笔记对比了三种方案，我们逐一展开，并补充第四种（SSE）。</p>
+<h3 id="21-轮询polling">2.1 轮询（Polling）</h3>
+<div align="center"><img src="./images/polling.png" alt="轮询：客户端定时向服务器询问是否有新消息" width="520" loading="lazy" decoding="async"></div>
+<p>客户端每隔 N 秒问一次服务器：&quot;有新消息吗？&quot;</p>
+<ul>
+<li><strong>优点</strong>：实现最简单，任何 HTTP 客户端都能做，穿过任何防火墙。</li>
+<li><strong>缺点</strong>：
+<ul>
+<li><strong>绝大多数请求是空转</strong>。如果消息平均每分钟一条，而客户端每秒轮询一次，那 60 个请求里 59 个是浪费的。</li>
+<li><strong>延迟高</strong>。最坏情况下，消息要等一整个轮询周期才被看到（N 秒延迟）。</li>
+<li><strong>服务器压力大</strong>。5000 万用户 × 每秒 1 次 = 5000 万 QPS 的空请求——<strong>这个数字本身就是灾难</strong>。</li>
+</ul>
+</li>
+</ul>
+<p><strong>结论：轮询只适合&quot;消息极少、延迟不敏感&quot;的场景，比如每天早上拉一次系统公告。不能用于聊天。</strong></p>
+<h3 id="22-长轮询long-polling">2.2 长轮询（Long Polling）</h3>
+<div align="center"><img src="./images/long-polling.png" alt="长轮询：客户端发起请求，服务器保持连接直到有消息或超时" width="520" loading="lazy" decoding="async"></div>
+<p>客户端发起请求，<strong>服务器不立即返回，而是把这个连接挂起（hold）</strong>，直到有消息或超时（比如 30 秒）才返回。客户端收到响应后，立刻再发一个新的长轮询请求。</p>
+<ul>
+<li><strong>优点</strong>：延迟大幅降低（消息一到就返回），空请求大幅减少。</li>
+<li><strong>缺点</strong>：
+<ul>
+<li><strong>服务器仍然要维持大量连接</strong>——和 WebSocket 一样占资源，但<strong>每次收到响应后都要重建连接</strong>，产生额外的握手开销和&quot;重连风暴&quot;。</li>
+<li><strong>仍然是半双工</strong>。客户端发送消息还得另开一个 HTTP 请求。</li>
+<li><strong>超时重连的瞬间是流量尖峰</strong>。如果 100 万个客户端的长轮询都在同一秒超时，就会同时发起 100 万个新请求。</li>
+<li><strong>对不活跃用户是浪费</strong>：一个用户可能几小时没消息，但他仍然占着一个挂起的连接。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>为什么原笔记说长轮询&quot;对不活跃用户低效&quot;？</strong> 因为它没有区分&quot;连接存在&quot;和&quot;有数据流动&quot;。长轮询下，一个不活跃用户依然消耗一个服务器连接槽位，而且每 30 秒就要重新握手一次。相比之下，WebSocket 的连接是稳定的，重连频率低得多。</p>
+</blockquote>
+<h3 id="23-websocket推荐方案">2.3 WebSocket（推荐方案）</h3>
+<div align="center"><img src="./images/websocket.png" alt="WebSocket：双向持久连接" width="520" loading="lazy" decoding="async"></div>
+<p>WebSocket 在 HTTP 之上做一次<strong>协议升级握手（Upgrade）</strong>，之后这条 TCP 连接就变成**全双工（full-duplex）**的持久连接：客户端和服务器可以随时互相发消息。</p>
+<ul>
+<li><strong>优点</strong>：
+<ul>
+<li><strong>真正的双向实时通信</strong>，收发共用一个连接。</li>
+<li><strong>每条消息的额外开销极小</strong>。WebSocket 的帧头只有 2–14 字节；而一个 HTTP 请求光请求头就几百字节。在聊天这种&quot;消息短、频率高&quot;的场景里，这个差距是决定性的。</li>
+<li><strong>连接稳定</strong>，不需要频繁重连。</li>
+</ul>
+</li>
+<li><strong>缺点</strong>：
+<ul>
+<li>需要客户端和服务器都支持（现代浏览器都支持）。</li>
+<li><strong>中间设备（代理、企业防火墙）可能拦截或超时断开</strong>，需要心跳维持。</li>
+<li><strong>需要处理连接的有状态性</strong>（这是下一节的主题）。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>生产环境务必用 <code>wss://</code>（WebSocket over TLS），不要用 <code>ws://</code>。</strong> 原笔记写的是&quot;使用 WebSockets（ws）协议&quot;，这在生产环境是不安全的——<code>ws://</code> 是明文的，消息内容、鉴权令牌全部裸奔。<code>wss://</code> 走 TLS，等价于 HTTPS。</p>
+</blockquote>
+<h3 id="24-补充sseserver-sent-events">2.4 补充：SSE（Server-Sent Events）</h3>
+<p>原笔记完全没提 SSE，但它是一个非常实用的选择。</p>
+<p><strong>SSE 是&quot;服务器单向推送给客户端&quot;的协议，跑在普通 HTTP 之上。</strong></p>
+<pre><code class="language-http">GET /events HTTP/1.1
+Accept: text/event-stream
+</code></pre>
+<p>服务器保持这个 HTTP 响应不结束，持续往里面写数据：</p>
+<pre><code>data: {&quot;type&quot;:&quot;message&quot;,&quot;from&quot;:&quot;alice&quot;,&quot;text&quot;:&quot;hi&quot;}
+data: {&quot;type&quot;:&quot;presence&quot;,&quot;user&quot;:&quot;bob&quot;,&quot;status&quot;:&quot;online&quot;}
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>WebSocket</th>
+<th>SSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>方向</td>
+<td>双向</td>
+<td><strong>单向</strong>（服务器 → 客户端）</td>
+</tr>
+<tr>
+<td>协议</td>
+<td>自定义帧协议（需 Upgrade）</td>
+<td><strong>普通 HTTP</strong>，<code>text/event-stream</code></td>
+</tr>
+<tr>
+<td>自动重连</td>
+<td>需自己实现</td>
+<td><strong>浏览器内置</strong>（<code>Last-Event-ID</code> 断点续传）</td>
+</tr>
+<tr>
+<td>数据格式</td>
+<td>二进制 / 文本</td>
+<td><strong>仅文本</strong>（二进制需 Base64）</td>
+</tr>
+<tr>
+<td>代理 / 防火墙兼容性</td>
+<td>可能被拦截</td>
+<td><strong>几乎无阻碍</strong>（就是 HTTP）</td>
+</tr>
+<tr>
+<td>连接数限制</td>
+<td>无特殊限制</td>
+<td>HTTP/1.1 下同域名最多 6 条（HTTP/2 下无此限制）</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>聊天、协同编辑、游戏</td>
+<td><strong>通知、信息流更新、股价行情、大模型流式输出</strong></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>SSE 的适用场景</strong>：如果你只需要&quot;服务器推、客户端收&quot;，SSE 比 WebSocket 更简单、更稳。</p>
+<ul>
+<li><strong>大模型的流式输出</strong>（ChatGPT 打字机效果）就是 SSE——这正是 2023 年以来 SSE 重新流行的原因。</li>
+<li><strong>股票行情、体育比分、物流轨迹</strong>：单向推送，SSE 足够。</li>
+<li><strong>聊天系统能不能用 SSE？</strong> 可以，但需要&quot;<strong>SSE 收 + HTTP POST 发</strong>&quot;的组合。这样做的代价是发送路径没有复用连接（每次发消息开一个 HTTP 请求），在高频聊天场景下不如 WebSocket。<strong>所以聊天通常选 WebSocket；SSE 更适合单向推送的场景。</strong></li>
+</ul>
+</blockquote>
+<h3 id="25-协议选型总结">2.5 协议选型总结</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>协议</th>
+<th>实时性</th>
+<th>服务器成本</th>
+<th>实现复杂度</th>
+<th>推荐场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>轮询</td>
+<td>差（秒级）</td>
+<td>极高（大量空请求）</td>
+<td>极低</td>
+<td>极低频、延迟不敏感</td>
+</tr>
+<tr>
+<td>长轮询</td>
+<td>中（近实时）</td>
+<td>高（挂起连接 + 频繁重连）</td>
+<td>低</td>
+<td>兼容性受限、无法用 WebSocket 时</td>
+</tr>
+<tr>
+<td><strong>WebSocket</strong></td>
+<td><strong>好（毫秒级）</strong></td>
+<td><strong>中（稳定连接）</strong></td>
+<td><strong>中</strong></td>
+<td><strong>聊天、协同、游戏</strong></td>
+</tr>
+<tr>
+<td>SSE</td>
+<td>好（毫秒级）</td>
+<td>中</td>
+<td><strong>低</strong></td>
+<td><strong>单向推送：通知、行情、流式输出</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>发送方向的选择</strong>：原笔记说&quot;发送端用 HTTP，利用持久连接提升效率&quot;。这个说法在早期是对的（HTTP keep-alive 可以复用 TCP 连接），但<strong>既然已经为接收建立了一条 WebSocket 连接，发送也走同一条连接是更自然的做法</strong>——省掉一次握手、省掉一套鉴权逻辑，而且天然保证了&quot;发送和接收在同一个会话上下文里&quot;。实践中主流 IM 都是收发都走 WebSocket。</p>
+<div align="center"><img src="./images/basic-design.png" alt="基础设计：发送端与接收端" width="520" loading="lazy" decoding="async"></div>
+<hr />
+<h2 id="3-有状态-vs-无状态为什么聊天服务器必须记住连接">3. 有状态 vs 无状态：为什么聊天服务器必须&quot;记住&quot;连接</h2>
+<p>这是本章最重要的一个呼应点，也是第 1 章&quot;无状态&quot;原则的<strong>一个正当例外</strong>。</p>
+<h3 id="31-回顾第-1-章的原则">3.1 回顾第 1 章的原则</h3>
+<p>第 1 章说：<strong>Web 层应该无状态</strong>，把 session 外置到共享存储，这样任何一台服务器都能处理任何请求，加机器不需要迁移数据，还能自动伸缩。</p>
+<p>那为什么聊天服务器是<strong>有状态</strong>的？</p>
+<h3 id="32-因为-websocket-连接本身就是状态">3.2 因为 WebSocket 连接本身就是状态</h3>
+<p>关键区别在这里：</p>
+<ul>
+<li><strong>HTTP 请求是&quot;瞬时&quot;的</strong>：请求进来、处理、返回，连接就结束了。服务器不需要&quot;记住&quot;任何东西。</li>
+<li><strong>WebSocket 连接是&quot;持久&quot;的</strong>：一条 TCP 连接在服务器上<strong>长期存在</strong>，对应一个内存里的连接对象。<strong>这个连接对象就是状态。</strong></li>
+</ul>
+<div align="center"><img src="./images/high-level-stateless-arch.png" alt="无状态架构" width="520" loading="lazy" decoding="async"></div>
+<div align="center"><img src="./images/high-level-statefull-arch.png" alt="有状态架构：聊天服务器持有持久连接" width="520" loading="lazy" decoding="async"></div>
+<p>于是产生了一个具体问题：</p>
+<blockquote>
+<p><strong>用户 A 的消息，怎么送到用户 B 手里？</strong></p>
+<p>A 的消息到达的是 <strong>Chat Server 1</strong>（因为 A 的连接在 Server 1 上）。但 B 的连接可能在 <strong>Chat Server 2</strong> 上。<strong>Server 1 必须想办法把消息转发给 Server 2。</strong></p>
+</blockquote>
+<h3 id="33-三种解法">3.3 三种解法</h3>
+<p><strong>① 服务发现 + 直接转发（原笔记的方案）</strong></p>
+<p>维护一张&quot;用户 → 所在聊天服务器&quot;的映射表。Server 1 查到&quot;B 在 Server 2 上&quot;，就把消息转发给 Server 2，Server 2 再通过 B 的连接推出去。</p>
+<ul>
+<li>实现直观；</li>
+<li>但需要一张<strong>高可用、低延迟的映射表</strong>（这就是原笔记用 ZooKeeper 的原因）；</li>
+<li>服务器上下线时要及时更新映射，否则会转发到已死的节点。</li>
+</ul>
+<p><strong>② 发布订阅（Pub/Sub，工业界更常用）</strong></p>
+<p>每台聊天服务器<strong>订阅</strong>它所承载用户的频道。Server 1 收到 A 发给 B 的消息后，直接<strong>发布</strong>到 B 的频道（比如 Redis Pub/Sub 或 Kafka 的一个 topic），所有订阅了 B 的服务器都会收到——但只有真正持有 B 连接的那台会推送。</p>
+<ul>
+<li>不需要维护&quot;用户在哪台机器&quot;的精确映射；</li>
+<li>天然支持&quot;一个用户在多台设备上&quot;（多台服务器都订阅同一个用户）；</li>
+<li>代价是引入了消息中间件，且<strong>广播范围可能过大</strong>（所有服务器都收到消息，但只有一台用得上）。</li>
+</ul>
+<p><strong>③ 粘性会话（Sticky Session）</strong></p>
+<p>在负载均衡器上做<strong>一致性哈希</strong>，把同一个用户总是路由到同一台服务器。</p>
+<ul>
+<li>实现最简单，不用改应用代码；</li>
+<li><strong>但这是最不推荐的做法</strong>，原因和第 1 章讲的一样：
+<ul>
+<li><strong>负载不均</strong>：热门用户所在的服务器可能过载；</li>
+<li><strong>服务器故障 = 用户掉线</strong>：那台机器上的所有连接全部断开，用户要重连到别的机器，而重连后映射关系全变了；</li>
+<li><strong>无法优雅扩缩容</strong>：扩容时新机器分不到用户，缩容时要把用户&quot;赶走&quot;。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>这就是第 1 章&quot;无状态&quot;原则的例外与它的边界。</strong></p>
+<ul>
+<li>第 1 章说&quot;Web 层无状态&quot;，指的是<strong>业务处理层</strong>：处理一个 HTTP 请求不需要任何前置状态。</li>
+<li>聊天服务器<strong>必然有状态</strong>，因为&quot;保持连接&quot;就是它的核心职责。</li>
+<li><strong>但&quot;有状态&quot;不等于&quot;放弃可扩展性&quot;。</strong> 正确的做法是：
+<ul>
+<li>让状态<strong>尽可能小</strong>（只存连接和会话上下文，不存业务数据）；</li>
+<li>用<strong>服务发现或 Pub/Sub</strong>把&quot;状态在哪&quot;这件事外部化，让任何服务器都能找到任意用户；</li>
+<li>支持<strong>优雅下线（Graceful Shutdown）</strong>：关闭前先通知客户端&quot;我要下线了，请重连到别的服务器&quot;，避免惊群；</li>
+<li>用**抖动退避（Jittered Backoff）**处理重连风暴——如果一台服务器挂了，10 万个客户端同时重连会再次打垮集群。让每个客户端等待一个随机时间（比如 0–30 秒）再重连，能把尖峰摊平。</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>面试加分点</strong>：如果你能主动说&quot;聊天服务器的有状态是不可避免的，但我们可以把状态最小化，并用服务发现把状态位置外部化，从而保留水平扩展能力&quot;，这个回答的层次就明显高于&quot;用 WebSocket 就行了&quot;。</p>
+</blockquote>
+<hr />
+<h2 id="4-高层设计组件与数据模型">4. 高层设计：组件与数据模型</h2>
+<h3 id="41-组件划分">4.1 组件划分</h3>
+<div align="center"><img src="./images/high-level-design.png" alt="高层设计：聊天服务器、在线状态服务器、API 服务器、通知服务器、KV 存储" width="520" loading="lazy" decoding="async"></div>
+<p>原笔记把服务分成两类，这个划分很重要：</p>
+<p><strong>无状态服务（Stateless Services）</strong></p>
+<ul>
+<li>处理注册、登录、用户资料管理；</li>
+<li>集成服务发现，向客户端推荐&quot;最合适的聊天服务器&quot;；</li>
+<li><strong>可以随意增删，因为不持有连接。</strong></li>
+</ul>
+<p><strong>有状态服务（Stateful Services）</strong></p>
+<ul>
+<li><strong>聊天服务器（Chat Server）</strong>：维护持久的 WebSocket 连接，负责消息投递和同步；</li>
+<li><strong>在线状态服务器（Presence Server）</strong>：管理在线 / 离线状态。</li>
+</ul>
+<p><strong>其他组件</strong></p>
+<ul>
+<li><strong>API 服务器</strong>：登录、注册、改资料等；</li>
+<li><strong>通知服务器</strong>：用户离线时发推送（复用第 10 章的设计）；</li>
+<li><strong>KV 存储（Key-Value Store）</strong>：存聊天记录。</li>
+</ul>
+<h3 id="42-为什么聊天记录用-kv-存储而不是关系型数据库">4.2 为什么聊天记录用 KV 存储而不是关系型数据库</h3>
+<p>原笔记给了四条理由，都是站得住的：</p>
+<ol>
+<li><strong>易于水平扩展</strong>：KV 存储天生支持分片，加节点就能扩容。</li>
+<li><strong>极低延迟</strong>：KV 存储的读写通常是内存或 LSM-tree 顺序写，延迟远低于 B+ 树。</li>
+<li><strong>关系型数据库处理&quot;长尾数据&quot;能力差</strong>：当索引大到超过内存，随机访问（每次查询要走多次磁盘 IO）会变得非常昂贵。聊天记录正是典型的&quot;数据量巨大、但每次只按主键查一小段&quot;的场景。</li>
+<li><strong>有成功案例</strong>：Facebook Messenger 和 Discord 都用过这类存储。</li>
+</ol>
+<blockquote>
+<p><strong>补充一点具体背景</strong>（原笔记没说，但很有说服力）：</p>
+<ul>
+<li><strong>Facebook Messenger</strong> 长期使用 <strong>HBase</strong>（一个基于 HDFS 的宽列存储，属于 KV 家族）来存储消息。</li>
+<li><strong>Discord</strong> 早期用 <strong>Cassandra</strong> 存消息，后来因为维护成本和延迟问题，<strong>迁移到了 ScyllaDB</strong>（一个 C++ 重写的、兼容 Cassandra 协议的高性能实现）。</li>
+</ul>
+<p>这两个案例都印证了同一个结论：<strong>聊天消息的访问模式（按会话查最近 N 条）非常适合宽列 / KV 存储，而不适合需要 JOIN 和复杂索引的关系型数据库。</strong></p>
+</blockquote>
+<h3 id="43-数据模型">4.3 数据模型</h3>
+<p>原笔记给出的模型：</p>
+<p><strong>一对一聊天</strong></p>
+<pre><code>message_id (PK) | channel_id | sender_id | content | created_at
+</code></pre>
+<p><strong>群聊</strong></p>
+<pre><code>(channel_id, message_id) (复合主键) | sender_id | content | created_at
+</code></pre>
+<div align="center"><img src="./images/one-to-one-chat.png" alt="一对一聊天的数据模型" width="380" loading="lazy" decoding="async"></div>
+<div align="center"><img src="./images/group-chat.png" alt="群聊的数据模型：复合主键 (channel_id, message_id)" width="380" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>这个复合主键的设计非常值得琢磨。</strong> 为什么群聊要 <code>(channel_id, message_id)</code> 而不是只用 <code>message_id</code>？</p>
+<p>因为在宽列存储（如 Cassandra / HBase）里，<strong>主键的第一部分是分区键（Partition Key），决定数据落在哪个节点；后面的部分是排序键（Clustering Key），决定同一分区内的物理顺序。</strong></p>
+<ul>
+<li>用 <code>channel_id</code> 做分区键 → <strong>同一个会话的所有消息都在同一个节点上，且物理上按 <code>message_id</code> 有序排列</strong>。</li>
+<li>于是&quot;取某个会话最近的 50 条消息&quot;就变成了一次<strong>顺序范围扫描</strong>，而不是跨节点查询 + 排序。这是宽列存储性能的关键。</li>
+<li>而一对一聊天用 <code>message_id</code> 做主键，是因为一对一场景下 <code>channel_id</code> 可以由两个用户 ID 推导出来，且消息量相对可控。</li>
+</ul>
+</blockquote>
+<h3 id="44-消息-id-的设计全局唯一-vs-本地序号">4.4 消息 ID 的设计：全局唯一 vs 本地序号</h3>
+<p>原笔记提到：</p>
+<blockquote>
+<p>IDs can be generated using a global 64-bit sequence number generator like Snowflake. A better approach is to use local sequence number generator. Local means IDs are only unique within a group. The reason why local IDs work is that maintaining message sequence within one-on-one channel or a group channel is sufficient.</p>
+</blockquote>
+<p>这段话<strong>结论是对的，但表述容易让人误解</strong>，需要澄清：</p>
+<ul>
+<li><strong>&quot;排序只需要会话内有序&quot;是对的。</strong> 消息 A 和消息 B 谁先谁后，只在同一个会话里有意义。跨会话比较时间先后没有业务价值。</li>
+<li><strong>但&quot;用本地序号&quot;不等于&quot;不需要全局唯一 ID&quot;。</strong> 你依然需要一个能跨系统引用的标识，用于：
+<ul>
+<li>消息同步（客户端上报 <code>cur_max_message_id</code>）；</li>
+<li>推送通知的载荷；</li>
+<li>撤回、回复引用、举报；</li>
+<li>去重（防止重试导致重复入库）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>实践中常见的做法是两者并存</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>作用</th>
+<th>生成方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>message_id</code></td>
+<td><strong>全局唯一标识</strong></td>
+<td>Snowflake / ULID（64 位、大致按时间递增）</td>
+</tr>
+<tr>
+<td><code>seq</code></td>
+<td><strong>会话内序号</strong></td>
+<td>每个 <code>channel_id</code> 一个本地自增计数器</td>
+</tr>
+</tbody>
+</table></div>
+<p>或者，如果只用本地序号，那么<strong>主键必须是 <code>(channel_id, seq)</code> 的组合</strong>——<code>(channel_id, seq)</code> 合起来就是全局唯一的。这正是原笔记群聊模型的设计。</p>
+<blockquote>
+<p><strong>Snowflake 是什么？</strong> 一个 64 位的 ID 生成算法，结构是：<code>1 位符号 + 41 位时间戳（毫秒） + 10 位机器 ID + 12 位序列号</code>。</p>
+<ul>
+<li><strong>全局唯一</strong>：机器 ID 区分不同节点，序列号区分同一毫秒内的不同请求；</li>
+<li><strong>大致有序</strong>：高位是时间戳，所以生成的 ID 基本随时间递增，这对数据库索引非常友好（避免随机写入）。</li>
+<li><strong>无中心协调</strong>：每台机器自己就能生成，不需要请求一个中心服务（这也是它比&quot;数据库自增 ID&quot;更适合分布式的核心原因）。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="5-服务发现">5. 服务发现</h2>
+<div align="center"><img src="./images/zookeeper.png" alt="服务发现：ZooKeeper 根据地理位置和服务器容量分配聊天服务器" width="520" loading="lazy" decoding="async"></div>
+<p>服务发现（Service Discovery）的职责是：<strong>根据地理位置、服务器容量等条件，给客户端推荐最合适的聊天服务器。</strong></p>
+<p>原笔记用的是 <strong>Apache ZooKeeper</strong>：</p>
+<ul>
+<li>它维护聊天服务器的注册表；</li>
+<li>服务器上线时注册自己，下线时注销；</li>
+<li>客户端通过它查询&quot;我该连哪台服务器&quot;。</li>
+</ul>
+<p><strong>为什么&quot;地理位置&quot;很重要？</strong> 因为 WebSocket 是长连接，<strong>连接的物理距离直接决定了延迟</strong>。北京的客户端连到北京机房，往返可能只要 5 毫秒；连到美西机房，往返要 150 毫秒以上。所以服务发现要优先推荐就近的服务器。</p>
+<p><strong>为什么&quot;服务器容量&quot;也很重要？</strong> 因为每台服务器的连接数是有限的（见第 1 节的估算）。如果某台服务器已经接近上限，就不应该再往它上面分配新连接。这叫<strong>负载感知（Load-Aware）路由</strong>。</p>
+<blockquote>
+<p><strong>补充：ZooKeeper 在现代架构里的定位</strong>
+ZooKeeper 是一个<strong>分布式协调服务</strong>，擅长的是&quot;配置管理、命名服务、分布式锁、Leader 选举&quot;这类需要强一致性的场景。用它做服务发现是可以的（很多老系统这么做），但它比较重——需要自己维护一个 3 或 5 节点的 ZK 集群。</p>
+<p>现代系统更常用：</p>
+<ul>
+<li><strong>etcd / Consul</strong>：轻量、原生支持服务发现和健康检查；</li>
+<li><strong>Nacos</strong>：国内常用，同时支持服务发现和配置中心；</li>
+<li><strong>云厂商的服务注册中心</strong>（如 Kubernetes 的 Service + Endpoint）；</li>
+<li><strong>服务网格（Service Mesh）</strong>：把服务发现下沉到 Sidecar。</li>
+</ul>
+<p><strong>面试时的建议</strong>：说 ZooKeeper 不算错（原书就这么写的），但如果你补一句&quot;现代实践中更常用 etcd / Consul / Nacos，ZooKeeper 更常见于 Leader 选举这类协调场景&quot;，会显得你对技术演进有判断。</p>
+</blockquote>
+<hr />
+<h2 id="6-消息流转一对一与群聊">6. 消息流转：一对一与群聊</h2>
+<h3 id="61-一对一聊天">6.1 一对一聊天</h3>
+<div align="center"><img src="./images/one-to-one-chat-flow.png" alt="一对一聊天流程：消息经聊天服务器 1 存储后转发到聊天服务器 2" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li><strong>用户 A</strong> 发消息给 <strong>Chat Server 1</strong>。</li>
+<li><strong>Chat Server 1</strong> 分配一个全局唯一的消息 ID，把消息<strong>存入 KV 存储</strong>。</li>
+<li><strong>如果 B 在线</strong>：消息被转发到 B 所在的 <strong>Chat Server 2</strong>，通过 B 的 WebSocket 连接推送出去。</li>
+<li><strong>如果 B 离线</strong>：发一条<strong>推送通知</strong>（复用第 10 章的通知系统），同时把消息留在 B 的离线消息箱里。</li>
+</ol>
+<blockquote>
+<p><strong>注意第 2 步的顺序</strong>：<strong>先持久化，再转发</strong>。这个顺序不能颠倒。如果先转发再落库，一旦服务器在转发后、落库前崩溃，这条消息就永远消失了——A 以为发出去了，B 也收到了，但重新登录后消息不见了。</p>
+</blockquote>
+<h3 id="62-群聊">6.2 群聊</h3>
+<div align="center"><img src="./images/group-chat-flow.png" alt="群聊流程：消息被复制到每个成员的收件箱" width="520" loading="lazy" decoding="async"></div>
+<p>原笔记的方案是：<strong>把消息复制到每个成员的收件箱（inbox / message sync queue）里。</strong></p>
+<ul>
+<li><strong>优点</strong>：每个成员的收件箱是独立的、有序的，同步逻辑非常简单——&quot;读自己的收件箱&quot;就够了。</li>
+<li><strong>缺点</strong>：<strong>写放大</strong>。一个 100 人的群，一条消息要写 100 份。群越大，成本越高。</li>
+</ul>
+<p><strong>算一下量级</strong>：假设平均每人每天在 5 个群里各发 10 条消息，群平均 20 人：</p>
+<pre><code>每人每天产生的收件箱写入 = 5 群 × 10 条 × 20 人 = 1,000 次
+全站 = 50,000,000 × 1,000 = 500 亿次 / 天
+平均 = 500 亿 / 86,400 ≈ 57,870 次 / 秒
+峰值（3 倍）≈ 173,000 次 / 秒
+</code></pre>
+<p><strong>17 万次写入/秒</strong>——这需要大量的分片，但还在可控范围内。<strong>原笔记设定群聊上限 100 人，正是为了让这个放大倍数有上界。</strong></p>
+<blockquote>
+<p><strong>那么超过 100 人的&quot;大群&quot;怎么办？</strong>
+这是原笔记没覆盖的场景。像 Discord 的服务器、Telegram 的频道，成员可以达到几十万甚至上百万。这时候&quot;复制到每个人的收件箱&quot;完全不可行——一条消息要写 100 万份。</p>
+<p><strong>解法是切换成&quot;拉模式&quot;</strong>（和第 11 章信息流的思路一致）：</p>
+<ul>
+<li>消息<strong>只存一份</strong>，挂在 <code>channel_id</code> 下；</li>
+<li>每个成员维护一个&quot;已读到哪个 <code>seq</code>&quot;的水位线（<code>last_read_seq</code>）；</li>
+<li>成员上线时，<strong>主动拉取</strong> <code>seq &gt; last_read_seq</code> 的消息。</li>
+<li>这就是&quot;<strong>小群推、大群拉</strong>&quot;的混合策略，和&quot;普通用户推、大 V 拉&quot;是同一个工程思路。</li>
+</ul>
+</blockquote>
+<h3 id="63-消息同步多设备">6.3 消息同步（多设备）</h3>
+<div align="center"><img src="./images/message-synchronization.png" alt="消息同步：每个设备维护 cur_max_message_id" width="520" loading="lazy" decoding="async"></div>
+<p>一个用户可能同时在手机、平板、桌面端登录。<strong>每台设备都要看到完整的消息历史，不能有缺口。</strong></p>
+<p>原笔记的机制是：<strong>每台设备维护一个变量 <code>cur_max_message_id</code>，记录这台设备已经收到的最大消息 ID。</strong></p>
+<p>一条消息是&quot;新消息&quot;需要满足两个条件：</p>
+<ol>
+<li><strong>接收者 ID 等于当前登录用户 ID</strong>（这条消息是发给我的）；</li>
+<li><strong>KV 存储里的消息 ID 大于该设备的 <code>cur_max_message_id</code></strong>（我还没收到过）。</li>
+</ol>
+<p>设备上线或重连时，用这个水位线去拉取增量：</p>
+<pre><code>拉取条件：message_id &gt; cur_max_message_id AND recipient_id = me
+</code></pre>
+<p><strong>为什么需要&quot;每设备&quot;而不是&quot;每用户&quot;一个水位线？</strong> 因为不同设备的进度不同。手机可能一直在用，<code>cur_max_message_id</code> 是 1000；平板三天没开，还停在 800。如果共用一个水位线，平板就会漏掉 800–1000 之间的消息。</p>
+<blockquote>
+<p><strong>这个设计的优雅之处</strong>：它把&quot;同步&quot;变成了一次<strong>单调递增的游标扫描</strong>，而不是&quot;记录每台设备收到了哪些消息&quot;（那会是一个巨大的状态集合）。<strong>只要消息 ID 单调递增，同步逻辑就退化成一次范围查询。</strong> 这也解释了为什么消息 ID 需要&quot;大致有序&quot;。</p>
+</blockquote>
+<hr />
+<h2 id="7-消息可靠投递ack离线消息与顺序">7. 消息可靠投递：ACK、离线消息与顺序</h2>
+<p>原笔记完全没有覆盖这一块，但它是聊天系统的核心难点。可靠投递要同时解决三个问题：<strong>不丢、不重、不乱序。</strong></p>
+<h3 id="71-客户端-ack不丢不重">7.1 客户端 ACK：不丢不重</h3>
+<p><strong>问题</strong>：客户端发了消息，怎么知道服务器收到了？服务器推了消息，怎么知道客户端收到了？</p>
+<p><strong>答案：确认机制（ACK, Acknowledgement）。</strong></p>
+<p><strong>发送方向（客户端 → 服务器）</strong>：</p>
+<ol>
+<li>客户端生成一个<strong>客户端消息 ID</strong>（<code>client_msg_id</code>，通常是 UUID），连同消息内容一起发出。</li>
+<li>服务器<strong>持久化</strong>消息，然后返回一个 <strong>ACK</strong>，包含服务器分配的 <code>message_id</code> 和 <code>seq</code>。</li>
+<li>客户端收到 ACK 后，把消息标记为&quot;已发送&quot;。</li>
+<li><strong>如果超时没收到 ACK</strong>，客户端<strong>用同一个 <code>client_msg_id</code> 重发</strong>。</li>
+<li>服务器看到重复的 <code>client_msg_id</code>，<strong>直接返回之前的 ACK，不重复入库</strong>。</li>
+</ol>
+<p><strong>这就是幂等（Idempotency）</strong>：同一个操作执行多次，效果和执行一次相同。<code>client_msg_id</code> 就是幂等键。</p>
+<p><strong>接收方向（服务器 → 客户端）</strong>：</p>
+<ol>
+<li>服务器通过 WebSocket 推送消息。</li>
+<li>客户端收到后，<strong>回一个 ACK</strong>（包含 <code>message_id</code>）。</li>
+<li>服务器收到 ACK 后，才把这条消息从&quot;待投递&quot;状态移除。</li>
+<li><strong>如果超时没收到 ACK</strong>，服务器重推。</li>
+</ol>
+<blockquote>
+<p><strong>为什么两段都要 ACK？</strong> 因为<strong>发送方的&quot;已发送&quot;和接收方的&quot;已收到&quot;是两件不同的事</strong>。</p>
+<ul>
+<li>服务器 ACK 给发送方，表示&quot;我收下了，会负责送到&quot;；</li>
+<li>接收方 ACK 给服务器，表示&quot;我确实收到了&quot;。
+缺了任何一段，都会出现&quot;以为送到了其实没送到&quot;的盲区。</li>
+</ul>
+</blockquote>
+<h3 id="72-离线消息">7.2 离线消息</h3>
+<p><strong>用户 B 离线时，消息去哪了？</strong></p>
+<p>原笔记只说&quot;发推送通知&quot;，但<strong>推送是不可靠的</strong>（第 10 章已经讲过）。正确的做法是：</p>
+<ol>
+<li><strong>消息持久化到 B 的离线消息箱</strong>（offline inbox）；</li>
+<li><strong>发一条推送通知</strong>，提醒 B&quot;你有新消息&quot;；</li>
+<li><strong>B 上线后</strong>，通过 <code>cur_max_message_id</code> 水位线<strong>拉取增量消息</strong>。</li>
+</ol>
+<p><strong>离线消息箱的设计要点</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>要点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>存储位置</strong></td>
+<td>独立于聊天记录。聊天记录是&quot;按会话存&quot;的（<code>channel_id</code> 分区），离线消息箱是&quot;按用户存&quot;的（<code>user_id</code> 分区）——因为&quot;我有哪些未读&quot;是一个用户维度的查询</td>
+</tr>
+<tr>
+<td><strong>TTL（过期时间）</strong></td>
+<td>通常设 30 天或更长。超过期限的消息不再保留在离线箱里（但仍在聊天记录里，用户打开会话时仍能看到）</td>
+</tr>
+<tr>
+<td><strong>容量上限</strong></td>
+<td>如果离线箱堆积过多（比如用户半年没登录，加入了一个活跃的群），可以只保留最近 N 条，其余靠&quot;打开会话时从聊天记录拉取&quot;</td>
+</tr>
+<tr>
+<td><strong>清理时机</strong></td>
+<td>用户读取后（水位线推进）就清理</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>这里有个和第 11 章信息流一致的思路</strong>：<strong>离线消息箱是&quot;写扩散&quot;的产物</strong>——因为它要支持&quot;我有哪些未读&quot;这种用户维度的查询，所以必须按用户存一份。而<strong>聊天记录是&quot;读扩散&quot;的</strong>——按会话存一份，谁要看谁来读。<strong>同一个系统里两种模式并存，各取所长。</strong></p>
+</blockquote>
+<h3 id="73-消息顺序">7.3 消息顺序</h3>
+<p><strong>问题</strong>：A 连发两条消息&quot;你好&quot;、&quot;在吗&quot;，B 会不会先看到&quot;在吗&quot;？</p>
+<p><strong>关键结论：聊天系统只需要保证&quot;会话内有序&quot;，不需要全局有序。</strong></p>
+<p>原因：</p>
+<ul>
+<li>跨会话的先后顺序没有业务意义（A 在一个群里发的消息和另一个群里发的消息，谁先谁后不重要）；</li>
+<li>全局有序需要一个全局时钟或全局序列，这在分布式系统里极其昂贵（参见 Lamport 时钟、TrueTime 的复杂度）。</li>
+</ul>
+<p><strong>实现方式</strong>：</p>
+<ol>
+<li><strong>服务器分配会话内序号</strong>。收到消息后，服务器为这条消息分配该 <code>channel_id</code> 下的下一个 <code>seq</code>。<strong>序号由服务器分配，不由客户端分配</strong>——因为客户端的时钟不可信，两个客户端可能产生相同的序号。</li>
+<li><strong>客户端按 <code>seq</code> 排序渲染</strong>。收到的消息先放进缓冲区，按 <code>seq</code> 排序后再展示。</li>
+<li><strong>乱序和缺口处理</strong>：
+<ul>
+<li>如果收到 <code>seq = 5</code>，但只到 <code>seq = 3</code>（缺 4），客户端<strong>先缓存 5，等 4 到达后再一起渲染</strong>（或者显示&quot;正在接收消息…&quot;）。</li>
+<li>如果长时间等不到 4，客户端主动向服务器请求补拉 <code>seq = 4</code> 的消息。</li>
+<li><strong>不能跳过缺口直接显示</strong>，否则用户看到的顺序就是错的。</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>一个容易被忽略的细节</strong>：<strong>消息 ID 和时间戳要分开看。</strong></p>
+<ul>
+<li><strong>排序依据是 <code>seq</code></strong>（服务器分配的、严格单调递增的会话内序号）；</li>
+<li><strong>展示依据是 <code>created_at</code></strong>（服务器收到消息的时间戳，用于显示&quot;昨天 14:23&quot;）。</li>
+<li>不要用客户端的时间戳排序——不同设备的时钟可能相差几分钟，会导致消息顺序错乱。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="8-在线状态presence的工程代价">8. 在线状态（Presence）的工程代价</h2>
+<div align="center"><img src="./images/online-presence.png" alt="在线状态：显示用户是否在线" width="520" loading="lazy" decoding="async"></div>
+<p>&quot;显示谁在线&quot;看起来是最简单的功能，实际上是<strong>成本极高的功能之一</strong>。原笔记提到了心跳和扇出模型，但没讲清代价。</p>
+<h3 id="81-心跳机制heartbeat">8.1 心跳机制（Heartbeat）</h3>
+<div align="center"><img src="./images/heartbeat-mechanism.png" alt="心跳机制：客户端定期发送心跳，超时判定离线" width="520" loading="lazy" decoding="async"></div>
+<p><strong>为什么需要心跳？</strong> 因为 TCP 连接&quot;看起来还在&quot;不等于&quot;对端还活着&quot;。</p>
+<p>比如用户的手机进了电梯、地铁、或者被系统杀掉了 App 进程——<strong>这些情况下，服务器这一侧的 TCP 连接可能还处于 ESTABLISHED 状态</strong>（这叫<strong>半开连接 / Half-Open Connection</strong>），服务器不知道对方已经走了。如果不主动探测，服务器会一直以为用户在线，并且持续往这个死连接上推消息。</p>
+<p><strong>心跳的做法</strong>：客户端每隔一段时间发一个小包（比如 <code>{&quot;type&quot;:&quot;ping&quot;}</code>），服务器收到就更新&quot;最后活跃时间&quot;。如果<strong>超过阈值（比如 2–3 个心跳周期）没收到心跳，就标记为离线</strong>。</p>
+<blockquote>
+<p><strong>阈值的取舍</strong>：</p>
+<ul>
+<li><strong>太短</strong>（比如 10 秒）：网络抖动就会误判用户离线，用户会看到&quot;好友状态闪烁&quot;；</li>
+<li><strong>太长</strong>（比如 5 分钟）：用户已经退出了，还显示&quot;在线&quot;5 分钟。</li>
+</ul>
+<p>常见取值是 <strong>30 秒心跳 + 90 秒超时</strong>（即允许丢 2 次心跳）。</p>
+</blockquote>
+<p><strong>心跳的成本有多大？</strong></p>
+<pre><code>心跳间隔 30 秒：5000 万 / 30 ≈ 167 万次心跳 / 秒
+心跳间隔 60 秒：5000 万 / 60 ≈ 83 万次心跳 / 秒
+</code></pre>
+<p><strong>每秒 167 万次心跳</strong>——这些请求虽然包很小，但仍然要占用服务器的 CPU、网络和事件循环。这是 Presence 服务的核心负载。</p>
+<blockquote>
+<p><strong>一个重要的优化</strong>：<strong>WebSocket 连接本身就是一个&quot;活性信号&quot;。</strong> 当连接正常关闭时，服务器会立刻收到 TCP 的 FIN/RST，可以马上判定离线，<strong>根本不需要心跳</strong>。心跳真正要解决的只是&quot;半开连接&quot;这一种情况。</p>
+<p>所以实践中会：<strong>拉长心跳间隔</strong>（60 秒甚至更长）、<strong>开启 TCP keepalive</strong>、并且在<strong>移动端做智能心跳</strong>（App 在前台时心跳密集，切到后台后大幅降低频率甚至暂停——因为后台被系统挂起后发不出心跳，靠推送唤醒）。</p>
+</blockquote>
+<h3 id="82-扇出模型与广播风暴">8.2 扇出模型与广播风暴</h3>
+<div align="center"><img src="./images/fanout-presence.png" alt="Presence 扇出：用户 A 的状态变化发布到 A-B、A-C、A-D 三个频道" width="520" loading="lazy" decoding="async"></div>
+<p>原笔记的扇出模型是：<strong>每个好友对维护一个频道</strong>（channel A-B、A-C、A-D），用户 A 的状态变化时，向所有好友频道发布一次事件。</p>
+<blockquote>
+<p><strong>原文自己指出：&quot;上述设计对小型用户群有效。&quot;</strong> 这句话是对的，但没量化。我们来算一下它在大规模下会怎样。</p>
+</blockquote>
+<p><strong>假设</strong>：</p>
+<ul>
+<li>5000 万用户；</li>
+<li>平均每个用户 150 个好友（社交网络的平均好友数大致在这个量级）；</li>
+<li>每个用户每天上下线 10 次（切网络、切后台、锁屏都会触发）。</li>
+</ul>
+<p><strong>好友对频道总数</strong>：</p>
+<pre><code>5000 万 × 150 = 75 亿个频道
+</code></pre>
+<p><strong>每天产生的 Presence 事件数</strong>：</p>
+<pre><code>5000 万 × 10 次状态变化 × 150 个好友 = 750 亿条消息 / 天
+平均 = 750 亿 / 86,400 ≈ 86.8 万条 / 秒
+峰值（3 倍）≈ 260 万条 / 秒
+</code></pre>
+<p><strong>每秒 86 万条、峰值 260 万条的 Presence 广播</strong>——而这<strong>只是为了显示一个小小的绿点</strong>。这个成本是不可接受的。</p>
+<p><strong>真实系统怎么做？</strong> 核心思路是**&quot;不要主动广播，按需拉取&quot;**：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>优化</th>
+<th>做法</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>按需拉取（Lazy Pull）</strong></td>
+<td>不主动维护 Presence，用户打开某个会话时，才去查询对方的在线状态</td>
+<td>把广播变成单次查询，成本从 O(好友数) 降到 O(1)</td>
+</tr>
+<tr>
+<td><strong>短 TTL 缓存</strong></td>
+<td>查询结果缓存 30 秒</td>
+<td>同一对好友的反复查询只打一次后端</td>
+</tr>
+<tr>
+<td><strong>只推给&quot;正在看&quot;的人</strong></td>
+<td>只给&quot;当前打开了这个会话窗口&quot;的用户推 Presence 更新</td>
+<td>大幅缩小扇出范围</td>
+</tr>
+<tr>
+<td><strong>批量 + 节流</strong></td>
+<td>把 N 秒内的状态变化合并成一次推送</td>
+<td>减少&quot;状态抖动&quot;造成的无效广播</td>
+</tr>
+<tr>
+<td><strong>防抖（Debounce）</strong></td>
+<td>用户 3 秒内快速上下线，只广播最终状态</td>
+<td>消除锁屏/切后台造成的抖动</td>
+</tr>
+<tr>
+<td><strong>近似状态</strong></td>
+<td>显示&quot;5 分钟前活跃&quot;而不是精确的实时状态</td>
+<td>允许更大的缓存窗口，成本大幅下降</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一句话总结 Presence 的设计哲学</strong>：<strong>它是一个&quot;可以牺牲精确性换取成本&quot;的功能。</strong> 用户能容忍&quot;好友状态延迟 30 秒&quot;，但不能容忍&quot;App 卡顿&quot;。所以工程上永远选择&quot;近似 + 拉取 + 缓存&quot;，而不是&quot;精确 + 广播&quot;。</p>
+</blockquote>
+<hr />
+<h2 id="9-已读回执read-receipt">9. 已读回执（Read Receipt）</h2>
+<p>原笔记没提，但这是现代 IM 的标配功能，也是<strong>一个典型的&quot;看起来简单、实际有放大效应&quot;的功能</strong>。</p>
+<h3 id="91-基本流程">9.1 基本流程</h3>
+<ol>
+<li>B 打开了和 A 的会话，看到了 A 的消息；</li>
+<li>B 的客户端向服务器发送&quot;已读回执&quot;，内容是&quot;我读到了消息 X&quot;；</li>
+<li>服务器把这个回执转发给 A；</li>
+<li>A 的客户端把对应的消息标记为&quot;已读&quot;（双勾变蓝）。</li>
+</ol>
+<h3 id="92-放大效应">9.2 放大效应</h3>
+<p><strong>一对一聊天</strong>：每收到一条消息，就要发一条回执。<strong>消息量翻倍。</strong></p>
+<p><strong>群聊</strong>（100 人）：一条消息被 99 个人看到，就可能产生 99 条回执。</p>
+<pre><code>一个活跃的 100 人群，每天 1000 条消息
+→ 回执量 = 1000 × 99 = 99,000 条 / 天
+</code></pre>
+<p>如果全站有 100 万个这样的群：</p>
+<pre><code>100 万 × 99,000 = 990 亿条回执 / 天
+平均 ≈ 114,000 条 / 秒
+</code></pre>
+<p><strong>这是和消息本身同一量级的负载。</strong></p>
+<h3 id="93-工程上的优化">9.3 工程上的优化</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>优化</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>水位线（Watermark）而不是逐条</strong></td>
+<td>不要发&quot;我读了消息 5&quot;，而是发&quot;我的已读水位是 5&quot;（即 5 及之前的都读了）。这样连续读 10 条只发 1 次</td>
+</tr>
+<tr>
+<td><strong>批量 + 节流</strong></td>
+<td>把 1 秒内的多次已读合并成一次上报</td>
+</tr>
+<tr>
+<td><strong>大群不显示逐人已读</strong></td>
+<td>100 人群里显示&quot;99 人都读了&quot;没有意义。通常只显示&quot;全部已读&quot;或干脆不显示（WhatsApp 在群里只显示所有成员都读后的蓝勾）</td>
+</tr>
+<tr>
+<td><strong>尊重隐私设置</strong></td>
+<td>用户关闭&quot;已读回执&quot;后，自己也不再看到别人的已读状态（<strong>对等原则</strong>，否则用户可以通过&quot;别人能不能看到我已读&quot;来推断）</td>
+</tr>
+<tr>
+<td><strong>不要对机器人 / 系统消息发回执</strong></td>
+<td>无意义</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个产品层面的思考</strong>：已读回执是一个<strong>强社交压力的功能</strong>。它把&quot;你没回我&quot;变成了可观测的事实，容易引发焦虑和冲突。很多 App 把它做成可关闭的开关，正是出于这个考虑。<strong>系统设计不只是技术问题。</strong></p>
+</blockquote>
+<hr />
+<h2 id="10-端到端加密e2ee">10. 端到端加密（E2EE）</h2>
+<p>原笔记把&quot;End-to-End Encryption: Ensure message privacy&quot;放在 <strong>Future Extensions</strong> 里，和&quot;支持图片视频&quot;并列。<strong>这是一个严重的低估</strong>——E2EE 不是一个可以后加的功能开关，而是<strong>一个会约束整个系统的架构决策</strong>。</p>
+<h3 id="101-基本原理">10.1 基本原理</h3>
+<p><strong>端到端加密的核心是：只有通信双方的设备能解密消息，服务器只能看到密文。</strong></p>
+<p>主流实现是 <strong>Signal 协议（Signal Protocol）</strong>，被 WhatsApp、Signal、Google Messages（RCS）等采用。它由两部分组成：</p>
+<p><strong>① X3DH（Extended Triple Diffie-Hellman）——建立初始密钥</strong></p>
+<ul>
+<li>每个用户在服务器上<strong>预先发布</strong>一组公钥（身份公钥、签名预共享公钥、一次性预共享公钥）；</li>
+<li>发送方 A 用这些公钥 + 自己的私钥，通过几次 Diffie-Hellman 密钥交换，<strong>算出一个共享密钥</strong>；</li>
+<li><strong>关键点：即使 B 离线，A 也能算出共享密钥并发出第一条消息</strong>（因为用的是 B 预先上传的公钥）。这就是所谓<strong>异步密钥协商</strong>。</li>
+</ul>
+<p><strong>② Double Ratchet（双棘轮）——持续更新密钥</strong></p>
+<ul>
+<li><strong>对称棘轮（Symmetric Ratchet）</strong>：每发一条消息，就用 KDF（密钥派生函数）从当前密钥派生出下一个密钥。这样<strong>每条消息用不同的密钥</strong>。
+<ul>
+<li>效果：<strong>前向保密（Forward Secrecy）</strong>——即使攻击者窃取了某一时刻的密钥，也<strong>无法解密之前的消息</strong>。</li>
+</ul>
+</li>
+<li><strong>DH 棘轮（DH Ratchet）</strong>：每当收到对方的新公钥，就再做一次 Diffie-Hellman 交换，刷新密钥链。
+<ul>
+<li>效果：<strong>后向保密 / 入侵恢复（Post-Compromise Security）</strong>——即使密钥泄露，只要攻击者停止监听，后续消息会重新变得安全。</li>
+</ul>
+</li>
+</ul>
+<p><strong>用一个类比理解</strong>：想象两个人各拿一本&quot;一次性密码本&quot;，每写一个字就撕掉一页（对称棘轮）；而且每隔一段时间，两人会通过一次公开的对话重新约定一本新密码本（DH 棘轮）。<strong>撕掉的页无法复原（前向保密），重新约定的新本子让窃听者无法跟上（后向保密）。</strong></p>
+<h3 id="102-e2ee-对服务端能力的限制">10.2 E2EE 对服务端能力的限制</h3>
+<p>这是最重要的部分：<strong>E2EE 一旦启用，服务器能看到的信息就只剩下密文和元数据，很多功能做不了了。</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>非 E2EE（服务器可见明文）</th>
+<th>E2EE（服务器只见密文）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>全文搜索</strong></td>
+<td>服务器建索引，跨设备搜索</td>
+<td>❌ <strong>不可行</strong>。只能<strong>在本地设备上搜</strong>（WhatsApp 的搜索是本地索引）。换设备就搜不到旧消息，除非本地重建索引</td>
+</tr>
+<tr>
+<td><strong>内容审核 / 反垃圾</strong></td>
+<td>服务器扫描关键词、图片</td>
+<td>❌ <strong>不可行</strong>。只能靠<strong>用户举报</strong> + <strong>元数据启发式</strong>（比如&quot;这个账号一天加了 500 个人&quot;）</td>
+</tr>
+<tr>
+<td><strong>媒体转码 / 生成缩略图</strong></td>
+<td>服务器统一处理</td>
+<td>❌ <strong>不可行</strong>。必须<strong>客户端加密前处理</strong>，服务器只存不透明的二进制块</td>
+</tr>
+<tr>
+<td><strong>服务端机器人 / 智能回复</strong></td>
+<td>服务器读消息后生成回复</td>
+<td>❌ <strong>不可行</strong>，除非把机器人做成一个&quot;参与方&quot;，让它能解密</td>
+</tr>
+<tr>
+<td><strong>多设备同步</strong></td>
+<td>简单，服务器直接推明文</td>
+<td>⚠️ <strong>困难</strong>。每台设备有独立的密钥，发送方要为<strong>每台接收设备</strong>单独加密一份</td>
+</tr>
+<tr>
+<td><strong>消息备份 / 迁移</strong></td>
+<td>服务器直接导出</td>
+<td>⚠️ <strong>困难</strong>。要么用<strong>用户口令派生的密钥</strong>加密后上传（WhatsApp），要么依赖<strong>平台密钥链</strong>（iMessage 用 iCloud Keychain）</td>
+</tr>
+<tr>
+<td><strong>元数据（谁和谁聊、何时、多频繁）</strong></td>
+<td>可见</td>
+<td>✅ <strong>依然可见</strong>（E2EE 不保护元数据！）</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>两个必须澄清的常见误解</strong>：</p>
+<p><strong>① E2EE 保护内容，但不保护元数据。</strong> 服务器仍然知道&quot;用户 A 在 3 月 5 日 14:23 给用户 B 发了消息，大小 2KB，之后 B 在 14:25 回复了&quot;。这些元数据本身就能泄露大量信息（社交图谱、作息规律、关系亲疏）。<strong>要保护元数据，需要更激进的技术（如匿名通信网络），那会带来巨大的性能代价。</strong></p>
+<p><strong>② &quot;有加密&quot;不等于&quot;端到端加密&quot;。</strong> Telegram 的<strong>默认聊天（Cloud Chats）不是端到端加密</strong>——它用的是客户端到服务器的加密，服务器能看到明文。只有手动开启的 <strong>Secret Chats</strong> 才是 E2EE。这是业内一个被广泛误解的点。</p>
+</blockquote>
+<h3 id="103-一个真实的工程矛盾">10.3 一个真实的工程矛盾</h3>
+<p>E2EE 把平台放到了一个两难位置：</p>
+<ul>
+<li><strong>用户隐私 vs 内容监管</strong>：平台无法扫描 CSAM（儿童性虐待材料）或恐怖主义内容，而很多司法管辖区要求平台主动发现并上报。这是全球性的政策争议焦点。</li>
+<li><strong>典型折中</strong>：WhatsApp 不做内容扫描，但<strong>依赖用户举报</strong>——用户举报某条消息后，客户端会把该消息（连同前后几条）<strong>解密后上传</strong>给平台审核。这是一个&quot;隐私保护 + 事后审核&quot;的折中方案。</li>
+</ul>
+<blockquote>
+<p><strong>面试时的正确态度</strong>：如果你在面试里被问到&quot;要不要做 E2EE&quot;，<strong>不要直接说&quot;要，为了安全&quot;</strong>。正确的回答是：<strong>&quot;这取决于产品定位。如果要做 E2EE，就必须接受'没有服务端全文搜索、没有服务端内容审核、多设备同步变复杂'这几个代价，并且要在产品层面提前设计好替代方案。这是一个架构级决策，不能后加。&quot;</strong></p>
+</blockquote>
+<hr />
+<h2 id="11-扩展性错误处理与未来扩展">11. 扩展性、错误处理与未来扩展</h2>
+<h3 id="111-扩展性">11.1 扩展性</h3>
+<ul>
+<li><strong>水平扩展</strong>：用户增长就加服务器（聊天服务器、Presence 服务器）；</li>
+<li><strong>负载均衡</strong>：流量均匀分布（配合服务发现做负载感知路由）；</li>
+<li><strong>缓存</strong>：降低数据库压力、提升延迟。</li>
+</ul>
+<h3 id="112-错误处理">11.2 错误处理</h3>
+<ul>
+<li><strong>重试机制</strong>：消息投递失败时重试 + 排队（注意：重试必须配合幂等键，见第 7.1 节）；</li>
+<li><strong>服务器故障</strong>：用服务发现重新分配服务器。
+<ul>
+<li><strong>关键补充</strong>：服务器故障时，<strong>所有连接它的客户端会同时重连</strong>（惊群 / Thundering Herd）。必须让客户端用<strong>抖动退避</strong>（比如等待 <code>random(0, 30)</code> 秒）重连，否则重连流量会把集群再打垮一次。</li>
+<li><strong>优雅下线</strong>：服务器主动关闭前，先通知客户端&quot;我要下线了，请连接到 X 服务器&quot;，让重连有序进行。</li>
+</ul>
+</li>
+</ul>
+<h3 id="113-未来扩展原笔记列出">11.3 未来扩展（原笔记列出）</h3>
+<ol>
+<li><strong>媒体支持</strong>（图片、视频）：需要客户端压缩 + 云存储（对象存储如 S3）+ CDN 分发。</li>
+<li><strong>端到端加密</strong>：见第 10 节。</li>
+<li><strong>客户端缓存</strong>：本地存最近的消息，减少数据传输、支持离线阅读。</li>
+<li><strong>更快的加载</strong>：用地理分布的缓存网络（CDN）加速媒体和静态资源。</li>
+</ol>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<h3 id="勘误-1把-e2ee-列在未来扩展里严重低估了它的影响">勘误 1：把 E2EE 列在&quot;未来扩展&quot;里严重低估了它的影响</h3>
+<ul>
+<li><strong>原文说法</strong>：Future Extensions 第 2 条 —— <code>End-to-End Encryption: Ensure message privacy.</code></li>
+<li><strong>问题</strong>：把 E2EE 和&quot;支持图片视频&quot;、&quot;客户端缓存&quot;并列，暗示它是一个<strong>可以后加的功能</strong>。实际上 <strong>E2EE 是一个架构级决策</strong>：一旦启用，服务端就<strong>无法做全文搜索、无法做内容审核、无法做媒体转码</strong>，多设备同步和备份也会变得复杂。这些能力如果一开始没有设计替代方案，后期补不上。</li>
+<li><strong>正确说法</strong>：E2EE 必须在架构设计阶段就决定，并同步设计替代方案——本地搜索索引、用户举报机制、客户端媒体处理、口令派生的备份密钥。详见第 10 节。</li>
+<li><strong>延伸</strong>：一个常被混淆的事实是 <strong>Telegram 的默认聊天不是端到端加密</strong>（Cloud Chats 用客户端到服务器加密），只有手动开启的 Secret Chats 才是 E2EE。判断一个产品是否真 E2EE，要看它的默认会话，而不是看它是否宣传了&quot;加密&quot;。</li>
+</ul>
+<h3 id="勘误-2原笔记没有覆盖消息可靠投递而这才是聊天系统的核心">勘误 2：原笔记没有覆盖&quot;消息可靠投递&quot;，而这才是聊天系统的核心</h3>
+<ul>
+<li><strong>原文说法</strong>：全文只提了消息 ID、KV 存储、<code>cur_max_message_id</code> 同步，以及 Error Handling 里的&quot;重试机制&quot;。</li>
+<li><strong>问题</strong>：<strong>没有讲 ACK 机制、没有讲离线消息怎么存、没有讲消息顺序如何保证</strong>。而这三件事（不丢、不重、不乱序）恰恰是聊天系统最难的部分。只讲&quot;用 WebSocket 推消息&quot;是远远不够的——WebSocket 只是通道，通道本身不保证可靠性。</li>
+<li><strong>正确说法</strong>：见第 7 节。核心是——<strong>发送方用 <code>client_msg_id</code> 做幂等键 + 服务器 ACK</strong>；<strong>接收方收到后回 ACK，超时重推</strong>；<strong>离线消息存用户维度的离线箱，配合推送唤醒，上线后用 <code>cur_max_message_id</code> 拉增量</strong>；<strong>顺序靠服务器分配的会话内 <code>seq</code> 保证，客户端按 <code>seq</code> 排序渲染并处理缺口</strong>。</li>
+</ul>
+<h3 id="勘误-3presence-的扇出模型被低估了规模">勘误 3：Presence 的扇出模型被低估了规模</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Presence updates are pushed to friends using a publish-subscribe model in which each friend pair maintains a channel.</code> 并承认&quot;上述设计对小型用户群有效&quot;。</li>
+<li><strong>问题</strong>：承认了&quot;对小型用户群有效&quot;，但<strong>没有量化它在大规模下有多糟</strong>，也没有给出解法。实际上按 5000 万用户 × 150 好友计算，会产生 <strong>75 亿个好友对频道</strong>和<strong>每秒约 87 万条 Presence 广播</strong>——只为显示一个绿点。这个成本是不可接受的。</li>
+<li><strong>正确说法</strong>：真实系统用<strong>按需拉取 + 短 TTL 缓存 + 只推给正在看的人 + 防抖节流 + 近似状态</strong>的组合，而不是全量广播。详见第 8.2 节。</li>
+<li><strong>延伸</strong>：Presence 是&quot;<strong>可以牺牲精确性换成本</strong>&quot;的典型功能。用户能接受状态延迟 30 秒，不能接受 App 卡顿。</li>
+</ul>
+<h3 id="勘误-4websocket-应该用-wss-而不是-ws">勘误 4：WebSocket 应该用 <code>wss://</code> 而不是 <code>ws://</code></h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Uses WebSockets (ws) protocol for sending and receiving messages.</code></li>
+<li><strong>问题</strong>：<code>ws://</code> 是<strong>明文</strong>的。生产环境用 <code>ws://</code> 意味着消息内容、鉴权令牌、用户 ID 全部以明文在网络上传输，可被中间人窃听或篡改。</li>
+<li><strong>正确说法</strong>：生产环境必须使用 <strong><code>wss://</code></strong>（WebSocket over TLS），等价于 HTTP 的 HTTPS。原笔记写 <code>ws</code> 应该只是泛指&quot;WebSocket 协议&quot;，但字面上会误导初学者。</li>
+<li><strong>延伸</strong>：同样的原则适用于所有长连接协议。另外要注意：TLS 终止通常发生在负载均衡器上，所以从 LB 到后端聊天服务器这一段是否需要再加密，取决于你的网络信任边界。</li>
+</ul>
+<h3 id="补充-1sseserver-sent-events">补充 1：SSE（Server-Sent Events）</h3>
+<p>原笔记对比了轮询 / 长轮询 / WebSocket，漏掉了 SSE。详见第 2.4 节。<strong>核心要点</strong>：SSE 是&quot;服务器单向推送&quot;的轻量方案，跑在普通 HTTP 上、浏览器自动重连、穿透防火墙能力强；适合通知、行情、大模型流式输出；<strong>不适合需要客户端高频发送的聊天场景</strong>（但可以用&quot;SSE 收 + POST 发&quot;组合）。</p>
+<h3 id="补充-2websocket-与无状态原则的关系">补充 2：WebSocket 与&quot;无状态原则&quot;的关系</h3>
+<p>原笔记给了有状态 / 无状态两张架构图，但没有解释<strong>为什么聊天服务器必须是有状态的，以及它和第 1 章&quot;无状态 Web 层&quot;原则的关系</strong>。详见第 3 节。<strong>核心要点</strong>：WebSocket 连接本身就是状态；有状态不等于放弃扩展性——要让状态最小化，用服务发现或 Pub/Sub 把&quot;状态在哪&quot;外部化，并支持优雅下线和抖动退避重连。</p>
+<h3 id="补充-3已读回执">补充 3：已读回执</h3>
+<p>原笔记完全没提。详见第 9 节。<strong>核心要点</strong>：已读回执有放大效应（100 人群里一条消息可能产生 99 条回执），必须用<strong>水位线 + 批量 + 节流</strong>优化，大群通常不显示逐人已读；并且要遵守<strong>对等原则</strong>（你关闭已读回执，就也看不到别人的）。</p>
+<h3 id="补充-4大群超过-100-人的消息投递">补充 4：大群（超过 100 人）的消息投递</h3>
+<p>原笔记把群聊上限设为 100 人，避开了大群问题。但真实的&quot;频道 / 服务器&quot;场景（Discord、Telegram）成员可达几十万。详见第 6.2 节。<strong>核心要点</strong>：小群用<strong>写扩散</strong>（复制到每个成员收件箱），大群改用<strong>读扩散</strong>（消息只存一份，成员按 <code>last_read_seq</code> 水位线拉取）。这和第 11 章&quot;普通用户推、大 V 拉&quot;是同一个思路。</p>
+<h3 id="补充-5zookeeper-的现代替代方案">补充 5：ZooKeeper 的现代替代方案</h3>
+<p>原笔记用 ZooKeeper 做服务发现。详见第 5 节。<strong>核心要点</strong>：ZooKeeper 更擅长分布式协调（Leader 选举、分布式锁），做纯服务发现偏重；现代更常用 <strong>etcd / Consul / Nacos</strong> 或 Kubernetes 原生服务发现。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>聊天系统用 WebSocket 就万事大吉</td>
+<td>WebSocket 只是通道，不保证消息不丢、不重、不乱序</td>
+<td>通道之上必须有 <strong>ACK + 幂等键 + 会话内序号 + 离线箱</strong></td>
+</tr>
+<tr>
+<td>聊天服务器应该像 Web 层一样无状态</td>
+<td>WebSocket 连接本身就是状态，服务器必须&quot;记住&quot;它</td>
+<td>有状态不可避免；解法是<strong>状态最小化 + 服务发现/Pub-Sub 外部化位置 + 优雅下线</strong></td>
+</tr>
+<tr>
+<td>用粘性会话（Sticky Session）把用户固定到一台机器最简单</td>
+<td>负载不均、机器故障即掉线、无法自动扩缩容</td>
+<td>粘性会话只适合临时方案；生产用服务发现或 Pub/Sub</td>
+</tr>
+<tr>
+<td>消息只需要全局唯一 ID 就能保证顺序</td>
+<td>全局有序需要全局时钟，极其昂贵；且跨会话顺序没有业务意义</td>
+<td>只需<strong>会话内有序</strong>；用服务器分配的 <code>seq</code>，客户端按 <code>seq</code> 排序渲染</td>
+</tr>
+<tr>
+<td>客户端时间戳可以用来排序消息</td>
+<td>不同设备时钟可能相差几分钟，会导致顺序错乱</td>
+<td>排序用服务器的 <code>seq</code>，展示用服务器的 <code>created_at</code></td>
+</tr>
+<tr>
+<td>服务器推消息成功了，用户就一定收到了</td>
+<td>推送是 best-effort；且服务器无法区分&quot;连接还在&quot;和&quot;对端已死&quot;</td>
+<td>需要<strong>接收方 ACK</strong>；离线消息存离线箱，用 <code>cur_max_message_id</code> 拉增量</td>
+</tr>
+<tr>
+<td>心跳越频繁，在线状态越准</td>
+<td>30 秒心跳在 5000 万用户下就是 <strong>167 万次/秒</strong> 的负载</td>
+<td>连接正常关闭时 TCP 会通知，不需要心跳；心跳只需覆盖&quot;半开连接&quot;，间隔可拉长到 60 秒甚至更久</td>
+</tr>
+<tr>
+<td>Presence 就是给所有好友广播状态变化</td>
+<td>5000 万用户 × 150 好友 = 75 亿频道、87 万条/秒的广播，只为显示一个绿点</td>
+<td>按需拉取 + 短 TTL 缓存 + 只推给正在看的人 + 防抖</td>
+</tr>
+<tr>
+<td>端到端加密是个可以后加的功能</td>
+<td>E2EE 一旦启用，服务端就做不了搜索、审核、转码、机器人</td>
+<td>必须在架构阶段决策，并同步设计替代方案（本地搜索、举报机制、客户端处理）</td>
+</tr>
+<tr>
+<td>E2EE 能保护一切隐私</td>
+<td>E2EE 只保护<strong>内容</strong>，<strong>元数据</strong>（谁和谁聊、何时、多频繁）服务器依然可见</td>
+<td>元数据保护需要匿名通信网络，代价巨大</td>
+</tr>
+<tr>
+<td>群聊就是&quot;把消息复制给每个人&quot;，永远如此</td>
+<td>100 人以内可行，几十万人的频道写放大无法承受</td>
+<td>小群写扩散，大群读扩散（按 <code>last_read_seq</code> 拉取）</td>
+</tr>
+<tr>
+<td>服务器挂了让客户端立刻重连就行</td>
+<td>一台服务器上的几十万客户端同时重连会打垮集群（惊群）</td>
+<td>客户端用<strong>抖动退避</strong>重连；服务器<strong>优雅下线</strong>先通知再关闭</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：聊天系统是一个<strong>以&quot;有状态的长连接&quot;为基础、以&quot;至少一次投递 + 幂等 + 会话内有序&quot;为可靠性保证</strong>的实时系统，难点在于连接管理、可靠投递和 Presence 的成本控制。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>协议选型</strong>：WebSocket（全双工、低开销）是聊天首选；SSE 适合单向推送；长轮询是兼容性兜底。</li>
+<li><strong>有状态是本质</strong>：WebSocket 连接就是状态。用<strong>服务发现（用户 → 服务器映射）或 Pub/Sub</strong>把&quot;状态在哪&quot;外部化，从而保留水平扩展能力。</li>
+<li><strong>可靠投递三件套</strong>：发送方用 <code>client_msg_id</code> 做幂等键 + 服务器 ACK；接收方 ACK + 超时重推；离线消息存用户维度的离线箱，上线用 <code>cur_max_message_id</code> 拉增量。</li>
+<li><strong>顺序只需会话内</strong>：服务器分配会话内 <code>seq</code>，客户端按 <code>seq</code> 排序渲染并处理缺口。</li>
+<li><strong>数据模型</strong>：聊天记录用 KV / 宽列存储；群聊主键用 <code>(channel_id, message_id)</code>，让&quot;取最近 N 条&quot;变成一次范围扫描。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动把&quot;聊天服务器有状态&quot;和第 1 章的&quot;无状态原则&quot;对照，说明它是<strong>正当例外</strong>以及如何保留扩展性。</li>
+<li>主动给出 <strong>Presence 的量化成本</strong>（75 亿频道、87 万条/秒），并提出按需拉取。</li>
+<li>主动指出 <strong>E2EE 会破坏服务端搜索与内容审核</strong>，并说明它是架构级决策。</li>
+<li>主动提出<strong>大群用读扩散</strong>（小群推、大群拉），呼应第 11 章的推拉结合。</li>
+<li>主动提到<strong>惊群问题</strong>和<strong>抖动退避重连</strong>、<strong>优雅下线</strong>。</li>
+<li>主动提到<strong>已读回执的放大效应</strong>和水位线优化。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;WebSocket 连接怎么在服务器之间路由消息？&quot;</em>
+→ 三种方式：服务发现维护 <code>user_id → server</code> 映射后直接转发；Pub/Sub（每台服务器订阅自己承载的用户，消息广播到订阅者）；粘性会话（不推荐）。生产多用 Pub/Sub 或服务发现 + 负载感知路由。</li>
+<li><em>&quot;消息怎么保证不丢？&quot;</em>
+→ 发送侧：<code>client_msg_id</code> 幂等键 + 服务器 ACK + 超时重发；服务器侧：先持久化再转发；接收侧：接收方 ACK + 超时重推；离线侧：离线消息箱 + 推送唤醒 + <code>cur_max_message_id</code> 拉增量。</li>
+<li><em>&quot;两个人同时发消息，谁在前？&quot;</em>
+→ 由服务器分配会话内 <code>seq</code> 决定，不由客户端时钟决定。客户端按 <code>seq</code> 渲染，遇到缺口先缓存并补拉，不跳过。</li>
+<li><em>&quot;在线状态怎么实现？成本多大？&quot;</em>
+→ 心跳（建议 60 秒 + 超时 90 秒）+ TCP keepalive 覆盖半开连接；不主动全量广播，改成按需拉取 + 短 TTL 缓存 + 只推给正在看会话的人 + 防抖。量化：全量广播在 5000 万用户下约 87 万条/秒，不可接受。</li>
+<li><em>&quot;如果要加端到端加密，架构上要改什么？&quot;</em>
+→ 服务端只存密文；搜索改为客户端本地索引；内容审核改为用户举报 + 元数据启发式；媒体在客户端加密前处理；多设备要每台设备单独加密；备份用口令派生密钥。这些都要在架构阶段一并设计。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API" target="_blank" rel="noopener noreferrer">MDN：WebSocket API</a> — 协议细节与浏览器实现</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events" target="_blank" rel="noopener noreferrer">MDN：Server-Sent Events</a> — SSE 规范与用法</li>
+<li><a href="https://signal.org/docs/" target="_blank" rel="noopener noreferrer">Signal 协议规范</a> — X3DH 与 Double Ratchet 的官方文档</li>
+<li><a href="https://discord.com/blog/how-discord-stores-billions-of-messages" target="_blank" rel="noopener noreferrer">Discord：How Discord Stores Billions of Messages</a> — Cassandra 到 ScyllaDB 的迁移实录</li>
+<li><a href="https://engineering.fb.com/" target="_blank" rel="noopener noreferrer">Facebook Engineering：Messenger 与 HBase</a> — 大规模消息存储的工业实践</li>
+<li><a href="https://zookeeper.apache.org/doc/current/" target="_blank" rel="noopener noreferrer">ZooKeeper 官方文档</a> — 分布式协调服务</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../11/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">信息流系统</span></a><a class="next" href="../13/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">搜索自动补全</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求与规模">1. 需求与规模</a>
+<a class="lv3" href="#功能需求">功能需求</a>
+<a class="lv3" href="#规模与约束">规模与约束</a>
+<a class="lv3" href="#一个关键的规模数字并发连接数">一个关键的规模数字：并发连接数</a>
+<a class="lv2" href="#2-通信协议从轮询到-websocket">2. 通信协议：从轮询到 WebSocket</a>
+<a class="lv3" href="#21-轮询polling">2.1 轮询（Polling）</a>
+<a class="lv3" href="#22-长轮询long-polling">2.2 长轮询（Long Polling）</a>
+<a class="lv3" href="#23-websocket推荐方案">2.3 WebSocket（推荐方案）</a>
+<a class="lv3" href="#24-补充sseserver-sent-events">2.4 补充：SSE（Server-Sent Events）</a>
+<a class="lv3" href="#25-协议选型总结">2.5 协议选型总结</a>
+<a class="lv2" href="#3-有状态-vs-无状态为什么聊天服务器必须记住连接">3. 有状态 vs 无状态：为什么聊天服务器必须&quot;记住&quot;连接</a>
+<a class="lv3" href="#31-回顾第-1-章的原则">3.1 回顾第 1 章的原则</a>
+<a class="lv3" href="#32-因为-websocket-连接本身就是状态">3.2 因为 WebSocket 连接本身就是状态</a>
+<a class="lv3" href="#33-三种解法">3.3 三种解法</a>
+<a class="lv2" href="#4-高层设计组件与数据模型">4. 高层设计：组件与数据模型</a>
+<a class="lv3" href="#41-组件划分">4.1 组件划分</a>
+<a class="lv3" href="#42-为什么聊天记录用-kv-存储而不是关系型数据库">4.2 为什么聊天记录用 KV 存储而不是关系型数据库</a>
+<a class="lv3" href="#43-数据模型">4.3 数据模型</a>
+<a class="lv3" href="#44-消息-id-的设计全局唯一-vs-本地序号">4.4 消息 ID 的设计：全局唯一 vs 本地序号</a>
+<a class="lv2" href="#5-服务发现">5. 服务发现</a>
+<a class="lv2" href="#6-消息流转一对一与群聊">6. 消息流转：一对一与群聊</a>
+<a class="lv3" href="#61-一对一聊天">6.1 一对一聊天</a>
+<a class="lv3" href="#62-群聊">6.2 群聊</a>
+<a class="lv3" href="#63-消息同步多设备">6.3 消息同步（多设备）</a>
+<a class="lv2" href="#7-消息可靠投递ack离线消息与顺序">7. 消息可靠投递：ACK、离线消息与顺序</a>
+<a class="lv3" href="#71-客户端-ack不丢不重">7.1 客户端 ACK：不丢不重</a>
+<a class="lv3" href="#72-离线消息">7.2 离线消息</a>
+<a class="lv3" href="#73-消息顺序">7.3 消息顺序</a>
+<a class="lv2" href="#8-在线状态presence的工程代价">8. 在线状态（Presence）的工程代价</a>
+<a class="lv3" href="#81-心跳机制heartbeat">8.1 心跳机制（Heartbeat）</a>
+<a class="lv3" href="#82-扇出模型与广播风暴">8.2 扇出模型与广播风暴</a>
+<a class="lv2" href="#9-已读回执read-receipt">9. 已读回执（Read Receipt）</a>
+<a class="lv3" href="#91-基本流程">9.1 基本流程</a>
+<a class="lv3" href="#92-放大效应">9.2 放大效应</a>
+<a class="lv3" href="#93-工程上的优化">9.3 工程上的优化</a>
+<a class="lv2" href="#10-端到端加密e2ee">10. 端到端加密（E2EE）</a>
+<a class="lv3" href="#101-基本原理">10.1 基本原理</a>
+<a class="lv3" href="#102-e2ee-对服务端能力的限制">10.2 E2EE 对服务端能力的限制</a>
+<a class="lv3" href="#103-一个真实的工程矛盾">10.3 一个真实的工程矛盾</a>
+<a class="lv2" href="#11-扩展性错误处理与未来扩展">11. 扩展性、错误处理与未来扩展</a>
+<a class="lv3" href="#111-扩展性">11.1 扩展性</a>
+<a class="lv3" href="#112-错误处理">11.2 错误处理</a>
+<a class="lv3" href="#113-未来扩展原笔记列出">11.3 未来扩展（原笔记列出）</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1把-e2ee-列在未来扩展里严重低估了它的影响">勘误 1：把 E2EE 列在&quot;未来扩展&quot;里严重低估了它的影响</a>
+<a class="lv3" href="#勘误-2原笔记没有覆盖消息可靠投递而这才是聊天系统的核心">勘误 2：原笔记没有覆盖&quot;消息可靠投递&quot;，而这才是聊天系统的核心</a>
+<a class="lv3" href="#勘误-3presence-的扇出模型被低估了规模">勘误 3：Presence 的扇出模型被低估了规模</a>
+<a class="lv3" href="#勘误-4websocket-应该用-wss-而不是-ws">勘误 4：WebSocket 应该用 wss:// 而不是 ws://</a>
+<a class="lv3" href="#补充-1sseserver-sent-events">补充 1：SSE（Server-Sent Events）</a>
+<a class="lv3" href="#补充-2websocket-与无状态原则的关系">补充 2：WebSocket 与&quot;无状态原则&quot;的关系</a>
+<a class="lv3" href="#补充-3已读回执">补充 3：已读回执</a>
+<a class="lv3" href="#补充-4大群超过-100-人的消息投递">补充 4：大群（超过 100 人）的消息投递</a>
+<a class="lv3" href="#补充-5zookeeper-的现代替代方案">补充 5：ZooKeeper 的现代替代方案</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

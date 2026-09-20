@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 3 章：系统设计面试框架 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item active" href="./"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-3-章系统设计面试框架">第 3 章：系统设计面试框架</h1>
+<blockquote>
+<p>原章节：A Framework for System Design Interviews · 原项目路径 <code>03. System Design Framework/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>系统设计面试最让人不安的地方，是它<strong>没有标准答案</strong>。算法题你至少知道&quot;对了就是对了&quot;，但&quot;设计一个微博&quot;这道题，你永远不知道自己答到什么程度算过关。</p>
+<p>更麻烦的是，面试官往往不会给你明确反馈——你讲完一段，他只是&quot;嗯&quot;一声，你根本不知道是该继续深入，还是该换个方向。</p>
+<p>这一章给出的解法是：<strong>用一套固定的四步流程，把开放问题变成可执行的动作</strong>。流程本身不能保证你的设计是对的，但它能保证你<strong>不跑偏、不冷场、不遗漏</strong>——而这三点已经能让你超过大多数候选人。</p>
+<p>学完这一章，你应该能回答：面试开场的前 10 分钟该说什么？面试官沉默时该怎么办？什么时候该深入细节、什么时候该收住？为什么&quot;上来就画数据库表&quot;是最危险的开局？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>系统设计面试到底在考察什么（它不只是在考技术）</li>
+<li>一套经过验证的四步框架，以及每一步的目标、话术和产出物</li>
+<li>每一步最常见的失分点，以及怎么避免</li>
+<li>功能性需求与非功能性需求的区别（原笔记完全没有覆盖）</li>
+<li>45 分钟面试的时间分配，以及各段该产出什么</li>
+<li>一套可以照着念的开场话术</li>
+</ul>
+<hr />
+<h2 id="1-系统设计面试在考察什么">1. 系统设计面试在考察什么</h2>
+<p>先说一个反直觉的事实：<strong>面试官并不指望你设计出一个真正能上线的系统。</strong></p>
+<p>45 分钟不可能设计出 Twitter。面试官想看的是你的<strong>思考过程</strong>。具体来说，他在这几个维度上打分：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>他在观察什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>需求分析能力</strong></td>
+<td>你会不会先问清楚再动手？还是上来就画架构图？</td>
+</tr>
+<tr>
+<td><strong>沟通与协作</strong></td>
+<td>你会不会把面试官当队友，边画边解释？还是埋头沉默地画？</td>
+</tr>
+<tr>
+<td><strong>技术广度</strong></td>
+<td>你能不能在不同方案之间做取舍（缓存 vs 数据库、SQL vs NoSQL）？</td>
+</tr>
+<tr>
+<td><strong>技术深度</strong></td>
+<td>你能不能在某一个点上讲到别人讲不到的层次（比如一致性哈希的倾斜问题）？</td>
+</tr>
+<tr>
+<td><strong>应对模糊的能力</strong></td>
+<td>需求不清时，你是瞎猜，还是主动定义假设？</td>
+</tr>
+<tr>
+<td><strong>驱动力（Drive）</strong></td>
+<td>你会不会主动推进讨论，而不是等着面试官提问？</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>最重要的一条：这是一场&quot;协作模拟&quot;，不是&quot;考试&quot;。</strong>
+面试官扮演的是你的同事，不是考官。他在看&quot;如果我和这个人一起做项目，会是什么体验&quot;。
+所以<strong>沉默是最大的敌人</strong>——你脑子里想得再好，说不出来就等于没有。</p>
+</blockquote>
+<p><strong>为什么需要框架？</strong> 因为在紧张状态下，人的注意力会急剧收窄。有了固定流程，你就不用再花精力思考&quot;下一步该干嘛&quot;，可以把全部注意力放在&quot;内容&quot;上。这也是职业选手都会用固定流程的原因。</p>
+<hr />
+<h2 id="2-第一步理解问题划定范围">2. 第一步：理解问题、划定范围</h2>
+<blockquote>
+<p>原文：<strong>Step 1: Understand the Problem and Establish Design Scope</strong></p>
+</blockquote>
+<p><strong>时间</strong>：3~10 分钟
+<strong>产出物</strong>：写在白板/文档上的一页&quot;需求与假设清单&quot;</p>
+<h3 id="这一步要达成什么">这一步要达成什么</h3>
+<ul>
+<li>澄清需求和假设</li>
+<li><strong>避免过早跳进解决方案</strong></li>
+<li>通过提出好问题，展示你的批判性思维</li>
+</ul>
+<h3 id="具体怎么做">具体怎么做</h3>
+<p><strong>（1）主动提澄清问题</strong></p>
+<p>原笔记给了四个方向，这里把每个方向配上&quot;为什么问&quot;和&quot;问完能得到什么&quot;：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>该问什么</th>
+<th>为什么问</th>
+<th>问完能得到什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最重要的功能是什么？</td>
+<td>45 分钟不可能做全部功能，必须砍</td>
+<td>确定 2~3 个核心功能，其余明确&quot;不在范围内&quot;</td>
+</tr>
+<tr>
+<td>系统要扛多大规模？</td>
+<td>规模决定架构，10 万用户和 1 亿用户是两个系统</td>
+<td>决定要不要分片、要不要多机房</td>
+</tr>
+<tr>
+<td>面向 Web、移动端还是都要？</td>
+<td>客户端类型影响协议、推送、离线策略</td>
+<td>决定要不要长连接、要不要推送通道</td>
+</tr>
+<tr>
+<td>有什么已有技术或约束？</td>
+<td>公司可能已有基础设施可复用</td>
+<td>避免设计出&quot;公司根本用不了&quot;的方案</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>（2）把假设写在白板上</strong></p>
+<p>这一步常被忽略，但极其重要。写在白板上的假设有三个作用：</p>
+<ol>
+<li>你自己不会算着算着忘掉前提</li>
+<li>面试官可以随时纠正（<strong>让他当场纠正，比让他默默扣分好得多</strong>）</li>
+<li>后面做深入设计时，可以回头指着它说&quot;基于这条假设，我选择……&quot;</li>
+</ol>
+<h3 id="完整话术示例">完整话术示例</h3>
+<p>原笔记用&quot;设计一个新闻信息流（News Feed）系统&quot;举例，列了四个问题。下面是完整的开场话术——<strong>你可以直接照着练</strong>：</p>
+<blockquote>
+<p>&quot;好的，我来设计一个新闻信息流系统。在动手之前，我想先确认几个问题，避免设计方向跑偏。</p>
+<p>第一，<strong>核心功能</strong>。我理解最核心的是两件事：用户能发布帖子，用户能看到好友的帖子时间线。那么像点赞、评论、搜索这些，是这次也要覆盖，还是先聚焦在发布和浏览上？</p>
+<p>第二，<strong>客户端形态</strong>。是移动 App、Web，还是两者都要？这个会影响我们是否需要推送通道和离线缓存。</p>
+<p>第三，<strong>规模</strong>。大概是日活多少量级？是百万级还是亿级？另外每个用户的好友数上限大概是多少——100 还是 5000？这个差别很大，因为它决定了我们是写扩散还是读扩散。</p>
+<p>第四，<strong>时间线怎么排</strong>。是按倒序时间排，还是需要算法推荐排序？倒序实现简单很多，推荐排序则需要引入特征和排序服务。</p>
+<p>第五，<strong>媒体支持</strong>。帖子里要不要带图片和视频？如果带，我们就必须引入对象存储和 CDN。</p>
+<p>我先基于以下假设往下走：移动端为主、日活 1 亿、好友数上限 5000、纯倒序时间线、支持图片。如果哪条假设不对，请随时打断我。&quot;</p>
+</blockquote>
+<p><strong>这段话说出来，你已经拿到了第一印象分。</strong> 注意它做到了三件事：问了结构化的问题、给出了自己的假设、邀请面试官纠正。</p>
+<h3 id="常见失分点">常见失分点</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>失分点</th>
+<th>具体表现</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>上来就画架构图</strong></td>
+<td>&quot;我先画个负载均衡器……&quot;</td>
+<td>面试官会认为你不懂需求分析，而且你很可能在解一个错的题</td>
+</tr>
+<tr>
+<td><strong>问得太多太碎</strong></td>
+<td>连续问 15 个问题，不问就不往下走</td>
+<td>时间被吃光，面试官觉得你缺乏判断力</td>
+</tr>
+<tr>
+<td><strong>问完不总结</strong></td>
+<td>问了一堆问题，没有归纳成假设</td>
+<td>面试官不知道你到底理解了什么</td>
+</tr>
+<tr>
+<td><strong>不问规模</strong></td>
+<td>直接开始设计</td>
+<td>无法判断该不该分片，后面的所有决策都失去依据</td>
+</tr>
+<tr>
+<td><strong>只问功能，不问非功能</strong></td>
+<td>只关心&quot;有什么功能&quot;，不关心延迟、一致性、可用性</td>
+<td>漏掉一半需求（见【补充 1】）</td>
+</tr>
+<tr>
+<td><strong>被动等待</strong></td>
+<td>问完问题就沉默，等面试官说&quot;你继续&quot;</td>
+<td>显得缺乏驱动力</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个判断标准</strong>：第一步结束时，你应该能在白板上写出一段 5~8 行的&quot;问题定义&quot;。如果写不出来，说明你还没问够。</p>
+</blockquote>
+<hr />
+<h2 id="3-第二步给出高层设计并取得认可">3. 第二步：给出高层设计并取得认可</h2>
+<blockquote>
+<p>原文：<strong>Step 2: Propose High-Level Design and Get Buy-In</strong></p>
+</blockquote>
+<p><strong>时间</strong>：10~15 分钟
+<strong>产出物</strong>：一张方框架构图 + API 定义 + 粗略估算</p>
+<h3 id="这一步要达成什么-1">这一步要达成什么</h3>
+<ul>
+<li>画出高层架构</li>
+<li><strong>和面试官一起打磨设计</strong>（注意：是&quot;一起&quot;，不是&quot;我讲你听&quot;）</li>
+<li>做粗略估算，验证设计能扛住规模</li>
+</ul>
+<h3 id="具体怎么做-1">具体怎么做</h3>
+<p><strong>（1）画方框图</strong></p>
+<p>用方框表示关键组件：客户端（Clients）、API、数据库、缓存（Cache）、CDN。</p>
+<blockquote>
+<p><strong>关键动作：&quot;取得认可（Get Buy-In）&quot;</strong>
+不要一口气画完 10 个方框再停下来。<strong>每画两三个组件，就停下来问一句</strong>：
+&quot;我把客户端请求先经过 API 网关，再由帖子服务写入数据库，同时投递到消息队列做扇出。这个结构你觉得合理吗？&quot;
+为什么要这样？因为如果方向错了，你现在改只要 30 秒；等画完一整张图再改，要 5 分钟，而且显得很狼狈。</p>
+</blockquote>
+<p><strong>（2）做粗略估算</strong></p>
+<p>原笔记写的是&quot;确保设计能处理规模约束&quot;。具体要算的见第 2 章，这里只强调<strong>估算的时机和用法</strong>：</p>
+<blockquote>
+<p>&quot;根据刚才的假设，日活 1 亿，人均每天刷 50 次时间线，读 QPS 大约 6 万，峰值按 3 倍算是 18 万。这个量级下，单库肯定扛不住读，所以我需要加缓存层，并且时间线要预计算。&quot;</p>
+</blockquote>
+<p><strong>注意这个句式</strong>：数字 → 结论 → 组件。<strong>估算不是独立的一节，它是你选择组件的理由。</strong></p>
+<p><strong>（3）走查用例（Walk Through Use Cases）</strong></p>
+<p>把核心流程走一遍，找出边界情况。以新闻信息流为例，原笔记把它拆成两条流：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>流程</th>
+<th>做什么</th>
+<th>关键问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>发布流程（Feed Publishing Flow）</strong></td>
+<td>把帖子写入数据库，并填充到好友的信息流里</td>
+<td>是同步推给所有好友，还是异步？好友有 5000 人怎么办？</td>
+</tr>
+<tr>
+<td><strong>拉取流程（Feed Retrieval Flow）</strong></td>
+<td>聚合好友的帖子，按倒序展示</td>
+<td>是从预计算的时间线里读，还是每次实时聚合？</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>走查用例时要主动找边界情况</strong>：</p>
+<ul>
+<li>一个用户有 5000 个好友，他发一条帖子要写 5000 次吗？（→ 引出写扩散的代价）</li>
+<li>一个明星有 1 亿粉丝，他发一条帖子怎么办？（→ 引出名人问题）</li>
+<li>用户删了一条帖子，已经推送到好友时间线里的怎么办？</li>
+<li>新用户关注了一个人，历史帖子要不要补进时间线？</li>
+</ul>
+<p><strong>这些边界情况就是第三步&quot;深入设计&quot;的入口。</strong> 你现在提出来，是为了告诉面试官&quot;我知道坑在哪&quot;，然后在第三步挑最重要的那个深入。</p>
+<h3 id="完整话术示例-1">完整话术示例</h3>
+<blockquote>
+<p>&quot;好，我先给出高层设计。</p>
+<p>整体分两条链路。<strong>写链路</strong>：客户端 → API 网关 → 帖子服务 → 写入帖子数据库，同时发一条消息到消息队列，由扇出服务（Fan-out Service）异步推送到好友的时间线缓存里。</p>
+<p><strong>读链路</strong>：客户端 → API 网关 → 时间线服务 → 直接读时间线缓存，未命中则回源到帖子数据库。</p>
+<p>存储上，帖子的文本和元数据放 MySQL 分片集群，图片放对象存储，时间线放 Redis 集群。</p>
+<p>粗略估算一下：日活 1 亿，读 QPS 约 6 万，峰值 18 万；写 QPS 约 2300。读写比 25:1，所以设计重心在读路径上。</p>
+<p>这个结构里有两个点我想特别讨论：一是<strong>扇出策略</strong>——5000 好友的普通用户和 1 亿粉丝的明星，用同一套逻辑会崩，需要混合策略；二是<strong>缓存一致性</strong>——用户删帖后，已推送到好友时间线的副本怎么处理。</p>
+<p>你希望我先展开哪一个？&quot;</p>
+</blockquote>
+<p><strong>最后那个问句很关键</strong>：它把选择权交给面试官，既体现了协作，也让你能聚焦在他最关心的点上。</p>
+<h3 id="常见失分点-1">常见失分点</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>失分点</th>
+<th>具体表现</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>不问反馈，一口气讲完</strong></td>
+<td>连续讲 8 分钟不停</td>
+<td>面试官插不上话，也无法引导你到他关心的点</td>
+</tr>
+<tr>
+<td><strong>不画图，只用嘴说</strong></td>
+<td>&quot;然后我们加一个消息队列……&quot;</td>
+<td>面试官跟不上，且显得缺乏结构化表达</td>
+</tr>
+<tr>
+<td><strong>估算和设计脱节</strong></td>
+<td>算了一堆数字，但没说这些数字如何影响选型</td>
+<td>面试官觉得你在背公式</td>
+</tr>
+<tr>
+<td><strong>只画 happy path</strong></td>
+<td>完全不提故障、边界、异常</td>
+<td>显得没有生产经验</td>
+</tr>
+<tr>
+<td><strong>一次给出所有细节</strong></td>
+<td>讲完整体架构又立刻讲 Redis 的 key 怎么设计</td>
+<td>时间不够用，且显得分不清主次</td>
+</tr>
+<tr>
+<td><strong>组件堆砌但说不出理由</strong></td>
+<td>图上有 Kafka、Redis、ES，但问&quot;为什么&quot;答不上来</td>
+<td>这是最致命的——<strong>画上去的每个组件都要能解释为什么</strong></td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-第三步深入设计">4. 第三步：深入设计</h2>
+<blockquote>
+<p>原文：<strong>Step 3: Design Deep Dive</strong></p>
+</blockquote>
+<p><strong>时间</strong>：10~25 分钟
+<strong>产出物</strong>：1~2 个关键组件的详细设计 + 瓶颈分析</p>
+<h3 id="这一步要达成什么-2">这一步要达成什么</h3>
+<ul>
+<li>深入最关键的一两个组件</li>
+<li>展示理解的深度和灵活应变能力</li>
+<li>讨论瓶颈并提出解法</li>
+</ul>
+<h3 id="具体怎么做-2">具体怎么做</h3>
+<p><strong>（1）挑选要深入的点</strong></p>
+<p>原笔记给的原则是&quot;聚焦与问题最相关的部分&quot;。怎么判断哪些相关？我的建议是按这个优先级排：</p>
+<ol>
+<li><strong>面试官主动追问的</strong>（最重要，他追问说明这是他的评分点）</li>
+<li><strong>你设计的核心创新点</strong>（比如信息流的扇出策略）</li>
+<li><strong>规模带来的瓶颈</strong>（比如 QPS 最高的那个服务）</li>
+<li><strong>你最有把握讲深的技术</strong>（扬长避短）</li>
+</ol>
+<p>原笔记给了三个例子，很典型：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>题目</th>
+<th>该深入什么</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>短链服务（URL Shortener）</strong></td>
+<td>哈希函数的设计</td>
+<td>短链的全部难点就在于&quot;如何生成不冲突的短码&quot;</td>
+</tr>
+<tr>
+<td><strong>聊天系统（Chat System）</strong></td>
+<td>降低延迟、在线/离线状态处理</td>
+<td>聊天的核心体验是&quot;实时&quot;，状态管理是最大难点</td>
+</tr>
+<tr>
+<td><strong>新闻信息流</strong></td>
+<td>发布流程与拉取流程</td>
+<td>扇出策略决定了系统的可扩展性上限</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>（2）讨论瓶颈</strong></p>
+<p>不要等面试官问&quot;这里会不会有问题&quot;。<strong>主动说</strong>：</p>
+<blockquote>
+<p>&quot;这个设计有一个瓶颈：扇出服务在明星发帖时会瞬间产生 1 亿次写操作。我的解法是分级——普通用户（粉丝 &lt; 1 万）走写扩散，明星（粉丝 &gt; 1 万）走读扩散，粉丝在拉取时实时合并明星的帖子。&quot;</p>
+</blockquote>
+<p><strong>（3）控制细节的颗粒度</strong></p>
+<p>原笔记写的是&quot;避免过度设计或不必要的深入&quot;。这条说起来容易，做起来难。判断标准：</p>
+<blockquote>
+<p><strong>你正在讲的这个细节，能不能改变设计结论？</strong></p>
+<ul>
+<li>能改变 → 讲（比如&quot;用一致性哈希还是取模，决定了扩容时多少缓存会失效&quot;）</li>
+<li>不能改变 → 一句话带过（比如&quot;Redis 用 6.0 还是 7.0&quot;）</li>
+</ul>
+</blockquote>
+<h3 id="常见失分点-2">常见失分点</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>失分点</th>
+<th>具体表现</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>平均用力</strong></td>
+<td>每个组件都讲 3 分钟，没有一个讲透</td>
+<td>面试官看不到深度</td>
+</tr>
+<tr>
+<td><strong>回避面试官追问的点</strong></td>
+<td>面试官问缓存一致性，你继续讲你的分片</td>
+<td>直接扣分——<strong>面试官问什么，就答什么</strong></td>
+</tr>
+<tr>
+<td><strong>过度深入无关细节</strong></td>
+<td>花 10 分钟讲 Redis 的持久化配置</td>
+<td>时间不够，且偏离主题</td>
+</tr>
+<tr>
+<td><strong>只描述不权衡</strong></td>
+<td>&quot;我用 Kafka&quot; 但不说为什么不用 RabbitMQ</td>
+<td>显得是背方案而不是做设计</td>
+</tr>
+<tr>
+<td><strong>遇到不会的就卡住</strong></td>
+<td>沉默 30 秒</td>
+<td>应该说&quot;我没在生产环境用过这个，但我的思路是……&quot;</td>
+</tr>
+<tr>
+<td><strong>不主动提故障场景</strong></td>
+<td>完全不讲节点挂了怎么办</td>
+<td>生产经验的重要信号</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="5-第四步收尾">5. 第四步：收尾</h2>
+<blockquote>
+<p>原文：<strong>Step 4: Wrap-Up</strong></p>
+</blockquote>
+<p><strong>时间</strong>：3~5 分钟
+<strong>产出物</strong>：一段总结 + 2~3 个改进方向</p>
+<h3 id="这一步要达成什么-3">这一步要达成什么</h3>
+<ul>
+<li>指出可以改进的地方</li>
+<li>复述设计，讨论后续方向</li>
+</ul>
+<h3 id="具体怎么做-3">具体怎么做</h3>
+<p><strong>（1）主动指出瓶颈和扩展策略</strong></p>
+<p>原笔记的建议是讨论潜在限制和扩展方案。具体话术：</p>
+<blockquote>
+<p>&quot;这个设计在 1 亿日活下是可行的。如果规模再涨 10 倍，第一个撑不住的会是时间线缓存的容量——1 亿用户 × 每人 500 条时间线 × 100 字节 ≈ 5 TB，再乘副本就是 15 TB。这时候我会考虑：只缓存活跃用户的时间线，不活跃用户的按需回源。&quot;</p>
+</blockquote>
+<p><strong>（2）复述核心决策和取舍</strong></p>
+<p>原笔记说要&quot;复述主要设计决策和取舍&quot;。这一步不是简单重复，而是<strong>把散落的决策串成一条逻辑线</strong>：</p>
+<blockquote>
+<p>&quot;总结一下我的三个核心决策：
+第一，<strong>写扩散为主、读扩散补充</strong>——牺牲一部分读性能，换取写路径的可扩展性，代价是明星场景需要特殊处理。
+第二，<strong>时间线预计算放 Redis</strong>——用内存成本换读延迟，代价是缓存一致性变复杂。
+第三，<strong>帖子内容存 MySQL 分片、媒体存对象存储</strong>——因为媒体占了 99.9% 的存储量，放在数据库里成本不可接受。&quot;</p>
+</blockquote>
+<p><strong>（3）提出增强方向</strong></p>
+<p>原笔记给的两个方向很实用：</p>
+<ul>
+<li><strong>如何从 100 万扩展到 1000 万用户？</strong></li>
+<li><strong>服务器故障或网络问题时如何处理错误？</strong></li>
+</ul>
+<p>我再补三个面试中非常好用的收尾方向：</p>
+<ul>
+<li><strong>监控与告警</strong>：这套系统上线后，你最关心哪三个指标？（延迟 P99、缓存命中率、扇出队列积压）</li>
+<li><strong>成本</strong>：这套架构的主要成本项是什么？（存储和 CDN 带宽）</li>
+<li><strong>安全与滥用</strong>：怎么防刷、防爬、防内容注入？（引出限流器，正好接第 4 章）</li>
+</ul>
+<blockquote>
+<p><strong>收尾的最高级形态</strong>：主动说出&quot;我这个设计哪里不够好&quot;。
+绝大多数候选人只讲优点。你能坦然说出&quot;这个方案在 X 场景下会退化，如果时间更多我会……&quot;，体现的是工程成熟度。<strong>面试官招的是同事，不是完美答案。</strong></p>
+</blockquote>
+<h3 id="常见失分点-3">常见失分点</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>失分点</th>
+<th>具体表现</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>时间不够，草草结束</strong></td>
+<td>&quot;差不多就这样吧&quot;</td>
+<td>显得没有全局把控能力</td>
+</tr>
+<tr>
+<td><strong>只总结不展望</strong></td>
+<td>复述一遍就结束</td>
+<td>错过展示&quot;成长思维&quot;的机会</td>
+</tr>
+<tr>
+<td><strong>被面试官问倒后收尾</strong></td>
+<td>最后 3 分钟陷入一个答不上来的问题</td>
+<td>应该主动拉回：&quot;这个问题我确实不熟，我把整体设计再收一下&quot;</td>
+</tr>
+<tr>
+<td><strong>不提失败场景</strong></td>
+<td>完全不讲系统怎么坏</td>
+<td>缺少生产视角</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="6-最佳实践该做与不该做">6. 最佳实践：该做与不该做</h2>
+<p>原笔记给了 5 条 Do 和 3 条 Don't。逐条展开：</p>
+<h3 id="该做的dos">该做的（Dos）</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>做法</th>
+<th>具体怎么落地</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>主动提问</strong></td>
+<td>进入解决方案前先澄清模糊点。至少问出&quot;规模、核心功能、客户端形态&quot;三项</td>
+</tr>
+<tr>
+<td><strong>持续沟通</strong></td>
+<td>把你的思考过程说出来。<strong>沉默超过 15 秒就应该开口</strong>，哪怕只是&quot;我在想存储方案&quot;</td>
+</tr>
+<tr>
+<td><strong>把面试官当协作者</strong></td>
+<td>多用&quot;你觉得这个方向对吗&quot;&quot;我们要不要先看这里&quot;</td>
+</tr>
+<tr>
+<td><strong>展示灵活性</strong></td>
+<td>面试官提出不同意见时，先理解再调整，不要硬辩。可以说&quot;有道理，如果按你说的，我会调整成……&quot;</td>
+</tr>
+<tr>
+<td><strong>聚焦关键组件</strong></td>
+<td>把 80% 的深入时间花在 20% 的关键点上</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="不该做的donts">不该做的（Don'ts）</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>不该做</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>过早给出方案</strong></td>
+<td>不理解需求就开始设计，很可能解错了题</td>
+</tr>
+<tr>
+<td><strong>陷入沉默</strong></td>
+<td>面试官无法评估你的思考，只能给低分</td>
+</tr>
+<tr>
+<td><strong>过度设计</strong></td>
+<td>一上来就上多机房、多活、异构存储，显得分不清主次</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>我再补三条原笔记没写、但同样重要的：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>不该做</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>和面试官争辩</strong></td>
+<td>他要看的是协作能力。即使你技术上是对的，赢了争论也会输了面试。正确做法是&quot;我理解你的顾虑，我们换个角度……&quot;</td>
+</tr>
+<tr>
+<td><strong>假装懂</strong></td>
+<td>说&quot;这个我熟&quot;然后讲错，比说&quot;这块我没实操过，我的理解是……&quot;要糟得多</td>
+</tr>
+<tr>
+<td><strong>只讲技术不讲取舍</strong></td>
+<td>每个方案都有代价。只说优点，说明你没真正做过技术决策</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7-时间管理">7. 时间管理</h2>
+<p>原笔记给出的 45 分钟面试时间分配：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时间</th>
+<th>占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>理解问题与范围</td>
+<td>3~10 分钟</td>
+<td>7%~22%</td>
+</tr>
+<tr>
+<td>高层设计与取得认可</td>
+<td>10~15 分钟</td>
+<td>22%~33%</td>
+</tr>
+<tr>
+<td>深入设计</td>
+<td>10~25 分钟</td>
+<td>22%~56%</td>
+</tr>
+<tr>
+<td>收尾</td>
+<td>3~5 分钟</td>
+<td>7%~11%</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>每一段的产出物</strong>（这是原笔记没有明确的部分，但非常重要）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>结束时白板上应该有什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>理解问题</td>
+<td>5~8 行的需求与假设清单</td>
+</tr>
+<tr>
+<td>高层设计</td>
+<td>一张方框图 + 3~5 个 API 定义 + 一组关键估算数字</td>
+</tr>
+<tr>
+<td>深入设计</td>
+<td>1~2 个组件的详细设计（含数据结构、算法、取舍）</td>
+</tr>
+<tr>
+<td>收尾</td>
+<td>一段 3 条以内的核心决策总结 + 2 个改进方向</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="怎么用这张表">怎么用这张表</h3>
+<p><strong>给自己设检查点</strong>。面试时看表（或者心里计时）：</p>
+<ul>
+<li><strong>第 10 分钟</strong>：必须已经问完问题，开始画图</li>
+<li><strong>第 25 分钟</strong>：必须已经画完高层设计，进入深入环节</li>
+<li><strong>第 40 分钟</strong>：必须开始收尾</li>
+</ul>
+<p>如果第 15 分钟你还在问需求，说明你问得太碎；如果第 35 分钟还在画高层图，说明你讲得太慢。</p>
+<h3 id="如果面试官一直追问同一个点怎么办">如果面试官一直追问同一个点怎么办</h3>
+<p>这是常见情况：你计划的深入点是扇出策略，面试官却一直追问缓存一致性。</p>
+<p><strong>答案很简单：跟着面试官走。</strong> 他追问的地方就是评分点。你计划的内容可以压缩到收尾时一句话带过。</p>
+<blockquote>
+<p><strong>不要有&quot;我必须讲完我的稿子&quot;的执念。</strong> 面试是对话，不是演讲。</p>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>原笔记本章的框架与 Alex Xu 原书的四步结构一致，<strong>没有事实性错误</strong>。问题在于：内容过于简略（每一节只有几条要点，没有可操作的话术），并且遗漏了原书和一些面试实践中明确要求的环节。以下逐条说明。</p>
+</blockquote>
+<h3 id="勘误-1时间分配的上限之和超过了它自己假设的面试时长">勘误 1：时间分配的上限之和超过了它自己假设的面试时长</h3>
+<ul>
+<li><strong>原文说法</strong>：标题写明 &quot;Suggested Time Allocation (for 45-Minute Interviews)&quot;，四段分别是 3–10、10–15、10–25、3–5 分钟。</li>
+<li><strong>问题</strong>：四个区间的<strong>上限之和是 55 分钟</strong>（10 + 15 + 25 + 5），超过了自己设定的 45 分钟。如果读者把上限当成&quot;每段的目标时长&quot;来执行，会在中途发现时间严重超支。</li>
+<li><strong>正确说法</strong>：这四组数字是<strong>弹性区间</strong>，不是&quot;必须用完的额度&quot;。合理的读法是：<strong>下限是底线，上限是封顶</strong>。实际执行时，先锁定两段刚性时间——理解问题不超过 10 分钟、收尾留够 3 分钟——剩下的时间给中间两段分配。45 分钟的一个可行切法是：<strong>8 / 12 / 20 / 5</strong>。</li>
+<li><strong>延伸</strong>：面试中真正要盯的不是&quot;我在哪一段&quot;，而是&quot;我离结束还有多少时间、还有什么必须讲&quot;。如果只剩 15 分钟但连高层设计都没画完，正确的做法是砍掉深入环节，而不是压缩每一段。</li>
+</ul>
+<h3 id="勘误-2原笔记没有区分功能性需求和非功能性需求">勘误 2：原笔记没有区分功能性需求和非功能性需求</h3>
+<ul>
+<li><strong>原文说法</strong>：Step 1 的示例问题只有&quot;最重要的功能是什么&quot;&quot;规模多大&quot;&quot;面向什么客户端&quot;&quot;有什么已有技术&quot;，全部围绕<strong>功能</strong>展开。</li>
+<li><strong>问题</strong>：系统设计的成败往往由<strong>非功能性需求</strong>决定，而原笔记完全没有涉及。两个系统功能完全一样，但如果一个要求&quot;P99 延迟 &lt; 100 ms&quot;、另一个允许&quot;最终一致即可&quot;，架构会完全不同。</li>
+<li><strong>正确说法</strong>：Step 1 必须同时澄清两类需求。详见【补充 1】。</li>
+<li><strong>延伸</strong>：面试中主动说&quot;我想确认一下非功能性需求&quot;是一个很强的信号——它表明你做过真实系统，知道&quot;能用&quot;和&quot;能扛&quot;是两回事。</li>
+</ul>
+<h3 id="勘误-3step-2-提到-api-但没有讲-api-设计">勘误 3：Step 2 提到 API 但没有讲 API 设计</h3>
+<ul>
+<li><strong>原文说法</strong>：Step 2 的 Approach 里写&quot;Use box diagrams for key components (e.g., clients, <strong>APIs</strong>, databases, caches, CDNs)&quot;，API 只是作为一个方框出现在列表里。</li>
+<li><strong>问题</strong>：API 设计是高层设计中<strong>必须产出</strong>的交付物，不是架构图上的一个方框。面试中不定义 API，后面的深入设计就没有落点（比如&quot;如何限流&quot;取决于限流的维度是 user_id 还是 IP，而这由 API 决定）。</li>
+<li><strong>正确说法</strong>：Step 2 应该明确给出 3~5 个核心接口的定义，包括路径、方法、关键参数和返回。详见【补充 2】。</li>
+<li><strong>延伸</strong>：API 定义还有一个隐含作用——<strong>它把&quot;需求&quot;翻译成了&quot;契约&quot;</strong>，一旦写下来，面试官就能立刻发现你理解错了哪一部分。这是成本最低的纠错方式。</li>
+</ul>
+<h3 id="补充-1功能性需求与非功能性需求">补充 1：功能性需求与非功能性需求</h3>
+<p>原笔记完全缺失这一块，但它是 Step 1 的核心。面试开场时应该这样分两轮问：</p>
+<p><strong>第一轮：功能性需求（Functional Requirements）——&quot;系统要做什么&quot;</strong></p>
+<ul>
+<li>核心功能是哪 2~3 个？</li>
+<li>哪些功能明确不在本次范围内？</li>
+<li>用户的主要使用路径是什么？</li>
+</ul>
+<p><strong>第二轮：非功能性需求（Non-Functional Requirements）——&quot;系统要做到什么程度&quot;</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>该问什么</th>
+<th>为什么它决定架构</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>规模（Scale）</strong></td>
+<td>日活多少？峰值 QPS？数据量多大？</td>
+<td>决定要不要分片、要不要缓存层</td>
+</tr>
+<tr>
+<td><strong>延迟（Latency）</strong></td>
+<td>可接受的 P99 延迟是多少？</td>
+<td>100 ms 以内必须上缓存；1 秒以上可以同步查库</td>
+</tr>
+<tr>
+<td><strong>一致性（Consistency）</strong></td>
+<td>允许最终一致吗？</td>
+<td>强一致需要分布式事务，代价极高；最终一致可以用消息队列</td>
+</tr>
+<tr>
+<td><strong>可用性（Availability）</strong></td>
+<td>要求几个 9？能容忍多久停机？</td>
+<td>决定了要不要多副本、多机房</td>
+</tr>
+<tr>
+<td><strong>持久性（Durability）</strong></td>
+<td>能容忍丢数据吗？</td>
+<td>决定复制模式（同步/异步）和是否需要 WAL</td>
+</tr>
+<tr>
+<td><strong>读写比（Read/Write Ratio）</strong></td>
+<td>读多还是写多？</td>
+<td>读多→加缓存和副本；写多→考虑 LSM 结构、分片</td>
+</tr>
+<tr>
+<td><strong>成本（Cost）</strong></td>
+<td>有预算约束吗？</td>
+<td>决定用 SSD 还是 HDD、自建还是用云服务</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>完整话术示例</strong>：</p>
+<blockquote>
+<p>&quot;功能上我聚焦发布和浏览两件事。非功能需求上我想确认几点：
+一是<strong>一致性</strong>——时间线允许几秒的延迟吗？如果可以最终一致，我可以用消息队列异步扇出，吞吐会高很多。
+二是<strong>延迟</strong>——浏览时间线的 P99 目标是多少？如果是 200 ms 以内，时间线必须预计算并缓存。
+三是<strong>可用性</strong>——这是核心入口还是可降级功能？如果是核心入口，我需要多副本；如果是可降级功能，故障时可以直接返回缓存里的旧内容。
+四是<strong>读写比</strong>——我按 25:1 估，如果实际是 1:1，整个设计要重来。&quot;</p>
+</blockquote>
+<blockquote>
+<p><strong>为什么这轮提问如此关键？</strong>
+因为它把&quot;设计题&quot;变成了&quot;约束优化题&quot;。<strong>没有约束就没有最优解</strong>——这句话在第 1 章也出现过，它是整个系统设计的方法论内核。</p>
+</blockquote>
+<h3 id="补充-2api-设计与数据模型">补充 2：API 设计与数据模型</h3>
+<p>原笔记只在方框图里提到了 API，这里补齐。</p>
+<p><strong>API 设计要给出什么？</strong> 3~5 个核心接口，每个包含：方法 + 路径 + 关键参数 + 返回结构。</p>
+<p>以新闻信息流为例：</p>
+<pre><code>POST /v1/posts
+  body: { content: string, media_ids: string[] }
+  → 201 { post_id: string, created_at: timestamp }
+
+GET /v1/feed?cursor=&lt;opaque&gt;&amp;limit=20
+  → 200 { items: [Post], next_cursor: string }
+
+GET /v1/users/{user_id}/posts?cursor=&lt;opaque&gt;&amp;limit=20
+  → 200 { items: [Post], next_cursor: string }
+
+POST /v1/follows
+  body: { followee_id: string }
+  → 200 { ok: true }
+</code></pre>
+<p><strong>几个值得在面试中主动点出的设计决策</strong>：</p>
+<ol>
+<li>
+<p><strong>用游标分页（Cursor-based Pagination）而不是 <code>offset/limit</code>。</strong>
+为什么？因为信息流是持续更新的。用 <code>offset=100</code> 分页，在你翻页的间隙如果有新帖子插入，第二页会出现第一页已经看过的内容（<strong>分页漂移</strong>）。游标（比如&quot;上一页最后一条的时间戳+ID&quot;）能稳定定位。</p>
+</li>
+<li>
+<p><strong>返回结构里不要暴露内部 ID 的含义。</strong>
+如果 <code>post_id</code> 是自增整数，竞争对手可以直接爬出你的业务规模。用 Snowflake 这类分布式 ID 或加混淆。</p>
+</li>
+<li>
+<p><strong>区分读接口和写接口的路径。</strong>
+读接口通常要走缓存，写接口要走主库——路径分开，后面的路由和限流策略才能分别设计。</p>
+</li>
+</ol>
+<p>**数据模型（Data Model）**同样要在 Step 2 给出草图：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>实体</th>
+<th>关键字段</th>
+<th>存储选型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户</td>
+<td><code>user_id</code>、昵称、头像</td>
+<td>MySQL（关系清晰、数据量小）</td>
+</tr>
+<tr>
+<td>帖子</td>
+<td><code>post_id</code>、<code>author_id</code>、内容、<code>created_at</code></td>
+<td>MySQL 分片（按 <code>author_id</code> 或 <code>post_id</code>）</td>
+</tr>
+<tr>
+<td>关注关系</td>
+<td><code>follower_id</code>、<code>followee_id</code></td>
+<td>MySQL 或图数据库（需要双向查询）</td>
+</tr>
+<tr>
+<td>时间线</td>
+<td><code>user_id</code> → <code>[post_id...]</code></td>
+<td>Redis List / Sorted Set（读多写多、要求低延迟）</td>
+</tr>
+<tr>
+<td>媒体</td>
+<td><code>media_id</code>、对象存储路径</td>
+<td>对象存储（S3 类）+ CDN</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>面试技巧</strong>：不需要画出完整的表结构。只要说出&quot;哪几个实体、存在什么存储里、为什么&quot;，就够了。面试官想看的是<strong>选型理由</strong>，不是 DDL。</p>
+</blockquote>
+<h3 id="补充-3面试官沉默或反复追问时怎么办">补充 3：面试官沉默或反复追问时怎么办</h3>
+<p>原笔记没有覆盖&quot;面试官不说话&quot;这个高频场景。</p>
+<p><strong>情况一：面试官全程沉默，不打断也不回应。</strong></p>
+<p>这通常是<strong>压力测试</strong>，看你会不会主动推进。应对方法：</p>
+<blockquote>
+<p>不要停下来等。继续往下讲，但<strong>每隔一两个组件就抛一个开放式问题</strong>：
+&quot;这里我倾向于用 Redis 做时间线存储，不过用 Sorted Set 还是 List 我还在权衡——你更关心读性能还是写入吞吐？&quot;</p>
+</blockquote>
+<p>抛问题有两个作用：给面试官一个插话的入口；展示你知道这里有取舍。</p>
+<p><strong>情况二：面试官反复追问同一个点。</strong></p>
+<p>这说明<strong>这就是他的评分点</strong>。应对方法：</p>
+<blockquote>
+<p>放下你原本的计划，深入他问的方向。如果确实不熟，坦诚说：&quot;这块我实际项目里没有深度使用过，我的理解是 X，如果有偏差请纠正我。&quot; <strong>诚实 + 给出推理，比强行编造要好得多。</strong></p>
+</blockquote>
+<p><strong>情况三：面试官明确否定你的方案。</strong></p>
+<blockquote>
+<p>不要辩护。先问清他的顾虑：&quot;你是担心这里的写放大吗？&quot;
+理解之后再调整：&quot;如果按这个顾虑，我会改成先写本地缓存再异步落库，代价是可能丢少量数据——如果这个代价不可接受，那就得回到同步写。&quot;</p>
+</blockquote>
+<p><strong>展示&quot;听取意见后调整&quot;的能力，本身就是评分项。</strong></p>
+<h3 id="补充-4不同面试形式的差异">补充 4：不同面试形式的差异</h3>
+<p>原笔记假设的是 45 分钟白板面试。实际形式有差异：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>形式</th>
+<th>时长</th>
+<th>差异点</th>
+<th>应对</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>白板面试</td>
+<td>45~60 分钟</td>
+<td>画图慢，擦改成本高</td>
+<td>先用铅笔轻画，确认结构后再加粗</td>
+</tr>
+<tr>
+<td>共享文档（如 CoderPad、Google Docs）</td>
+<td>45~60 分钟</td>
+<td>打字比写字快，但图不好画</td>
+<td>提前熟悉工具；用文字+缩进代替图形</td>
+</tr>
+<tr>
+<td>带代码的系统设计</td>
+<td>60~90 分钟</td>
+<td>要写部分伪代码或真实代码</td>
+<td>把时间多分给 Step 3，但框架不变</td>
+</tr>
+<tr>
+<td>多轮面试</td>
+<td>每轮 45 分钟</td>
+<td>不同面试官问同一系统的不同侧面</td>
+<td>保持设计一致性，别自相矛盾</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个通用提醒</strong>：不管什么形式，<strong>先问清面试官希望你产出什么</strong>——是完整的架构图，还是只要口头讨论？是要求写出 API，还是只要讲清思路？这本身就是 Step 1 的一部分。</p>
+</blockquote>
+<h3 id="补充-5把四步框架用成检查清单">补充 5：把四步框架用成&quot;检查清单&quot;</h3>
+<p>面试时容易忘记某个环节。把下面这张表记在脑子里，每完成一项打个勾：</p>
+<pre><code>□ Step 1  问了功能性需求（2~3 个核心功能）
+□ Step 1  问了非功能性需求（规模 / 延迟 / 一致性 / 可用性 / 读写比）
+□ Step 1  把假设写在了白板上
+□ Step 2  画了方框架构图
+□ Step 2  给出了 3~5 个 API 定义
+□ Step 2  给出了数据模型草图
+□ Step 2  做了粗略估算，并把数字翻译成了选型理由
+□ Step 2  每画几个组件就停下来问一次反馈
+□ Step 3  走查了两条核心流程
+□ Step 3  列出了 2~3 个边界情况
+□ Step 3  挑了一个点深入（数据结构 + 算法 + 取舍）
+□ Step 3  主动提了瓶颈和解法
+□ Step 4  总结了核心决策和取舍
+□ Step 4  提了 2 个改进方向
+□ Step 4  主动说了设计的不足
+</code></pre>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>系统设计面试考的是&quot;能不能设计出正确系统&quot;</td>
+<td>45 分钟不可能设计出真实系统</td>
+<td>它考的是<strong>思考过程、沟通能力、技术取舍</strong>。你表达出来的才被评分</td>
+</tr>
+<tr>
+<td>越早画图越显得专业</td>
+<td>不理解需求就设计，很可能解错题</td>
+<td>前 10 分钟必须用来问需求和写假设</td>
+</tr>
+<tr>
+<td>问题问得越多越好</td>
+<td>问 15 个问题会吃掉全部时间</td>
+<td>问<strong>决定架构</strong>的问题（规模、一致性、读写比），细节可以边做边确认</td>
+</tr>
+<tr>
+<td>只问功能需求就够了</td>
+<td>非功能需求往往才是架构的决定因素</td>
+<td>必须同时问规模、延迟、一致性、可用性</td>
+</tr>
+<tr>
+<td>面试官沉默 = 我答得不好</td>
+<td>沉默常常是压力测试，或他在观察你会不会主动推进</td>
+<td>继续讲，并主动抛出开放式问题邀请互动</td>
+</tr>
+<tr>
+<td>面试官否定了我的方案 = 我完蛋了</td>
+<td>他可能在测试你的协作能力</td>
+<td>先理解顾虑，再调整方案。<strong>改得漂亮比一开始就对更加分</strong></td>
+</tr>
+<tr>
+<td>必须把所有组件都讲到</td>
+<td>平均用力等于没有深度</td>
+<td>80% 的时间花在 20% 的关键点上</td>
+</tr>
+<tr>
+<td>讲完设计就结束了</td>
+<td>收尾环节是展示工程成熟度的最后机会</td>
+<td>主动总结取舍、提改进方向、说不足</td>
+</tr>
+<tr>
+<td>架构图越复杂越厉害</td>
+<td>堆砌组件但说不出理由是最致命的失分</td>
+<td>每个组件都要能回答&quot;为什么需要它、不用它会怎样&quot;</td>
+</tr>
+<tr>
+<td>深入设计要讲实现细节</td>
+<td>细节不一定改变设计结论</td>
+<td>判断标准：<strong>这个细节能否改变结论</strong>？能则讲，不能则略</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：系统设计面试是一套&quot;理解需求 → 高层设计 → 深入关键点 → 收尾&quot;的四步协作流程，它的目的是让面试官看到你的<strong>思考方式</strong>，而不是交出一个完美方案。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>先问再做</strong>。澄清功能需求 + 非功能需求（规模、延迟、一致性、可用性、读写比），并把假设写下来。</li>
+<li><strong>每画几个组件就停下来确认</strong>（Get Buy-In），把面试官当队友而不是考官。</li>
+<li><strong>估算要服务于选型</strong>：数字 → 结论 → 组件，三段式说出来。</li>
+<li><strong>深入设计要挑重点</strong>，并主动提瓶颈和解法。</li>
+<li><strong>收尾要总结取舍、提改进方向、说不足</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动区分<strong>功能性需求和非功能性需求</strong>，用&quot;一致性 / 延迟 / 可用性 / 读写比&quot;四个维度提问。</li>
+<li>主动给出 <strong>API 定义和游标分页</strong>，并解释为什么不用 <code>offset</code>。</li>
+<li>主动提出<strong>边界情况</strong>（明星用户、删帖、新用户关注），把它们作为深入设计的入口。</li>
+<li>收尾时主动说&quot;这个设计在 X 场景下会退化&quot;——<strong>展示工程成熟度</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;如果时间不够，你会砍掉哪一部分？&quot;</em>
+→ 砍掉深入设计里优先级最低的点，但<strong>绝不砍 Step 1 和 Step 4</strong>。因为不澄清需求会导致整场跑偏，不收尾会显得没有全局把控。</li>
+<li><em>&quot;你怎么知道你的设计是对的？&quot;</em>
+→ 没有绝对正确的设计，只有&quot;在给定约束下最合适的&quot;。我会把约束和取舍显式说出来，如果约束变了，结论也会变。<strong>面试官要的是可解释的决策链，不是标准答案。</strong></li>
+<li><em>&quot;面试官一直否定你怎么办？&quot;</em>
+→ 先问清他的顾虑（&quot;你是担心写放大吗？&quot;），理解后给出调整方案和新的代价。如果调整后仍有问题，坦诚说明并请他给出方向。<strong>协作能力本身就是评分项。</strong></li>
+<li><em>&quot;为什么不能上来就写数据库表结构？&quot;</em>
+→ 因为表结构是<strong>结论</strong>，不是<strong>起点</strong>。它依赖于&quot;有哪些实体、查询模式是什么、读写比多少&quot;，而这些都来自 Step 1 的需求澄清。先写表结构等于假设需求，风险很高。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源，第 3 章是全书的方法论总纲</li>
+<li><a href="https://sre.google/sre-book/service-level-objectives/" target="_blank" rel="noopener noreferrer">Google SRE Book：Service Level Objectives</a> — 讲清&quot;非功能性需求&quot;里最容易被忽略的可用性与延迟指标</li>
+<li><a href="https://github.com/donnemartin/system-design-primer" target="_blank" rel="noopener noreferrer">System Design Primer（GitHub）</a> — 提供了大量可练习的题目和设计模板</li>
+<li><a href="https://interviewing.io/guides/system-design-interview" target="_blank" rel="noopener noreferrer">The System Design Interview（ interviewing.io 的指南）</a> — 从面试官视角讲评分标准</li>
+<li><a href="../01/">第 1 章：从零到百万用户</a> — 本章的框架需要用第 1 章的组件知识来填充</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../02/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">粗略估算</span></a><a class="next" href="../04/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">限流器</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-系统设计面试在考察什么">1. 系统设计面试在考察什么</a>
+<a class="lv2" href="#2-第一步理解问题划定范围">2. 第一步：理解问题、划定范围</a>
+<a class="lv3" href="#这一步要达成什么">这一步要达成什么</a>
+<a class="lv3" href="#具体怎么做">具体怎么做</a>
+<a class="lv3" href="#完整话术示例">完整话术示例</a>
+<a class="lv3" href="#常见失分点">常见失分点</a>
+<a class="lv2" href="#3-第二步给出高层设计并取得认可">3. 第二步：给出高层设计并取得认可</a>
+<a class="lv3" href="#这一步要达成什么-1">这一步要达成什么</a>
+<a class="lv3" href="#具体怎么做-1">具体怎么做</a>
+<a class="lv3" href="#完整话术示例-1">完整话术示例</a>
+<a class="lv3" href="#常见失分点-1">常见失分点</a>
+<a class="lv2" href="#4-第三步深入设计">4. 第三步：深入设计</a>
+<a class="lv3" href="#这一步要达成什么-2">这一步要达成什么</a>
+<a class="lv3" href="#具体怎么做-2">具体怎么做</a>
+<a class="lv3" href="#常见失分点-2">常见失分点</a>
+<a class="lv2" href="#5-第四步收尾">5. 第四步：收尾</a>
+<a class="lv3" href="#这一步要达成什么-3">这一步要达成什么</a>
+<a class="lv3" href="#具体怎么做-3">具体怎么做</a>
+<a class="lv3" href="#常见失分点-3">常见失分点</a>
+<a class="lv2" href="#6-最佳实践该做与不该做">6. 最佳实践：该做与不该做</a>
+<a class="lv3" href="#该做的dos">该做的（Dos）</a>
+<a class="lv3" href="#不该做的donts">不该做的（Don&#x27;ts）</a>
+<a class="lv2" href="#7-时间管理">7. 时间管理</a>
+<a class="lv3" href="#怎么用这张表">怎么用这张表</a>
+<a class="lv3" href="#如果面试官一直追问同一个点怎么办">如果面试官一直追问同一个点怎么办</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1时间分配的上限之和超过了它自己假设的面试时长">勘误 1：时间分配的上限之和超过了它自己假设的面试时长</a>
+<a class="lv3" href="#勘误-2原笔记没有区分功能性需求和非功能性需求">勘误 2：原笔记没有区分功能性需求和非功能性需求</a>
+<a class="lv3" href="#勘误-3step-2-提到-api-但没有讲-api-设计">勘误 3：Step 2 提到 API 但没有讲 API 设计</a>
+<a class="lv3" href="#补充-1功能性需求与非功能性需求">补充 1：功能性需求与非功能性需求</a>
+<a class="lv3" href="#补充-2api-设计与数据模型">补充 2：API 设计与数据模型</a>
+<a class="lv3" href="#补充-3面试官沉默或反复追问时怎么办">补充 3：面试官沉默或反复追问时怎么办</a>
+<a class="lv3" href="#补充-4不同面试形式的差异">补充 4：不同面试形式的差异</a>
+<a class="lv3" href="#补充-5把四步框架用成检查清单">补充 5：把四步框架用成&quot;检查清单&quot;</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

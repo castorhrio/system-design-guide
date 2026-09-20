@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 21 章：广告点击事件聚合 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item active" href="./"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-21-章广告点击事件聚合">第 21 章：广告点击事件聚合</h1>
+<blockquote>
+<p>原章节：Ad Click Event Aggregation · 原项目路径 <code>21. Ad Click Event Aggregation/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>你在刷短视频时看到的每一条广告，背后都有一笔真实的钱在流动。广告主按点击付费，平台按点击收费——那么问题来了：<strong>谁来数这些点击？</strong></p>
+<p>一天 10 亿次点击，峰值每秒 5 万次，还要按广告、按分钟、按国家、按用户维度聚合出来。更麻烦的是：网络会延迟，事件会乱序到达，节点会宕机，消息会重复投递。而你数错一个百分点，可能就是几百万美元的账目差异。</p>
+<p>这一章讲的就是这样一套系统：<strong>广告点击事件聚合（Ad Click Event Aggregation）</strong>。它是全书最典型的「大数据处理系统」，也是第一次正式引入流处理（Stream Processing）的完整概念体系——事件时间、水位线、窗口、投递语义、对账。这些概念在后面任何一道大数据题目里都会反复出现。</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>广告点击系统的业务背景：为什么数据准确性直接等于钱</li>
+<li>原始数据与聚合数据各自的价值，以及为什么两者都要存</li>
+<li>用消息队列 + MapReduce/DAG 把无限流拆成可扩展的处理管线</li>
+<li>流处理与批处理的本质区别，以及 Lambda、Kappa 两种架构的演进逻辑</li>
+<li><strong>时间语义</strong>：事件时间、处理时间、水位线、迟到数据，这一整套概念怎么配合</li>
+<li>四种窗口（滚动、滑动、会话、全局）的区别与选型</li>
+<li>三种投递语义，以及<strong>为什么广告点击必须做去重</strong>、怎么做、去重窗口开多久</li>
+<li>Flink 如何用检查点 + 两阶段提交实现端到端的恰好一次</li>
+<li>对账（Reconciliation）机制：流式结果与离线结果比对，差异超阈值就告警</li>
+</ul>
+<hr />
+<h2 id="1-业务背景与需求澄清">1. 业务背景与需求澄清</h2>
+<h3 id="数字广告与实时竞价">数字广告与实时竞价</h3>
+<p><strong>数字广告（Digital Advertising）</strong> 是 Facebook、Google、TikTok 这类公司的核心收入来源。它有一套关键机制叫<strong>实时竞价（Real-Time Bidding，RTB）</strong>：当用户打开一个页面、准备加载广告位时，平台会把这一个「广告曝光机会」拿去拍卖——在<strong>几百毫秒之内</strong>，多个广告主出价，价高者得，广告立刻渲染出来。</p>
+<div align="center"><img src="./images/digital-advertising-example.png" alt="数字广告与实时竞价的角色关系" width="520" loading="lazy" decoding="async"></div>
+<p>RTB 有两个硬性特征：</p>
+<ol>
+<li><strong>快</strong>：整个过程通常要在一秒内完成。慢了广告位就浪费了。</li>
+<li><strong>准</strong>：出价依据是「这个用户大概会点吗」。而判断依据，正是历史点击数据。</li>
+</ol>
+<p>所以，广告点击事件聚合系统产出的数据，直接喂给 RTB 的定价模型，也直接用来给广告主<strong>结算账单</strong>。</p>
+<blockquote>
+<p><strong>为什么这决定了整套架构？</strong>
+因为「准」这个要求会把很多在别的系统里可以妥协的设计全部堵死。比如消息队列的「至少一次投递」在大多数业务里够用（重复一条日志无所谓），但在这里不行——重复计费等于多收广告主的钱，这是商业欺诈级别的错误。这一章后面所有的复杂度，几乎都源于这一条。</p>
+</blockquote>
+<h3 id="需求澄清step-1">需求澄清（Step 1）</h3>
+<p>面试第一步永远是问清楚边界。原文给出的对话值得完整过一遍：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>提问</th>
+<th>回答</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输入数据长什么样？</td>
+<td>每天 10 亿次点击，总共 200 万条广告，点击量年增 30%</td>
+</tr>
+<tr>
+<td>要支持哪些查询？</td>
+<td>① 广告 X 在过去 Y 分钟的点击数；② 过去 1 分钟内点击最多的 Top 100 广告；③ 上述查询要支持按 <code>ip</code>、<code>user_id</code>、<code>country</code> 过滤。聚合粒度是每分钟</td>
+</tr>
+<tr>
+<td>有哪些边界情况？</td>
+<td>事件可能迟到、可能重复、系统可能部分宕机需要恢复</td>
+</tr>
+<tr>
+<td>延迟要求？</td>
+<td>端到端几分钟可接受（用于计费和报表）。但 RTB 要求亚秒级</td>
+</tr>
+</tbody>
+</table></div>
+<p>这里有一个很重要的信号：<strong>面试官主动提醒了「迟到」「重复」「故障恢复」三件事</strong>。这三件事就是本章的全部难点，也是你要主动展开的地方。</p>
+<h4 id="功能需求">功能需求</h4>
+<ul>
+<li>聚合过去 Y 分钟内每个 <code>ad_id</code> 的点击数</li>
+<li>每分钟返回点击量最高的 100 个 <code>ad_id</code></li>
+<li>支持按不同属性过滤聚合结果</li>
+<li>数据规模为 Facebook / Google 级别</li>
+</ul>
+<h4 id="非功能需求">非功能需求</h4>
+<ul>
+<li><strong>正确性</strong>：结果用于 RTB 和广告计费，不能出错</li>
+<li><strong>正确处理延迟与重复事件</strong></li>
+<li><strong>健壮性</strong>：能扛住部分节点故障</li>
+<li><strong>延迟</strong>：端到端最多几分钟</li>
+</ul>
+<h3 id="量级估算">量级估算</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>计算</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>日活用户</td>
+<td>题设</td>
+<td>10 亿</td>
+</tr>
+<tr>
+<td>每人每天点击广告数</td>
+<td>假设 1 次</td>
+<td>10 亿次/天</td>
+</tr>
+<tr>
+<td>平均写入 QPS</td>
+<td>10⁹ ÷ 86400 秒</td>
+<td><strong>约 10,000</strong></td>
+</tr>
+<tr>
+<td>峰值 QPS</td>
+<td>平均值 × 5</td>
+<td><strong>约 50,000</strong></td>
+</tr>
+<tr>
+<td>单条点击存储</td>
+<td>题设</td>
+<td>0.1 KB</td>
+</tr>
+<tr>
+<td>每日存储</td>
+<td>10⁹ × 0.1 KB = 10⁸ KB</td>
+<td><strong>100 GB/天</strong></td>
+</tr>
+<tr>
+<td>每月存储</td>
+<td>100 GB × 30</td>
+<td><strong>约 3 TB/月</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>这里有一个反直觉的结论值得单独说：<strong>这是一个写入密集（Write-Heavy）的系统</strong>。</p>
+<p>10,000 QPS 的写入、每月 3 TB 的增量，但读取量很低——因为原始数据主要是出问题时用来回溯的。这个读写比例直接决定了后面的存储选型。</p>
+<hr />
+<h2 id="2-高层设计step-2">2. 高层设计（Step 2）</h2>
+<h3 id="查询-api-设计">查询 API 设计</h3>
+<p>API 是客户端和服务端之间的契约。这里的「客户端」是数据看板的使用者：数据分析师、广告主、运营。</p>
+<p><strong>接口一：查询某广告在过去 M 分钟的聚合点击数</strong></p>
+<pre><code>GET /v1/ads/{:ad_id}/aggregated_count
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>from</code></td>
+<td>起始分钟，默认「当前时间 - 1 分钟」</td>
+</tr>
+<tr>
+<td><code>to</code></td>
+<td>结束分钟，默认「当前时间」</td>
+</tr>
+<tr>
+<td><code>filter</code></td>
+<td>过滤策略标识，例如 <code>001</code> 表示「非美国地区点击」</td>
+</tr>
+</tbody>
+</table></div>
+<p>响应包含 <code>ad_id</code> 和该时间区间内的 <code>count</code>。</p>
+<p><strong>接口二：查询过去 M 分钟内点击最多的 Top N 广告</strong></p>
+<pre><code>GET /v1/ads/popular_ads
+</code></pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>count</code></td>
+<td>Top N 中的 N</td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td>聚合窗口大小（分钟）</td>
+</tr>
+<tr>
+<td><code>filter</code></td>
+<td>过滤策略标识</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>注意 <code>filter</code> 的设计手法</strong>：它不是把过滤条件一个个传进来，而是传一个<strong>预定义策略的编号</strong>。为什么？因为过滤条件如果任意组合，查询就没法提前优化；而预定义成有限个编号后，聚合服务可以<strong>提前把每种过滤组合都算好</strong>。这是本章第 4 节「星型模型」的伏笔。</p>
+</blockquote>
+<h3 id="数据模型">数据模型</h3>
+<p>系统里有两类数据：<strong>原始数据（Raw Data）</strong> 和<strong>聚合数据（Aggregated Data）</strong>。</p>
+<p>原始数据长这样：</p>
+<pre><code>[AdClickEvent] ad001, 2021-01-01 00:00:01, user1, 207.148.22.22, USA
+</code></pre>
+<p>结构化表示：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ad_id</th>
+<th>click_timestamp</th>
+<th>user</th>
+<th>ip</th>
+<th>country</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ad001</td>
+<td>2021-01-01 00:00:01</td>
+<td>user1</td>
+<td>207.148.22.22</td>
+<td>USA</td>
+</tr>
+<tr>
+<td>ad001</td>
+<td>2021-01-01 00:00:02</td>
+<td>user1</td>
+<td>207.148.22.22</td>
+<td>USA</td>
+</tr>
+<tr>
+<td>ad002</td>
+<td>2021-01-01 00:00:02</td>
+<td>user2</td>
+<td>209.153.56.11</td>
+<td>USA</td>
+</tr>
+</tbody>
+</table></div>
+<p>聚合数据长这样：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ad_id</th>
+<th>click_minute</th>
+<th>filter_id</th>
+<th>count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ad001</td>
+<td>202101010000</td>
+<td>0012</td>
+<td>2</td>
+</tr>
+<tr>
+<td>ad001</td>
+<td>202101010000</td>
+<td>0023</td>
+<td>3</td>
+</tr>
+<tr>
+<td>ad001</td>
+<td>202101010001</td>
+<td>0012</td>
+<td>1</td>
+</tr>
+<tr>
+<td>ad001</td>
+<td>202101010001</td>
+<td>0023</td>
+<td>6</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>filter_id</code> 指向一张过滤策略字典表：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>filter_id</th>
+<th>region</th>
+<th>IP</th>
+<th>user_id</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0012</td>
+<td>US</td>
+<td>*</td>
+<td>*</td>
+</tr>
+<tr>
+<td>0013</td>
+<td>*</td>
+<td>123.1.2.3</td>
+<td>*</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>*</code> 表示「该维度不限制」。这样一条聚合记录就同时服务了多种过滤查询。</p>
+<p>另外还需要一张表来支撑「Top N」查询：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>window_size</code></td>
+<td>integer</td>
+<td>聚合窗口大小 M（分钟）</td>
+</tr>
+<tr>
+<td><code>update_time_minute</code></td>
+<td>timestamp</td>
+<td>最后更新时间（分钟粒度）</td>
+</tr>
+<tr>
+<td><code>most_clicked_ads</code></td>
+<td>array</td>
+<td>广告 ID 列表（JSON 格式）</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>为什么要单独存 Top N？</strong>
+因为「求 Top N」和「求某个广告的计数」是两种完全不同的查询模式。前者需要全局排序，后者只需要点查。提前把 Top N 算好存下来，查询就变成了一次点查，而不是每次都对全量数据排序。<strong>预计算换查询速度</strong>，这是大数据系统里最常见的一类交易。</p>
+</blockquote>
+<h4 id="原始数据-vs-聚合数据">原始数据 vs 聚合数据</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>原始数据</th>
+<th>聚合数据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据量</td>
+<td>大（每月 3 TB）</td>
+<td>小（压缩比极高）</td>
+</tr>
+<tr>
+<td>查询速度</td>
+<td>慢</td>
+<td>快</td>
+</tr>
+<tr>
+<td>信息完整度</td>
+<td>完整，支持任意维度过滤和重算</td>
+<td>有损，只保留了预设维度</td>
+</tr>
+<tr>
+<td>用途</td>
+<td>调试、回溯、回填</td>
+<td>看板、报表、告警</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>结论是两者都要存</strong>，各司其职：</p>
+<ul>
+<li>原始数据保留下来用于<strong>调试</strong>。如果聚合逻辑有 bug，可以定位并<strong>回填（Backfill）</strong>。</li>
+<li>聚合数据用于<strong>快速查询</strong>。</li>
+<li>原始数据可以放到<strong>冷存储（Cold Storage）</strong>（如 S3、HDFS）里，降低存储成本。</li>
+</ul>
+<blockquote>
+<p>这个「热数据放快存储、冷数据放慢存储」的分层思路，是所有数据系统的通用套路。初学者常犯的错是：为了省钱把原始数据删了。等到发现聚合算错了，你没有原始数据可以重算——这是灾难。</p>
+</blockquote>
+<h4 id="数据库选型">数据库选型</h4>
+<p>选型前先问四个问题：</p>
+<ol>
+<li>数据是什么形态？关系型、文档型还是二进制大对象？</li>
+<li>负载是读多、写多还是读写都多？</li>
+<li>需要事务吗？</li>
+<li>查询依赖 <code>SUM</code>、<code>COUNT</code> 这类 OLAP 函数吗？</li>
+</ol>
+<p><strong>原始数据的结论</strong>：平均 10k QPS、峰值 50k QPS，典型写入密集。关系型数据库能做，但<strong>写入扩展很吃力</strong>。更合适的是 <strong>Cassandra</strong> 或 <strong>InfluxDB</strong>，它们对高写入负载有原生支持。</p>
+<blockquote>
+<p>另一个选项是 <strong>Amazon S3 + 列式格式（ORC / Parquet / AVRO）</strong>。原文说「因为这套配置大家不熟悉，所以我们还是用 Cassandra」——这个理由在面试里是成立的：<strong>用你讲得清楚的方案，而不是用最时髦的方案</strong>。面试考察的是你的推理过程，不是你的技术栈清单。</p>
+</blockquote>
+<p><strong>聚合数据的结论</strong>：既是读密集（看板和告警不断查询），也是写密集（每分钟写入一批聚合结果）。所以同样选 Cassandra。</p>
+<h3 id="高层架构">高层架构</h3>
+<div align="center"><img src="./images/high-level-design-1.png" alt="广告点击聚合系统的高层架构" width="520" loading="lazy" decoding="async"></div>
+<p>数据的输入和输出都是<strong>无界数据流（Unbounded Data Stream）</strong>——它永远不会「结束」，一直有新事件进来。</p>
+<p>为了避免<strong>同步汇聚（Synchronous Sink）</strong>——即消费者崩了就把整个系统卡住——我们用**消息队列（Kafka）**做异步解耦。</p>
+<div align="center"><img src="./images/high-level-design-2.png" alt="引入消息队列解耦生产者与消费者" width="520" loading="lazy" decoding="async"></div>
+<p>系统里有两个消息队列：</p>
+<p><strong>队列一：广告点击事件</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ad_id</th>
+<th>click_timestamp</th>
+<th>user_id</th>
+<th>ip</th>
+<th>country</th>
+</tr>
+</thead>
+</table></div>
+<p><strong>队列二：聚合结果</strong>，包含每分钟的点击计数</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ad_id</th>
+<th>click_minute</th>
+<th>count</th>
+</tr>
+</thead>
+</table></div>
+<p>以及每分钟的 Top N</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>update_time_minute</th>
+<th>most_clicked_ads</th>
+</tr>
+</thead>
+</table></div>
+<div align="center"><img src="./images/atomic-commit.png" alt="用第二个消息队列实现端到端的原子提交" width="520" loading="lazy" decoding="async"></div>
+<p><strong>为什么要有第二个队列？</strong> 为了实现端到端的<strong>恰好一次原子提交（Exactly-Once Atomic Commit）</strong>。这里先埋个引子，第 7 节会展开讲。</p>
+<blockquote>
+<p><strong>原文这里有一处用词要注意</strong>：它写的是「exactly-once atomic commit semantics」。严格来说，Kafka 本身提供的是<strong>原子提交</strong>（offset 与输出结果同生共死），而「恰好一次」是一个<strong>端到端</strong>的性质，需要链路上每一环配合。这个区别在第 7 节会讲清楚。</p>
+</blockquote>
+<hr />
+<h2 id="3-用-mapreduce-做聚合">3. 用 MapReduce 做聚合</h2>
+<p>聚合服务适合用 <strong>MapReduce</strong> 框架来做：</p>
+<div align="center"><img src="./images/ad-count-map-reduce.png" alt="广告点击计数的 MapReduce 流程" width="520" loading="lazy" decoding="async"></div>
+<div align="center"><img src="./images/top-100-map-reduce.png" alt="Top 100 广告的 MapReduce 流程" width="520" loading="lazy" decoding="async"></div>
+<p>每个节点只负责一件小事，把处理结果交给下游节点。</p>
+<ul>
+<li><strong>Map 节点</strong>：从数据源读取，做过滤和转换。例如按 <code>ad_id</code> 把数据分发到不同的聚合节点：</li>
+</ul>
+<div align="center"><img src="./images/map-node.png" alt="Map 节点按 ad_id 分发数据" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li><strong>Aggregate 节点</strong>：在内存中按 <code>ad_id</code> 每分钟统计一次点击事件。</li>
+<li><strong>Reduce 节点</strong>：收集各 Aggregate 节点的结果，产出最终结果：</li>
+</ul>
+<div align="center"><img src="./images/reduce-node.png" alt="Reduce 节点汇总各聚合节点的结果" width="520" loading="lazy" decoding="async"></div>
+<p>这套结构叫 <strong>DAG（有向无环图）模型</strong>：大数据被拆到多个节点上并行计算，最终收敛成常规大小的结果。DAG 模型里，<strong>中间数据存在内存中</strong>，节点之间用 TCP 或共享内存通信。</p>
+<h3 id="为什么需要一个独立的-map-节点">为什么需要一个独立的 Map 节点？</h3>
+<p>原文这里提出了一个很好的问题：既然 Kafka 本身就能分区，为什么不直接让聚合节点按 <code>ad_id</code> 订阅对应的分区？</p>
+<p>答案是 Map 节点提供了两个 Kafka 给不了的能力：</p>
+<ol>
+<li><strong>清洗与转换（Sanitize / Transform）</strong>：在进入聚合前做数据校验、字段补全、格式统一。</li>
+<li><strong>重新分区</strong>：<strong>我们无法控制上游怎么写数据</strong>。上游可能把同一个 <code>ad_id</code> 的事件打散到了不同分区。Map 节点可以强制按 <code>ad_id</code> 重新分发，保证同一个广告的事件落到同一个聚合节点。</li>
+</ol>
+<blockquote>
+<p>第 2 点在生产里极其常见。上游是客户端 SDK，它只知道「尽快发出去」，不关心分区键。所以<strong>在管道里插一层「重分区」节点几乎是标配</strong>。</p>
+</blockquote>
+<h3 id="三个用例">三个用例</h3>
+<p><strong>用例一：聚合点击数</strong></p>
+<div align="center"><img src="./images/use-case-1.png" alt="用例一：按 ad_id 聚合点击数" width="520" loading="lazy" decoding="async"></div>
+<p>广告按 <code>ad_id % 3</code> 分区（示例里 3 个聚合节点）。</p>
+<p><strong>用例二：返回 Top N 点击广告</strong></p>
+<div align="center"><img src="./images/use-case-2.png" alt="用例二：计算 Top N 点击广告" width="520" loading="lazy" decoding="async"></div>
+<p>每个节点维护一个**堆（Heap）**结构，用于快速取 Top N。示例算的是 Top 3，扩展到 Top N 只是改个参数。</p>
+<blockquote>
+<p><strong>为什么用堆而不是排序？</strong> 求 Top N 不需要全排序。用大小为 N 的最小堆，遍历一遍数据即可，时间复杂度 O(M log N)（M 是数据量），空间只需要 O(N)。如果数据量是几千万，全排序的开销是不可接受的。</p>
+</blockquote>
+<p><strong>用例三：数据过滤</strong></p>
+<p>为了支持快速过滤，可以预定义过滤条件并<strong>预聚合</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>ad_id</th>
+<th>click_minute</th>
+<th>country</th>
+<th>count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ad001</td>
+<td>202101010001</td>
+<td>USA</td>
+<td>100</td>
+</tr>
+<tr>
+<td>ad001</td>
+<td>202101010001</td>
+<td>GPB</td>
+<td>200</td>
+</tr>
+<tr>
+<td>ad001</td>
+<td>202101010001</td>
+<td>others</td>
+<td>3000</td>
+</tr>
+<tr>
+<td>ad002</td>
+<td>202101010001</td>
+<td>USA</td>
+<td>10</td>
+</tr>
+<tr>
+<td>ad002</td>
+<td>202101010001</td>
+<td>GPB</td>
+<td>25</td>
+</tr>
+<tr>
+<td>ad002</td>
+<td>202101010001</td>
+<td>others</td>
+<td>12</td>
+</tr>
+</tbody>
+</table></div>
+<p>原文把这个技术称为<strong>星型模型（Star Schema）</strong>，把过滤字段称为<strong>维度（Dimension）</strong>。它的好处是：</p>
+<ul>
+<li>简单易懂、易于构建</li>
+<li>现有的聚合服务可以复用，用来生成更多维度</li>
+<li>基于过滤条件的查询很快，因为结果是<strong>预先算好的</strong></li>
+</ul>
+<p>局限是：会产生<strong>大量桶（Bucket）和记录</strong>，尤其是过滤维度很多的时候。</p>
+<blockquote>
+<p><strong>这里要补充一个重要的成本估算</strong>：如果维度组合是笛卡尔积，记录数会爆炸。假设有 5 个维度、每个维度 3 个取值，那就是 3⁵ = 243 种组合。原本 1 条记录变成 243 条。<strong>这就是「预聚合」的代价：用存储空间和写入放大换查询速度。</strong> 实践中要限制维度的数量和基数，只预聚合高频查询的组合。</p>
+</blockquote>
+<hr />
+<h2 id="4-流处理-vs-批处理lambda-与-kappa">4. 流处理 vs 批处理：Lambda 与 Kappa</h2>
+<h3 id="三类系统的对比">三类系统的对比</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>在线服务系统（Online）</th>
+<th>批处理系统（Batch）</th>
+<th>流处理系统（Streaming）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>响应性</td>
+<td>快速响应客户端</td>
+<td>不需要响应客户端</td>
+<td>不需要响应客户端</td>
+</tr>
+<tr>
+<td>输入</td>
+<td>用户请求</td>
+<td><strong>有界</strong>输入，数据量大</td>
+<td><strong>无界</strong>输入（无限流）</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>响应给客户端</td>
+<td>物化视图、聚合指标</td>
+<td>物化视图、聚合指标</td>
+</tr>
+<tr>
+<td>性能指标</td>
+<td>可用性、延迟</td>
+<td>吞吐量</td>
+<td>吞吐量、延迟</td>
+</tr>
+<tr>
+<td>典型例子</td>
+<td>电商网站</td>
+<td>MapReduce</td>
+<td>Flink</td>
+</tr>
+</tbody>
+</table></div>
+<p>这张表最核心的一行是<strong>输入</strong>：</p>
+<ul>
+<li><strong>有界（Bounded）</strong>：数据是有限的、能读完的。比如「昨天的全部日志」。批处理的前提就是数据能读完。</li>
+<li><strong>无界（Unbounded）</strong>：数据永远不结束。广告点击流就是这样——你今天算完了，明天还有，永远没有「读完」的那一刻。</li>
+</ul>
+<blockquote>
+<p><strong>这是理解流处理的钥匙</strong>：批处理之所以能排序、能全局统计、能反复重算，是因为它知道「数据到头了」。流处理没有这个奢侈，它必须在数据还在流动的时候给出结果。<strong>所有流处理的复杂性，本质上都是在回答「我怎么知道现在可以出结果了？」</strong>——这个问题正是第 5 节「水位线」要解决的。</p>
+</blockquote>
+<h3 id="lambda-架构">Lambda 架构</h3>
+<p><strong>Lambda 架构</strong>的核心思想是：<strong>同时跑两条处理路径</strong>。</p>
+<div align="center"><img src="./images/lambda-architecture.png" alt="Lambda 架构：批处理层与流处理层并行" width="520" loading="lazy" decoding="async"></div>
+<p>它由三层构成（注意：原文只提了「两条路径」，漏掉了服务层，这是它的一个缺失）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>层</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>批处理层（Batch Layer）</strong></td>
+<td>处理全量历史数据，产出<strong>准确但延迟高</strong>的结果</td>
+</tr>
+<tr>
+<td><strong>流处理层（Speed Layer）</strong></td>
+<td>只处理最近的数据，产出<strong>实时但可能不精确</strong>的结果</td>
+</tr>
+<tr>
+<td><strong>服务层（Serving Layer）</strong></td>
+<td>合并两层结果对外提供查询</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么会有 Lambda？</strong> 因为早年的流处理引擎（如早期的 Storm）<strong>做不到精确一次、也处理不好乱序和迟到数据</strong>。于是工程上的妥协是：用批处理保证最终正确性（T+1 重算一遍全量，覆盖掉流式的近似结果），用流处理保证实时性（先给个大概的答案）。</p>
+<p><strong>Lambda 的致命缺点</strong>：两条路径意味着<strong>两套代码</strong>。业务逻辑一旦变更（比如「排除机器人点击」的规则改了），你必须用完全相同的逻辑改两遍——一份在批处理代码里，一份在流处理代码里。两份代码一旦不一致，就会产生<strong>永远对不上的数据</strong>，而且极难排查。</p>
+<blockquote>
+<p>这是真实世界里踩过的坑：很多公司的报表数据「实时看是一个数、第二天看又是另一个数」，根因往往就是 Lambda 两套代码的逻辑漂移。</p>
+</blockquote>
+<h3 id="kappa-架构">Kappa 架构</h3>
+<p><strong>Kappa 架构</strong>的提出就是为了干掉这个双份代码的问题：</p>
+<div align="center"><img src="./images/kappa-architecture.png" alt="Kappa 架构：只有一条流处理路径" width="520" loading="lazy" decoding="async"></div>
+<p><strong>核心思想</strong>：<strong>只保留一套流处理引擎</strong>。</p>
+<p>那历史数据重算怎么办？答案是<strong>重放（Replay）</strong>：</p>
+<ol>
+<li>消息队列（Kafka）<strong>长期保留</strong>原始事件日志（比如保留 7 天、30 天，甚至永久）。</li>
+<li>需要重算时，把消费者 offset <strong>重置到过去某个位置</strong>，用<strong>同一套代码</strong>重新消费一遍。</li>
+<li>新结果写入一个<strong>新的结果表/视图</strong>，算完后再切换过去。</li>
+</ol>
+<p><strong>Kappa 的关键判据是「只有一套代码、一个引擎」</strong>，而不是「没有批处理」。批处理被重新定义成了「一次有界范围的重放」。</p>
+<p><strong>为什么现在主流倾向 Kappa / 流批一体？</strong> 三个原因：</p>
+<ol>
+<li><strong>引擎能力补齐了</strong>：Flink、Spark Structured Streaming 这些现代引擎已经能处理乱序、迟到数据，并支持端到端精确一次。Lambda 存在的理由（流处理不够准）消失了。</li>
+<li><strong>维护成本减半</strong>：一套代码，一个团队，逻辑不会漂移。</li>
+<li><strong>需求变化快</strong>：业务规则天天改，每次都要改两套代码是不可持续的。</li>
+</ol>
+<p><strong>流批一体（Unified Batch and Streaming）</strong> 是更进一步的目标：用<strong>同一个引擎、同一套 API</strong>，既能处理有界数据（批），也能处理无界数据（流）。Flink 的 DataStream API 和 Table API 就在往这个方向走——同一段 SQL 既可以跑在历史数据上，也可以跑在实时流上。</p>
+<blockquote>
+<p><strong>什么时候 Lambda 仍然是合理选择？</strong>
+当你的批处理逻辑依赖极其复杂的机器学习模型、或者依赖只有批处理生态才有的库（比如某些 pandas / scikit-learn 的流程）时，硬要塞进流处理引擎反而更痛苦。<strong>架构选择永远是权衡，不是站队。</strong></p>
+</blockquote>
+<h3 id="原文对本系统架构的判断">原文对本系统架构的判断</h3>
+<p>原文说：「我们的高层设计使用 Kappa 架构，因为历史数据的重算也走聚合服务」，并给出了重算流程：</p>
+<div align="center"><img src="./images/recalculation-example.png" alt="历史数据重算流程" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li><strong>重算服务</strong>从原始存储中读取数据（这是一个批任务）。</li>
+<li>读到的数据发送给一个<strong>专用的聚合服务</strong>，这样<strong>不影响实时处理的聚合服务</strong>。</li>
+<li>聚合结果写入第二个消息队列，然后更新聚合数据库。</li>
+</ol>
+<p><strong>这个判断值得商榷，我们在勘误里详细讨论。</strong> 简单说：这套设计里「重算」是从冷存储（S3/HDFS）读的批任务，而且走的是独立部署的服务实例——这更接近 Lambda 的批处理层，而不是 Kappa 的「重放日志」。不过它符合 Kappa 的精神内核（<strong>复用同一套聚合代码</strong>），所以原文的说法也不能算错，只是表述不严谨。</p>
+<hr />
+<h2 id="5-时间语义本章最大的难点">5. 时间语义：本章最大的难点</h2>
+<p>这一节是整章的核心。原文只用了半页纸讲「时间」，概念体系是不完整的。我们把它补完整。</p>
+<h3 id="事件时间与处理时间">事件时间与处理时间</h3>
+<p>要给数据做「按分钟聚合」，你得先回答一个问题：<strong>这一分钟，是从哪个时钟读出来的？</strong></p>
+<ul>
+<li><strong>事件时间（Event Time）</strong>：事件<strong>实际发生</strong>的时刻。也就是用户真正点下广告的那一秒。这个时间通常由客户端打上，或者由第一台接收的服务器打上。</li>
+<li><strong>处理时间（Processing Time）</strong>：<strong>服务器处理这条事件</strong>时的系统时钟。</li>
+</ul>
+<p><strong>这两个时间可能差很多。</strong> 原文给出了两个原因：异步处理（消息队列）和网络延迟。</p>
+<p>设想一条链路：手机 → 边缘节点 → Kafka → 聚合服务。每一跳都有排队和重试。如果某个 Kafka 分区出现积压，事件可能延迟几分钟甚至几小时才被处理。</p>
+<div align="center"><img src="./images/watermark-technique.png" alt="事件时间与处理时间的偏移导致事件被漏算" width="520" loading="lazy" decoding="async"></div>
+<p>这张图信息量很大，值得逐条读：</p>
+<ul>
+<li><strong>事件时间轴</strong>：事件 1~5 分别在约 10s、35s、55s、125s、165s 发生。</li>
+<li><strong>处理时间轴</strong>：同一批事件到达聚合服务的时间是约 40s、69s、79s、139s、185s。<strong>注意事件 2 迟到了 34 秒。</strong></li>
+<li><strong>窗口</strong>：窗口 1 覆盖事件时间 [0, 60)，窗口 2 覆盖 [60, 120)，窗口 3 覆盖 [120, 180)。</li>
+</ul>
+<p>问题出在哪？<strong>事件 2 的事件时间（35s）属于窗口 1，但它在处理时间 69s 才到达，而窗口 1 已经在 60s 关闭了。</strong> 这条事件被漏掉了。同理事件 5 也漏掉了。</p>
+<p><strong>两种时间各自的取舍：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>事件时间</strong></td>
+<td>聚合结果<strong>准确</strong>（事件落在它真正发生的那个窗口）</td>
+<td>客户端时钟可能不准；时间戳可能被恶意用户伪造</td>
+</tr>
+<tr>
+<td><strong>处理时间</strong></td>
+<td>服务器时钟<strong>可靠</strong>，不受客户端影响</td>
+<td>事件一迟到，结果就不准</td>
+</tr>
+</tbody>
+</table></div>
+<p>原文的结论是：<strong>因为数据准确性重要，所以用事件时间</strong>。</p>
+<blockquote>
+<p><strong>这个结论是对的，但推理可以更完整。</strong>
+用事件时间，意味着你必须处理「乱序」和「迟到」——因为事件到达顺序和发生顺序不一致。这是用<strong>工程复杂度</strong>换<strong>正确性</strong>。
+用处理时间，你得到的是「服务器在 10:00 到 10:01 之间收到了多少条点击」，而不是「用户在 10:00 到 10:01 之间点了多少次广告」。<strong>这两个指标在计费场景下是完全不同的东西</strong>——前者会因为网络抖动而漂移，后者才是广告主该付的钱。
+顺便说一句：事件时间被伪造的风险是真实存在的（刷点击的黑产会伪造时间戳），但这属于**风控（Risk Engine）**的职责，不应该靠「改用处理时间」来规避——那等于把脏数据的问题换成了数据不准的问题。</p>
+</blockquote>
+<h3 id="水位线watermark">水位线（Watermark）</h3>
+<p>既然选了事件时间，就要面对迟到事件。原文介绍的机制叫<strong>水位线（Watermark）</strong>。</p>
+<p><strong>水位线的定义</strong>：一条声明「<strong>我认为事件时间早于 T 的数据不会再来了</strong>」的进度信号。</p>
+<p>它不是一个「时间点」，而是一个<strong>单调递增的进度标记</strong>，通常由数据流本身携带（比如「当前已观察到的事件时间最大值减去 5 秒」）。</p>
+<p><strong>窗口什么时候触发计算？</strong> 当水位线<strong>越过窗口的结束时间</strong>时，窗口关闭并触发计算。</p>
+<p>回到上图，原文给出的解法是「<strong>刻意延长聚合窗口</strong>」：</p>
+<div align="center"><img src="./images/watermark-2.png" alt="通过延长窗口收留迟到的事件" width="520" loading="lazy" decoding="async"></div>
+<p>图中的粉色部分是延长出来的部分：</p>
+<ul>
+<li>窗口 1 从 60s 延长到约 75s，<strong>收留了事件 2</strong>（它在 69s 到达）。</li>
+<li>窗口 3 从 180s 延长到约 195s，<strong>收留了事件 5</strong>（它在 185s 到达）。</li>
+</ul>
+<p><strong>这里有一个取舍：</strong></p>
+<ul>
+<li><strong>水位线设短</strong>：漏掉的事件多，但结果出得快（延迟低）。</li>
+<li><strong>水位线设长</strong>：漏掉的事件少，但结果出得慢（延迟高）。</li>
+</ul>
+<p>原文说：「无论水位线设多大，总有可能漏掉事件，但为这种低概率事件做优化没有意义。我们可以改为在<strong>日终对账</strong>时修正这些不一致。」</p>
+<p>这个工程判断是对的。<strong>你不可能为了等一条迟到三小时的广告点击，就让今天的账单晚三小时出。</strong> 迟到到离谱的事件，交给 T+1 的对账流程兜底。</p>
+<blockquote>
+<p><strong>注意：原文把「延长窗口」这件事本身称为 watermark，这个说法不严谨。</strong> 详见勘误 1。这里先记住正确的关系：
+<strong>水位线决定窗口何时关闭；「允许迟到时间」决定窗口关闭后还能收多久的数据。</strong></p>
+</blockquote>
+<h3 id="迟到数据的完整处理流程">迟到数据的完整处理流程</h3>
+<p>一个工业级的流处理作业，处理迟到数据是分层的。以 Flink 为例：</p>
+<pre><code>第一层：正常窗口计算
+  水位线越过窗口结束时间 → 触发计算 → 输出结果
+
+第二层：允许迟到（Allowed Lateness）
+  窗口触发后不立即销毁，继续保留一段时间（比如 1 分钟）
+  迟到的事件到达 → 再次触发计算 → 输出「修正后的结果」（一个更新消息）
+
+第三层：侧输出流（Side Output）
+  超过允许迟到时间才到达的事件 → 不丢弃，写到一条单独的「迟到数据流」
+  这条流可以：写入死信表人工排查 / 送入对账流程 / 单独统计迟到率
+</code></pre>
+<p><strong>为什么第二层要输出「更新」而不是覆盖？</strong> 因为下游可能已经读了旧结果。正确做法是输出一个带版本或带窗口标识的更新记录，让下游做<strong>幂等更新（Upsert）</strong>——同一个窗口的重复更新，最终结果一致。</p>
+<p><strong>为什么要有第三层？</strong> 因为「丢弃」是最坏的选择。你至少要知道<strong>丢了多少</strong>。侧输出流的迟到率是一个非常重要的监控指标——如果迟到率突然从 0.1% 涨到 5%，说明上游某个环节出问题了，这比数据本身更值得关注。</p>
+<blockquote>
+<p><strong>一个反直觉的点</strong>：很多人以为「水位线设长一点就万无一失」。错。水位线只解决「按时间顺序乱序」，不解决「某台机器卡了十分钟然后一次性吐出十万条数据」。<strong>水位线是一种估计，不是一种保证。</strong> 任何声称「用水位线可以做到零丢失」的说法都是错的——零丢失只能靠「无限等待」（不可接受）或「对账兜底」。</p>
+</blockquote>
+<h3 id="一个具体的参数怎么定">一个具体的参数怎么定</h3>
+<p>面试官很可能会追问：「你怎么定水位线的长度？」</p>
+<p>一个可操作的思路：</p>
+<ol>
+<li><strong>先测量</strong>：在链路里打点，统计「处理时间 - 事件时间」这个差值的<strong>分布</strong>（P50、P95、P99、P99.9）。</li>
+<li><strong>再定水位线</strong>：取 P99 作为水位线长度。这意味着 99% 的事件能被正确归入窗口。</li>
+<li><strong>剩余 1% 交给允许迟到 + 侧输出 + 日终对账</strong>。</li>
+<li><strong>持续监控</strong>：把这个分布做成监控指标，上游变化时及时调整。</li>
+</ol>
+<p><strong>核心思想</strong>：不要凭感觉设一个「5 秒」或「1 分钟」，要用<strong>分布</strong>说话。这和后面第 20 章讲尾延迟（Tail Latency）的思路是一模一样的。</p>
+<hr />
+<h2 id="6-窗口window">6. 窗口（Window）</h2>
+<p><strong>窗口（Window）</strong> 是把无界流切成有界片段的机制。没有窗口，你就没法对无限流做聚合——因为你永远等不到「全部数据」。</p>
+<p>原文列了四种窗口，我们把它讲清楚。</p>
+<div align="center"><img src="./images/tumbling-window.png" alt="滚动窗口：首尾相接、互不重叠" width="520" loading="lazy" decoding="async"></div>
+<p><strong>① 滚动窗口（Tumbling Window）</strong></p>
+<p>固定长度、<strong>首尾相接、互不重叠</strong>。比如每 1 分钟一个窗口：[0:00, 1:00)、[1:00, 2:00)、[2:00, 3:00)。</p>
+<ul>
+<li><strong>特点</strong>：每条事件<strong>只属于一个</strong>窗口。</li>
+<li><strong>适用</strong>：本章的「每分钟点击计数」。因为计费要求「一条点击只能算一次」，滚动窗口天然满足这个约束。</li>
+</ul>
+<div align="center"><img src="./images/sliding-window.png" alt="滑动窗口：窗口之间可以重叠" width="520" loading="lazy" decoding="async"></div>
+<p><strong>② 滑动窗口（Sliding Window）</strong></p>
+<p>固定长度，但<strong>按固定的滑动步长向前推进</strong>，所以窗口之间<strong>可以重叠</strong>。比如「长度 5 分钟、每 1 分钟滑动一次」。</p>
+<ul>
+<li><strong>特点</strong>：一条事件<strong>可能属于多个</strong>窗口（重叠次数 = 窗口长度 ÷ 滑动步长）。</li>
+<li><strong>适用</strong>：本章的「过去 M 分钟内点击最多的 Top N」。因为这里的语义是「滚动统计最近 M 分钟」，同一分钟的数据出现在多个窗口里是<strong>符合预期的</strong>。</li>
+<li><strong>代价</strong>：重叠意味着<strong>存储和计算量成倍增加</strong>。窗口 5 分钟、滑动 1 分钟，每条事件会被处理 5 次。</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：原文把 <strong>Hopping Window（跳跃窗口）</strong> 和 <strong>Sliding Window（滑动窗口）</strong> 列成了两种不同类型的窗口，这是不准确的。详见勘误 3。简单说：<strong>Flink 叫它 Sliding Window，Azure Stream Analytics 叫它 Hopping Window，它们是同一个东西。</strong></p>
+</blockquote>
+<p><strong>③ 会话窗口（Session Window）</strong></p>
+<p>按「活动间隙」切分，<strong>长度不固定</strong>。当一段时间内没有新事件时，窗口关闭。比如用户连续点击广告，间隔不超过 30 秒算作一次「会话」，超过 30 秒就开一个新会话。</p>
+<ul>
+<li><strong>适用</strong>：分析用户行为序列（一次会话里看了几个广告、点了几个）。</li>
+<li><strong>不适用</strong>：本章的按分钟计费——因为会话窗口的边界不确定，没法对齐到「分钟」。</li>
+</ul>
+<p><strong>④ 全局窗口（Global Window）</strong></p>
+<p>所有数据归入<strong>同一个</strong>窗口，永不关闭。看起来没用，但它需要配合**触发器（Trigger）**使用，比如「每 1000 条数据输出一次」。是自定义窗口逻辑的底层原语。</p>
+<h3 id="选型速查">选型速查</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>窗口类型</th>
+<th>长度</th>
+<th>重叠</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>滚动 Tumbling</td>
+<td>固定</td>
+<td>不重叠</td>
+<td>定期报表、按分钟计费</td>
+</tr>
+<tr>
+<td>滑动 Sliding</td>
+<td>固定</td>
+<td>可重叠</td>
+<td>最近 N 分钟趋势、Top N</td>
+</tr>
+<tr>
+<td>会话 Session</td>
+<td>不固定</td>
+<td>不重叠</td>
+<td>用户行为分析</td>
+</tr>
+<tr>
+<td>全局 Global</td>
+<td>无限</td>
+<td>—</td>
+<td>自定义触发器</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个容易踩的坑</strong>：窗口的长度和滑动步长不要设成没有公约数的奇怪数字（比如长度 7 分钟、滑动 3 分钟）。这会让窗口边界难以对齐，调试时非常痛苦。<strong>优先选能被整除的组合</strong>（5 分钟 / 1 分钟），并且<strong>窗口长度应该是滑动步长的整数倍</strong>——否则会出现「某些时间段的数据完全不被任何窗口覆盖」的漏洞。</p>
+</blockquote>
+<hr />
+<h2 id="7-投递语义与数据去重">7. 投递语义与数据去重</h2>
+<h3 id="三种投递语义">三种投递语义</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>语义</th>
+<th>含义</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>至多一次（At-Most-Once）</strong></td>
+<td>消息可能丢，但绝不重复</td>
+<td>最省事，但会丢数据</td>
+</tr>
+<tr>
+<td><strong>至少一次（At-Least-Once）</strong></td>
+<td>消息不丢，但可能重复</td>
+<td>需要去重</td>
+</tr>
+<tr>
+<td><strong>恰好一次（Exactly-Once）</strong></td>
+<td>不丢也不重</td>
+<td>成本最高</td>
+</tr>
+</tbody>
+</table></div>
+<p>原文的判断是：<strong>大多数场景下「至少一次」就够了</strong>——重复一条日志、多发一次通知，业务上无所谓。</p>
+<p><strong>但广告计费不行。</strong> 原文说得非常直接：<strong>「小百分比的差异可能导致几百万美元的账目差异」</strong>。</p>
+<p>我们来算一下这个「几百万」是怎么来的：</p>
+<ul>
+<li>每天 10 亿次点击。</li>
+<li>假设 CPC（单次点击成本）是 0.5 元。</li>
+<li>一天的广告流水 = 10 亿 × 0.5 元 = <strong>5 亿元</strong>。</li>
+<li>如果重复计费 0.1%，就是 100 万次重复点击，<strong>多收 50 万元</strong>。</li>
+<li>如果重复率到 1%，<strong>多收 500 万元</strong>。</li>
+</ul>
+<p><strong>这就是为什么本章必须实现恰好一次。</strong></p>
+<blockquote>
+<p>补充一个真实世界的背景：广告行业的重复点击和无效点击（IVT, Invalid Traffic）是一个每年涉及数十亿美元的问题。行业组织（如 MRC、IAB）有专门的标准来定义「什么算一次有效曝光/点击」，并且要求第三方审计。<strong>所以「去重」在这里不是技术洁癖，是合规要求。</strong></p>
+</blockquote>
+<h3 id="数据为什么会重复">数据为什么会重复</h3>
+<p>原文列了两类来源：</p>
+<ol>
+<li><strong>客户端（Client-Side）</strong>：客户端可能重发同一个事件。网络超时后重试、用户狂点、或者<strong>恶意刷量</strong>。原文特别指出：<strong>恶意重复应该交给风控引擎（Risk Engine）处理</strong>，不要试图在聚合层识别。</li>
+<li><strong>服务端故障（Server Outage）</strong>：聚合节点在处理过程中挂掉，上游没收到确认（ack），于是重发。</li>
+</ol>
+<p>原文举了一个「最后一跳确认失败导致重复」的例子：</p>
+<div align="center"><img src="./images/data-duplication-example.png" alt="最后一跳 ack 失败导致重复处理" width="520" loading="lazy" decoding="async"></div>
+<p>在这个例子里，<strong>offset 100 会被处理并向下游发送多次</strong>。</p>
+<p><strong>三种处理方案，原文的推进逻辑是：</strong></p>
+<p><strong>方案 A：把「最后处理的 offset」存在 HDFS/S3</strong></p>
+<div align="center"><img src="./images/data-duplication-example-2.png" alt="先写 offset 再处理，风险是结果永远到不了下游" width="520" loading="lazy" decoding="async"></div>
+<p><strong>问题</strong>：如果先写 offset 再处理数据，那么「offset 写成功但处理失败」时，这条数据就<strong>永远不会被处理</strong>了——结果永远到不了下游。这是把「重复」换成了「丢失」，更糟。</p>
+<p><strong>方案 B：offset 与下游写入原子化</strong></p>
+<div align="center"><img src="./images/data-duplication-example-3.png" alt="用分布式事务原子地提交 offset 与结果" width="520" loading="lazy" decoding="async"></div>
+<p>要同时保证「offset 更新」和「结果写入下游」要么都成功、要么都失败，就需要一个<strong>分布式事务</strong>。</p>
+<p><strong>方案 C（原文作者的补充）：让下游幂等</strong></p>
+<blockquote>
+<p>原文的 Personal side-note 写得很到位：<strong>「如果下游系统能幂等地处理聚合结果，就不需要分布式事务。」</strong></p>
+<p>这句话是对的，而且是工业界的主流答案。<strong>分布式事务很贵，幂等很便宜。</strong> 只要下游的写入是「用同一个 key 重复写，结果不变」（比如 <code>UPSERT</code> 到 <code>(ad_id, click_minute)</code> 上），重复投递就自然被吸收了。</p>
+</blockquote>
+<h3 id="业务级去重为什么广告点击必须去重">业务级去重：为什么广告点击必须去重</h3>
+<p>原文的「数据去重」一节其实只讲了<strong>系统级的重复</strong>（消息重投）。但面试官更想听的是<strong>业务级的重复</strong>：<strong>同一个用户，点了同一个广告两次，该算几次？</strong></p>
+<p>这个问题的答案取决于商业模式：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>计费模式</th>
+<th>含义</th>
+<th>去重规则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CPC（按点击付费）</strong></td>
+<td>每次有效点击收费</td>
+<td>同一用户对同一广告的重复点击，<strong>通常只算一次</strong></td>
+</tr>
+<tr>
+<td><strong>CPM（按千次曝光付费）</strong></td>
+<td>按展示次数收费</td>
+<td>关注的是曝光去重</td>
+</tr>
+<tr>
+<td><strong>CPA（按转化付费）</strong></td>
+<td>按下单/注册等转化收费</td>
+<td>关注转化去重</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么必须去重？</strong> 因为：</p>
+<ol>
+<li><strong>多收广告主的钱 = 商业欺诈。</strong> 广告主付钱买的是「真实用户的一次点击」，不是「某个脚本刷的一万次」。重复计费一旦被发现，轻则退款赔偿，重则失去客户和牌照。</li>
+<li><strong>污染模型。</strong> 点击数据会喂给 RTB 的出价模型。重复数据会让模型高估某个广告的效果，导致预算错配。</li>
+<li><strong>行业审计。</strong> 大的广告主会用第三方（如 MRC 认证的审计机构）核对数据，对不上就要解释。</li>
+</ol>
+<p><strong>什么是「重复」？</strong> 这本身是个业务定义问题，需要和产品/法务对齐。常见规则：</p>
+<ul>
+<li>同一 <code>user_id</code> + 同一 <code>ad_id</code>，在 <strong>30 分钟内</strong>只算一次（常见于 CPC）。</li>
+<li>同一 <code>ip</code> + 同一 <code>ad_id</code>，在 <strong>1 小时内</strong>超过 N 次视为无效流量。</li>
+<li>同一设备指纹的点击，按设备维度去重。</li>
+</ul>
+<blockquote>
+<p><strong>关键点：去重规则是业务规则，不是技术规则。</strong> 技术方案要能灵活支持规则的调整——这就是为什么下面要讲「去重窗口」这个概念。</p>
+</blockquote>
+<h3 id="去重的三种实现方案">去重的三种实现方案</h3>
+<p><strong>方案一：布隆过滤器（Bloom Filter）</strong></p>
+<p><strong>原理</strong>：用一个位数组 + 多个哈希函数表示一个集合。插入时把 k 个哈希位置的位设为 1；查询时如果所有位都是 1，则「可能在集合中」，否则「一定不在」。</p>
+<ul>
+<li><strong>优点</strong>：<strong>极其省内存</strong>。而且没有「假阴性」——说不存在就一定不存在。</li>
+<li><strong>缺点</strong>：有<strong>假阳性</strong>——可能把没见过的 key 误判为已见过，导致<strong>漏算一次点击</strong>。且<strong>不支持删除</strong>。</li>
+<li><strong>适合</strong>：<strong>过滤</strong>场景。即「先粗筛掉明显重复的」，剩下的再精确判断。</li>
+</ul>
+<p>我们来算一下内存：</p>
+<ul>
+<li>峰值 QPS = 50,000</li>
+<li>去重窗口 = 1 小时 = 3,600 秒</li>
+<li>需要记住的 key 数 = 50,000 × 3,600 = <strong>1.8 亿个</strong></li>
+<li>布隆过滤器在 1% 假阳性率下，每个元素约需 <strong>9.6 bit</strong></li>
+<li>内存 = 1.8 亿 × 9.6 bit = 17.3 亿 bit ≈ <strong>216 MB</strong></li>
+</ul>
+<p><strong>216 MB 就能覆盖 1 小时的去重窗口，而且单机就能扛。</strong> 这就是布隆过滤器的威力。</p>
+<p><strong>方案二：Redis SET / 精确集合</strong></p>
+<p>用 <code>SADD ad:dedup:{ad_id} {user_id}:{click_id}</code> 加 <code>EXPIRE</code>，天然利用 Redis 的过期机制。</p>
+<ul>
+<li><strong>优点</strong>：<strong>精确</strong>，无误判；实现简单；TTL 自动清理。</li>
+<li><strong>缺点</strong>：<strong>内存消耗大得多</strong>。
+<ul>
+<li>1.8 亿个 key，每个 key 假设 60 字节，加上 Redis 自身的对象开销（约 50~100 字节/条），实际占用 <strong>约 20~30 GB</strong>。</li>
+<li>是布隆过滤器的 <strong>100 倍左右</strong>。</li>
+</ul>
+</li>
+<li><strong>优化技巧</strong>：不要用 Redis String 存每个 key，用**紧凑的位图（Bitmap）**或 <strong>RedisBloom 模块</strong>。</li>
+</ul>
+<blockquote>
+<p><strong>对比结论</strong>：</p>
+<ul>
+<li>追求极致内存效率 → 布隆过滤器（接受 1% 的漏算，事后靠对账修正）。</li>
+<li>追求精确、且预算充足 → Redis SET。</li>
+<li><strong>实践中常见组合</strong>：Redis 做精确去重（窗口短，比如 5 分钟）+ 布隆过滤器做长窗口粗筛。</li>
+</ul>
+</blockquote>
+<p><strong>方案三：Flink 的键控状态（Keyed State）</strong></p>
+<p>如果整个聚合逻辑都在 Flink 里，最自然的方式是用<strong>键控状态</strong>：按 <code>ad_id</code> 作为 key，在 state 里维护一个「已见过的 <code>click_id</code> 集合」。</p>
+<ul>
+<li><strong>优点</strong>：状态由 Flink 统一管理，<strong>随检查点（Checkpoint）一起持久化</strong>，天然具备故障恢复能力。</li>
+<li><strong>缺点</strong>：状态大小受限于内存和检查点开销，需要配置 <strong>状态后端（State Backend）</strong> 和 <strong>TTL</strong>。</li>
+<li><strong>关键配置</strong>：Flink 的 <code>StateTtlConfig</code> 可以给状态设置 TTL，比如 30 分钟，超时自动清理。这和 Redis 的 <code>EXPIRE</code> 是同一个思路。</li>
+</ul>
+<pre><code class="language-java">// Flink 键控状态 + TTL 的示意（Java）
+StateTtlConfig ttlConfig = StateTtlConfig
+    .newBuilder(Time.minutes(30))
+    .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+    .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
+    .build();
+
+ValueState&lt;Set&lt;String&gt;&gt; seenClicks = getRuntimeContext()
+    .getState(new ValueStateDescriptor&lt;&gt;(&quot;seen-clicks&quot;, ...));
+seenClicks.enableTimeToLive(ttlConfig);
+</code></pre>
+<h3 id="去重窗口该开多久">去重窗口该开多久？</h3>
+<p>这是原文没讲、但面试官很爱问的问题。核心是一个<strong>内存与准确性的权衡</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>窗口太短</th>
+<th>窗口太长</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>重复点击落在窗口外 → <strong>漏去重</strong>，多计费</td>
+<td>内存/状态膨胀 → <strong>OOM、检查点超时、成本飙升</strong></td>
+</tr>
+<tr>
+<td>好处：内存小</td>
+<td>好处：去重更彻底</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>怎么定？三条原则：</strong></p>
+<ol>
+<li><strong>跟随业务规则</strong>。如果业务定义是「同一用户 30 分钟内对同一广告只算一次」，那窗口就是 30 分钟——<strong>技术窗口必须覆盖业务窗口</strong>，短一分钟都是 bug。</li>
+<li><strong>覆盖重试链路的最长时间</strong>。上游客户端重试、消息队列重投、任务重启重放，这些系统级重复可能在<strong>几分钟</strong>后才出现。窗口至少要覆盖「最长重放时间」。</li>
+<li><strong>用数据验证</strong>。统计「重复事件的时间间隔分布」，取 P99.9 作为窗口大小。如果 99.9% 的重复都在 10 分钟内发生，那 30 分钟的窗口就是浪费。</li>
+</ol>
+<blockquote>
+<p><strong>一个实用的分层策略</strong>（这是工程上的最佳实践，原文没有）：</p>
+<ul>
+<li><strong>短窗口（分钟级）+ 精确结构</strong>：Redis SET / Flink State，处理绝大部分重复。</li>
+<li><strong>长窗口（小时/天级）+ 概率结构</strong>：布隆过滤器，粗筛掉明显的刷量。</li>
+<li><strong>日终对账</strong>：用批处理重算，把残余的误差修正掉。</li>
+</ul>
+<p>三层叠加，才能同时兼顾内存、延迟和准确性。</p>
+</blockquote>
+<hr />
+<h2 id="8-扩展系统">8. 扩展系统</h2>
+<p>系统有三个独立组件：<strong>消息队列、聚合服务、数据库</strong>。因为它们是解耦的，可以独立扩展。</p>
+<h3 id="扩展消息队列">扩展消息队列</h3>
+<ul>
+<li><strong>生产者</strong>：不设限制，可以随意扩展。</li>
+<li><strong>消费者</strong>：放进<strong>消费者组（Consumer Group）</strong>，增加消费者数量即可。</li>
+<li><strong>前提</strong>：必须<strong>预先创建足够的分区</strong>。这是关键——<strong>消费者数量不能超过分区数</strong>，多出来的消费者会闲置。所以分区数要在建 topic 时就规划好。</li>
+<li><strong>注意</strong>：<strong>消费者再均衡（Rebalance）在消费者上千时会很慢</strong>，建议在业务低峰期做。因为 rebalance 期间整个消费者组会暂停消费（Stop-the-world）。</li>
+<li><strong>进阶</strong>：可以按地域拆分 topic，如 <code>topic_na</code>、<code>topic_eu</code>，降低单 topic 的规模。</li>
+</ul>
+<div align="center"><img src="./images/scale-consumers.png" alt="通过消费者组扩展消费能力" width="520" loading="lazy" decoding="async"></div>
+<h3 id="扩展聚合服务">扩展聚合服务</h3>
+<div align="center"><img src="./images/aggregation-service-scaling.png" alt="聚合服务的两种扩展方式" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li>Map-Reduce 节点可以简单地<strong>加节点</strong>。</li>
+<li>单节点吞吐可以通过<strong>多线程</strong>提升。</li>
+<li>或者用 <strong>Apache YARN</strong> 这类资源管理器，走<strong>多进程</strong>路线。</li>
+</ul>
+<p>原文的判断是：<strong>方案一（多线程）更容易，方案二（多进程/资源管理器）在实践中更常用，因为扩展性更好。</strong></p>
+<div align="center"><img src="./images/multi-threading-example.png" alt="多线程提升单节点吞吐" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>多线程 vs 多进程的取舍，值得多说一句</strong>：</p>
+<ul>
+<li><strong>多线程</strong>：共享内存，通信零成本，但受单机 CPU/内存上限约束，且一个线程 OOM 会拖垮整个进程。</li>
+<li><strong>多进程/容器</strong>：隔离性好，能跨机扩展，是云原生的标准做法；代价是调度和通信开销。</li>
+<li><strong>为什么原文说多进程更常用？</strong> 因为大数据作业的瓶颈往往不是 CPU 而是<strong>资源弹性</strong>——流量涨 10 倍时，你需要的是「立刻多 10 倍的机器」，而不是「在一台机器上多开 10 个线程」。</li>
+</ul>
+</blockquote>
+<h3 id="扩展数据库">扩展数据库</h3>
+<p>如果用的是 <strong>Cassandra</strong>，它<strong>原生支持</strong>基于一致性哈希的水平扩展：</p>
+<ul>
+<li>新节点加入集群时，数据会自动在所有（虚拟）节点间<strong>再均衡</strong>。</li>
+<li><strong>不需要手动重新分片（Resharding）</strong>。</li>
+</ul>
+<div align="center"><img src="./images/cassandra-scalability.png" alt="Cassandra 的自动数据再均衡" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p>这是 Cassandra 相对关系型数据库的核心优势：<strong>扩容是运维动作，不是开发动作</strong>。在 MySQL 上做分片，你需要自己处理路由、迁移、双写、切流，是一整个项目；在 Cassandra 上加节点，是加一台机器。</p>
+</blockquote>
+<h3 id="热点问题hotspot">热点问题（Hotspot）</h3>
+<p>如果某个广告特别火，点击量远超其他广告，承载它的聚合节点就会过载：</p>
+<div align="center"><img src="./images/hotspot-issue.png" alt="热点广告导致单个聚合节点过载" width="520" loading="lazy" decoding="async"></div>
+<p>原文给出的处理流程：</p>
+<ol>
+<li>过载的聚合节点向<strong>资源管理器</strong>申请额外资源。</li>
+<li>资源管理器分配更多资源，原节点不再过载。</li>
+<li>原节点把事件<strong>拆成 3 组</strong>，每个新聚合节点各处理 100 条。</li>
+<li>结果<strong>写回原聚合节点</strong>汇总。</li>
+</ol>
+<p><strong>更高级的两种方案：</strong></p>
+<ul>
+<li><strong>全局-本地聚合（Global-Local Aggregation）</strong>：也叫<strong>两阶段聚合</strong>。先在本地（每个并行实例内）做一次局部聚合，再把局部结果按 key 发到下游做全局合并。这样热点 key 的原始数据不需要全量走网络。</li>
+<li><strong>拆分去重聚合（Split Distinct Aggregation）</strong>：给热点 key <strong>加盐（Salting）</strong>——把 <code>ad_001</code> 拆成 <code>ad_001_0</code> ~ <code>ad_001_9</code> 十个虚拟 key，分散到不同节点各自统计，查询时再相加。</li>
+</ul>
+<blockquote>
+<p><strong>这两招是同一个思想的两种形态：把「一个热点 key」拆成「多个不热的 key」，最后再合并。</strong> 和第 1 章讲的「热点 key 加盐」完全一致——<strong>系统设计里很多问题，最后都收敛到「拆开再合并」这个模式。</strong></p>
+</blockquote>
+<hr />
+<h2 id="9-容错fault-tolerance">9. 容错（Fault Tolerance）</h2>
+<p>聚合节点在<strong>内存中</strong>处理数据。节点一挂，内存里的中间结果就全没了。</p>
+<p><strong>基础方案</strong>：利用 <strong>Kafka 的消费者 offset</strong>，新节点接管时从上次提交的位置继续。</p>
+<p><strong>但这里有个问题</strong>：本章除了「计数」，还要维护「过去 M 分钟的 Top N」这类<strong>中间状态</strong>。光靠 offset 恢复不了这些状态。</p>
+<p><strong>解决方案：定期做快照（Snapshot）</strong></p>
+<div align="center"><img src="./images/fault-tolerance-example.png" alt="按分钟对进行中的聚合做快照" width="520" loading="lazy" decoding="async"></div>
+<p>节点按分钟粒度对「进行中的聚合」打快照。节点挂了之后，新节点读取<strong>最新的已提交 offset</strong> + <strong>最新的快照</strong>，继续干活：</p>
+<div align="center"><img src="./images/fault-tolerance-recovery-example.png" alt="故障恢复：offset 与快照配合续跑" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>这本质上就是 Flink 的检查点（Checkpoint）机制</strong>。Flink 用 <strong>Chandy-Lamport 算法</strong>做分布式快照：在数据流里周期性插入一种特殊的「屏障（Barrier）」记录，每个算子收到屏障后把自己的状态快照到持久存储（HDFS/S3）。所有算子都完成快照后，这一次检查点就算成功。</p>
+<p><strong>恢复时</strong>：作业从最近一次成功的检查点重启，每个算子恢复自己的状态，数据源（Kafka）的 offset 也一并恢复。<strong>整个作业看起来就像从没挂过一样</strong>——这就是 Flink 的「精确一次状态语义」的基础。</p>
+</blockquote>
+<h3 id="端到端恰好一次检查点-两阶段提交">端到端恰好一次：检查点 + 两阶段提交</h3>
+<p>「状态不丢」还不够。你还要保证：<strong>从检查点恢复后重新处理的数据，不会在下游产生重复</strong>。</p>
+<p>这就是原文提到的「第二个消息队列」和「原子提交」要解决的问题。Flink 的完整答案是：</p>
+<pre><code>① 检查点（Checkpoint）
+   周期性把所有算子的状态快照到持久存储
+   → 解决「状态不丢」
+
+② 两阶段提交 Sink（Two-Phase Commit Sink）
+   Flink 1.4+ 提供的 TwoPhaseCommitSinkFunction
+   预提交（Pre-commit）：把结果写到一个「未提交」的位置（如 Kafka 事务、临时目录）
+   提交（Commit）：当检查点完成时，才把结果真正对外可见
+   → 解决「输出不重」
+
+③ 幂等写入
+   如果 Sink 天然幂等（如 UPSERT 到主键表），可以省掉两阶段提交
+   → 最省事的方案
+</code></pre>
+<p><strong>举个具体例子</strong>：Flink 写 Kafka 时，用 Kafka 的<strong>事务（Transaction）<strong>能力。Flink 开启一个 Kafka 事务写数据，但</strong>不提交</strong>；等到这次检查点完成，才提交事务。如果中间挂了，事务会被中止，未提交的数据对下游不可见。<strong>这样下游看到的要么是完整的、要么是没有的，绝不会是重复的。</strong></p>
+<blockquote>
+<p><strong>和第 19 章（消息队列）的呼应</strong>：第 19 章我们讲过「消息队列如何保证消息不丢」——生产者确认、Broker 持久化、消费者手动提交 offset。这里要补充的是：<strong>「不丢」和「不重」是两个独立的性质</strong>。</p>
+<ul>
+<li>只做「消费者手动提交 offset」→ 至少一次（可能重复）。</li>
+<li>手动提交 offset + 下游幂等 → 效果上等于恰好一次。</li>
+<li>手动提交 offset + 事务性 Sink + 检查点 → <strong>真正的端到端恰好一次</strong>。</li>
+</ul>
+<p><strong>面试时的标准回答顺序</strong>：先问「下游是否幂等」，幂等是最便宜的解法；不幂等才上两阶段提交。</p>
+</blockquote>
+<hr />
+<h2 id="10-数据监控与正确性">10. 数据监控与正确性</h2>
+<p>数据要用于计费，所以监控必须严格。</p>
+<p><strong>要监控的指标：</strong></p>
+<ul>
+<li><strong>延迟（Latency）</strong>：跟踪不同环节的时间戳，算出端到端延迟。</li>
+<li><strong>消息队列积压（Lag）</strong>：积压突然上涨，说明需要加聚合节点。
+<ul>
+<li><strong>原文这里有一个很重要的纠正</strong>：不要监控「队列长度」，因为 <strong>Kafka 是一个分布式提交日志（Distributed Commit Log），不是传统队列</strong>——消息被消费后不会立刻删除（而是按保留策略过期）。所以正确的指标是 <strong>records-lag</strong>，即「最新 offset 与消费者已提交 offset 之差」。</li>
+</ul>
+</li>
+<li><strong>聚合节点的系统资源</strong>：CPU、磁盘、JVM（GC 情况）等。</li>
+</ul>
+<h3 id="对账reconciliation">对账（Reconciliation）</h3>
+<p>原文提到要有一个<strong>对账流程</strong>：这是一个<strong>批任务，每天结束时运行</strong>。它从原始数据重新计算聚合结果，和聚合数据库里实际存的数据做对比：</p>
+<div align="center"><img src="./images/reconciliation-flow.png" alt="日终对账流程：重算结果与实际结果比对" width="520" loading="lazy" decoding="async"></div>
+<p><strong>这是整章最容易被忽略、但在生产环境最重要的一环。</strong> 我们把它讲透。</p>
+<p><strong>为什么必须对账？</strong> 因为前面所有的机制都有残留误差：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误差来源</th>
+<th>是否可完全消除</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>迟到数据超出水位线 + 允许迟到时间</td>
+<td>不能（只能靠对账修正）</td>
+</tr>
+<tr>
+<td>布隆过滤器的假阳性导致漏算</td>
+<td>不能（概率性结构）</td>
+</tr>
+<tr>
+<td>上游客户端时钟错误</td>
+<td>不能（不可控）</td>
+</tr>
+<tr>
+<td>消息队列的保留策略导致数据被删</td>
+<td>不能（配置决定）</td>
+</tr>
+<tr>
+<td>聚合逻辑的 bug</td>
+<td>不能（你根本不知道有 bug）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>对账的具体做法：</strong></p>
+<ol>
+<li><strong>T+1 全量重算</strong>：用批处理作业（Spark / Hive / Flink Batch）从冷存储的原始数据重新算一遍。</li>
+<li><strong>逐维度比对</strong>：按 <code>(ad_id, click_minute, filter_id)</code> 逐条比对，找出差异记录。</li>
+<li><strong>分级告警</strong>：
+<ul>
+<li>差异率 <strong>&lt; 0.01%</strong>：记录日志，不告警（正常波动）。</li>
+<li>差异率 <strong>0.01% ~ 0.1%</strong>：告警给值班工程师。</li>
+<li>差异率 <strong>&gt; 0.1%</strong>：<strong>触发账单冻结或人工复核流程</strong>——因为这个量级的差异已经涉及真金白银。</li>
+</ul>
+</li>
+<li><strong>修正与回填</strong>：把重算的结果写回聚合数据库（或单独存一张「修正表」，对外查询时以修正表为准）。</li>
+</ol>
+<blockquote>
+<p><strong>对账阈值怎么定？这必须和财务对齐。</strong>
+技术团队不能自己拍脑袋定「0.1% 就告警」。正确的做法是问业务方：<strong>「如果账单差多少钱，你们需要人工介入？」</strong> 把金额倒推成差异率。这是一个典型的<strong>技术指标必须由业务指标驱动</strong>的例子。</p>
+</blockquote>
+<p><strong>对账的代价</strong>：要跑全量重算，成本不低。所以实践中常用<strong>抽样对账</strong>（随机抽 1% 的广告做全量比对）+ <strong>全量对账</strong>（每周一次）的组合。</p>
+<hr />
+<h2 id="11-替代方案">11. 替代方案</h2>
+<p>原文特别说明：<strong>在通用的系统设计面试里，面试官不期望你了解大数据专用软件的内部实现。讲清楚推理过程和取舍，比知道具体工具更重要。</strong></p>
+<p>一个基于现成工具（Off-the-shelf）的替代方案是：</p>
+<ul>
+<li>广告点击数据存在 <strong>Hive</strong> 里</li>
+<li>上面加一层 <strong>Elasticsearch</strong> 提供快速查询</li>
+<li>聚合用 <strong>OLAP 数据库</strong>，如 <strong>ClickHouse</strong> 或 <strong>Druid</strong></li>
+</ul>
+<div align="center"><img src="./images/alternative-design.png" alt="基于 Hive + Elasticsearch + OLAP 的替代方案" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>这个替代方案值得展开一点，因为它是国内很多公司的真实做法：</strong></p>
+<ul>
+<li><strong>Hive</strong>：廉价的海量存储 + 批处理，适合做原始数据仓库和对账。缺点是查询延迟分钟级到小时级。</li>
+<li><strong>Elasticsearch</strong>：倒排索引，适合<strong>按维度筛选</strong>（「找出所有 country=US 且 ad_id=xxx 的记录」）。但<strong>不擅长聚合分析</strong>——ES 的聚合在数据量大时内存压力很大。</li>
+<li><strong>ClickHouse / Druid</strong>：<strong>列式存储 + 预聚合</strong>，专为 OLAP 设计。ClickHouse 单表聚合可以做到每秒上亿行的扫描速度，非常适合「按任意维度聚合点击量」这类查询。</li>
+</ul>
+<p><strong>选型经验</strong>：如果需求是「固定几个维度的实时看板」，用 Druid（它的预聚合模型天然契合）；如果是「分析师自由探索、SQL 随意写」，用 ClickHouse（更接近标准 SQL，灵活度高）。<strong>但两者都不适合做计费的唯一数据源</strong>——计费还是要走批处理 + 对账。</p>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>本节逐条指出原笔记中不准确、过时或缺失的地方。</p>
+</blockquote>
+<h3 id="勘误-1把允许迟到时间误称为水位线watermark">勘误 1：把「允许迟到时间」误称为水位线（Watermark）</h3>
+<ul>
+<li><strong>原文说法</strong>：「如果我们刻意延长聚合窗口，就能降低漏掉事件的概率。<strong>窗口延长出来的部分就叫做 watermark（水位线）</strong>。」</li>
+<li><strong>问题</strong>：这个定义是<strong>错的</strong>。水位线不是一个「时间段的长度」，而是<strong>一个进度信号</strong>——它表示「我认为事件时间早于 T 的事件不会再来了」。原文描述的「把窗口往后延长一段」在流处理里有一个专门的、不同的名字：<strong>允许迟到时间（Allowed Lateness）</strong>。
+这两者的职责完全不同：
+<ul>
+<li><strong>水位线</strong>决定「窗口<strong>何时</strong>触发计算」。</li>
+<li><strong>允许迟到时间</strong>决定「窗口触发之后，<strong>还能不能</strong>继续接收数据、以及还能收多久」。</li>
+</ul>
+</li>
+<li><strong>正确说法</strong>：
+<ul>
+<li>水位线 <code>W(t)</code> 是一条单调递增的标记，表示「事件时间 ≤ t 的数据预计已经全部到达」。当水位线越过窗口结束时间时，窗口触发计算。</li>
+<li>允许迟到时间是在窗口触发<strong>之后</strong>附加的宽限期。在 Flink 里对应 <code>allowedLateness()</code>。窗口触发后状态不立即销毁，迟到事件到达会<strong>再次触发</strong>计算并输出更新结果。</li>
+<li>超出允许迟到时间的事件，应该通过**侧输出流（Side Output）**收集，而不是静默丢弃。</li>
+</ul>
+</li>
+<li><strong>延伸</strong>：原文的<strong>直觉是对的</strong>——延长等待确实能收留更多迟到事件。但概念名称用错会在面试中暴露理解深度不足。面试官问「watermark 是什么」时，如果你回答「就是延长窗口」，会被认为没有真正理解流处理的时间模型。
+<strong>正确的三层表述</strong>：<code>水位线</code>（何时触发）→ <code>允许迟到</code>（触发后还能收多久）→ <code>侧输出流</code>（彻底超时的数据去哪）。</li>
+</ul>
+<h3 id="勘误-2窗口类型分类混乱hopping-与-sliding-是同一个东西">勘误 2：窗口类型分类混乱，Hopping 与 Sliding 是同一个东西</h3>
+<ul>
+<li><strong>原文说法</strong>：列了四种窗口函数——Tumbling（fixed）、<strong>Hopping</strong>、<strong>Sliding</strong>、Session。</li>
+<li><strong>问题</strong>：<strong>Hopping Window 和 Sliding Window 是同一个概念的两种叫法</strong>，把它们并列为两种不同类型的窗口会误导读者。
+<ul>
+<li><strong>Flink</strong> 的官方术语是 <strong>Sliding Window</strong>（<code>TumblingEventTimeWindows</code> 的兄弟类 <code>SlidingEventTimeWindows</code>）。</li>
+<li><strong>Azure Stream Analytics</strong> 的官方术语是 <strong>Hopping Window</strong>。</li>
+<li>两者定义完全一致：固定长度 + 固定滑动步长 + 窗口可重叠。</li>
+</ul>
+</li>
+<li><strong>正确说法</strong>：主流流处理引擎的窗口类型是三类（外加全局窗口）：
+<ol>
+<li><strong>滚动窗口（Tumbling Window）</strong>：长度固定，不重叠。</li>
+<li><strong>滑动窗口（Sliding / Hopping Window）</strong>：长度固定，按步长滑动，可重叠。</li>
+<li><strong>会话窗口（Session Window）</strong>：按活动间隙切分，长度不固定。</li>
+<li><strong>全局窗口（Global Window）</strong>：所有数据一个窗口，需配合触发器。</li>
+</ol>
+</li>
+<li><strong>延伸</strong>：判断一个窗口是否「滑动」，看两个参数：<strong>窗口长度（Size）</strong> 和 <strong>滑动步长（Slide）</strong>。<code>Size == Slide</code> 就是滚动窗口；<code>Size &gt; Slide</code> 就是滑动窗口。<strong>滚动窗口其实是滑动窗口的特例</strong>——这个理解比背四种类型有用得多。</li>
+</ul>
+<h3 id="勘误-3把按维度预聚合称为星型模型star-schema">勘误 3：把「按维度预聚合」称为星型模型（Star Schema）</h3>
+<ul>
+<li><strong>原文说法</strong>：预定义过滤条件、按 <code>country</code> 等维度预聚合数据，「这个技术叫做 <strong>star schema（星型模型）</strong>，过滤字段叫做<strong>维度（dimension）</strong>」。</li>
+<li><strong>问题</strong>：<strong>星型模型是一个数据建模术语，指「事实表 + 多个维度表」的表结构组织方式</strong>，不是指「提前把聚合算好」这件事。原文描述的做法，更准确的名称是：
+<ul>
+<li><strong>预聚合（Pre-aggregation）</strong></li>
+<li><strong>数据立方体（Data Cube）</strong> 或 <strong>物化视图（Materialized View）</strong></li>
+<li>在 OLAP 里也常称为 <strong>Cuboid</strong>（Apache Kylin 的术语）
+原文给出的表 <code>| ad_id | click_minute | country | count |</code> 确实<strong>可以</strong>作为星型模型里的<strong>事实表（Fact Table）</strong>，<code>country</code> 也确实是一个<strong>维度</strong>。所以原文不是完全错，而是<strong>把「建模方式」和「计算策略」混为一谈了</strong>。</li>
+</ul>
+</li>
+<li><strong>正确说法</strong>：
+<ul>
+<li><strong>星型模型</strong>：一种表结构设计——中心是一张事实表，周围环绕多张维度表。它回答的是「数据怎么组织」。</li>
+<li><strong>预聚合</strong>：一种计算策略——提前把聚合结果算好并物化。它回答的是「结果怎么算、什么时候算」。</li>
+<li>原文描述的方案 = <strong>用星型模型组织 + 预聚合加速</strong>，两者是配合关系，不是同一个东西。</li>
+</ul>
+</li>
+<li><strong>延伸</strong>：这个区分在面试里其实是个<strong>加分点</strong>。当你说出「这张按维度预聚合的表可以作为星型模型的事实表」时，面试官会认为你既懂数据建模，也懂查询优化。</li>
+</ul>
+<h3 id="勘误-4kappa-架构的判定依据不严谨">勘误 4：Kappa 架构的判定依据不严谨</h3>
+<ul>
+<li><strong>原文说法</strong>：「我们的高层设计使用 Kappa 架构，因为历史数据的重算也走聚合服务。」随后描述的重算流程是：重算服务从<strong>原始存储</strong>读取数据（<strong>这是一个批任务</strong>），发给<strong>专用的聚合服务</strong>实例，结果再写入第二个消息队列。</li>
+<li><strong>问题</strong>：严格按 Kappa 架构的定义（Jay Kreps 提出），Kappa 的<strong>关键特征是「重放可保留的日志」</strong>，而不是「从冷存储跑一个批任务」。原文描述的流程有两个特征更像 <strong>Lambda 的批处理层</strong>：
+<ol>
+<li>重算的数据源是<strong>冷存储（S3/HDFS）里的原始数据</strong>，不是消息队列里保留的日志。</li>
+<li>重算是一个<strong>独立的批任务 + 独立的服务实例</strong>，和实时链路是两条物理路径。</li>
+</ol>
+</li>
+<li><strong>正确说法</strong>：这套设计更准确的描述是**「混合架构（Hybrid）」或「以 Kappa 思想实现的架构」**：
+<ul>
+<li>它<strong>符合 Kappa 的精神内核</strong>——复用同一套聚合逻辑，避免两套代码漂移。这一点原文是对的。</li>
+<li>但它<strong>不符合 Kappa 的物理形态</strong>——真 Kappa 是「把 consumer offset 重置到过去，用同一个流处理作业重放 Kafka 里保留的日志」。</li>
+</ul>
+</li>
+<li><strong>延伸</strong>：这个区别在工程上有实际影响：
+<ul>
+<li><strong>Kappa 的重放受 Kafka 保留策略限制</strong>。如果 Kafka 只保留 7 天，你就没法重放 30 天前的数据。所以真 Kappa 通常要把 Kafka 保留期设得很长（成本高），或者用 Tiered Storage（分层存储）把冷数据放对象存储但仍通过 Kafka 接口访问（如 Confluent 的 Tiered Storage、Redpanda 的 Tiered Storage）。</li>
+<li><strong>原文的混合方案</strong>绕开了这个限制，代价是引入了第二条物理路径。</li>
+<li><strong>面试时的安全表述</strong>：「我们的设计复用了同一套聚合代码，避免了 Lambda 的双代码维护问题；重算走独立的批任务从冷存储读取，这一点比标准 Kappa 更保守，但也规避了 Kafka 保留期的约束。」</li>
+</ul>
+</li>
+</ul>
+<h3 id="勘误-5投递语义的表述不完整">勘误 5：投递语义的表述不完整</h3>
+<ul>
+<li><strong>原文说法</strong>：「我们需要使用 exactly-once delivery semantics（恰好一次投递语义）」，并通过第二个消息队列实现「端到端 exactly-once atomic commit semantics」。</li>
+<li><strong>问题</strong>：「恰好一次投递（Exactly-Once Delivery）」这个说法在分布式系统里是<strong>有争议的</strong>。严格来说，<strong>网络层面不可能实现恰好一次投递</strong>——因为「确认消息丢失」和「消息本身丢失」在发送方看来无法区分，发送方只能选择重发（导致重复）或不重发（导致丢失）。业界公认的准确表述是 <strong>Exactly-Once Processing（恰好一次处理）</strong> 或 <strong>Effectively-Once（效果上恰好一次）</strong>。</li>
+<li><strong>正确说法</strong>：恰好一次是<strong>通过组合实现的效果</strong>，不是单一机制提供的保证。完整的链条是：
+<ol>
+<li><strong>状态恰好一次</strong>：Flink 的检查点机制保证算子状态不丢不重。</li>
+<li><strong>输出恰好一次</strong>：两阶段提交 Sink（或幂等 Sink）保证下游不看到重复。</li>
+<li><strong>端到端恰好一次</strong> = ① + ②，且<strong>需要链路上每一环配合</strong>（数据源要能重置 offset、Sink 要支持事务或幂等）。</li>
+</ol>
+</li>
+<li><strong>延伸</strong>：面试时如果被问「Kafka 支持 exactly-once 吗」，标准答案是：<strong>「Kafka 从 0.11 版本起通过幂等生产者（Idempotent Producer）+ 事务（Transaction）支持了 Exactly-Once Semantics（EOS），但这个保证只在 Kafka 内部（读-处理-写回 Kafka）有效。如果 Sink 是外部系统（如 MySQL、Redis），就需要外部系统支持事务，或者靠幂等写入。」</strong> 这个回答能直接体现你对边界条件的理解。</li>
+</ul>
+<h3 id="补充-1lambda-与-kappa-的完整对比">补充 1：Lambda 与 Kappa 的完整对比</h3>
+<p>原笔记只用两段话带过了 Lambda 和 Kappa，没有讲清演进动因和适用边界。已在第 4 节补全。核心要点：</p>
+<ul>
+<li><strong>Lambda</strong> = 批处理层 + 流处理层 + 服务层，<strong>两套代码</strong>。</li>
+<li><strong>Kappa</strong> = 单一流处理引擎，<strong>一套代码</strong>，靠重放日志重算。</li>
+<li><strong>演进动因</strong>：现代流处理引擎补齐了正确性能力，Lambda 存在的理由消失了。</li>
+<li><strong>当前主流</strong>：Kappa 思想 + 流批一体（Flink）。但<strong>复杂的批处理依赖（如特定机器学习库）场景下 Lambda 仍合理</strong>。</li>
+</ul>
+<h3 id="补充-2时间语义的完整体系">补充 2：时间语义的完整体系</h3>
+<p>原笔记只讲了「事件时间 vs 处理时间」的取舍，完全没有涉及水位线的工作机制、允许迟到、侧输出流。已在第 5 节补全。<strong>这是本章最重要的补充内容</strong>，也是初级开发者最容易被卡住的地方。</p>
+<p>关键记忆链：<strong>事件时间 → 乱序 → 水位线（何时触发）→ 允许迟到（触发后宽限）→ 侧输出流（彻底超时）→ 日终对账（兜底）</strong>。</p>
+<h3 id="补充-3业务级数据去重原文完全缺失">补充 3：业务级数据去重（原文完全缺失）</h3>
+<p>原笔记的「数据去重」一节只讨论了<strong>系统级重复</strong>（消息重投、offset 提交失败）。完全没有涉及<strong>业务级重复</strong>——即同一个用户对同一个广告的重复点击该不该计费。</p>
+<p>这是本章商业价值最高的部分：<strong>重复点击 = 多收广告主的钱 = 商业欺诈</strong>。已在第 7 节补全，包括：</p>
+<ul>
+<li>为什么必须去重（多计费 / 污染模型 / 行业审计）</li>
+<li>三种实现方案对比（布隆过滤器 / Redis SET / Flink 键控状态）</li>
+<li>内存成本的具体推算（1.8 亿 key → 布隆过滤器 216 MB vs Redis SET 20~30 GB）</li>
+<li><strong>去重窗口该开多久</strong>的判定原则（跟随业务规则 / 覆盖重试链路 / 用分布数据验证）</li>
+</ul>
+<h3 id="补充-4对账reconciliation的完整机制">补充 4：对账（Reconciliation）的完整机制</h3>
+<p>原笔记提到了「日终对账」并给了图，但没有说明<strong>对账的具体做法、阈值怎么定、发现差异后怎么办</strong>。已在第 10 节补全，包括分级告警策略和「阈值必须由业务方定义」这条原则。</p>
+<h3 id="补充-5flink-的端到端恰好一次实现">补充 5：Flink 的端到端恰好一次实现</h3>
+<p>原笔记说要「实现分布式事务」但没展开。已在第 9 节补全：<strong>检查点（Chandy-Lamport 快照）+ 两阶段提交 Sink（<code>TwoPhaseCommitSinkFunction</code>）+ 幂等写入</strong>三条路径，并说明了「下游幂等是最便宜的解法，分布式事务是最后的兜底」。</p>
+<h3 id="补充-6背压backpressure">补充 6：背压（Backpressure）</h3>
+<p>原笔记完全没提。<strong>背压是流处理系统最常见的故障模式</strong>：当聚合服务处理不过来时，上游还在拼命推数据，结果要么是内存爆掉（OOM），要么是消息队列积压无限增长。</p>
+<ul>
+<li><strong>Flink 的背压机制</strong>：下游算子处理不过来时，会停止向上游发送「缓冲区可用」的信号，数据源自动降速。这是<strong>基于信用（Credit-based）的流控</strong>。</li>
+<li><strong>Kafka 的背压</strong>：Kafka 本身没有真正的背压——它只会让 lag 增长。所以必须靠<strong>监控 lag + 自动扩容消费者</strong>来应对。</li>
+<li><strong>实践要点</strong>：背压是<strong>症状</strong>，不是<strong>病因</strong>。看到背压要先问「是流量涨了，还是某个算子变慢了（GC、外部调用超时、数据倾斜）」。</li>
+</ul>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用处理时间就够了，事件时间太复杂</td>
+<td>处理时间统计的是「服务器何时收到」，不是「用户何时点击」。网络抖动会让这个数字漂移，<strong>计费场景下不可接受</strong></td>
+<td>计费、归因类场景必须用<strong>事件时间</strong>；只有「监控系统自身健康度」这类场景才适合处理时间</td>
+</tr>
+<tr>
+<td>水位线设长一点就不会丢数据</td>
+<td>水位线是一种<strong>估计</strong>，不是<strong>保证</strong>。上游卡住十分钟后一次性吐出十万条数据，任何水位线都拦不住</td>
+<td>水位线只处理「正常范围内的乱序」。<strong>零丢失只能靠「对账兜底」</strong>，不能靠调参数</td>
+</tr>
+<tr>
+<td>窗口延长 = 水位线</td>
+<td>两个不同的概念，职责不同</td>
+<td><strong>水位线决定何时触发</strong>，<strong>允许迟到决定触发后还能收多久</strong>，<strong>侧输出流决定彻底超时的数据去哪</strong></td>
+</tr>
+<tr>
+<td>恰好一次是消息队列提供的保证</td>
+<td>网络层面不可能实现「恰好一次投递」——确认丢失和消息丢失无法区分</td>
+<td>恰好一次是<strong>组合效果</strong>：检查点（状态不重）+ 事务性 Sink / 幂等写入（输出不重）。<strong>幂等是最便宜的解法</strong></td>
+</tr>
+<tr>
+<td>消息队列积压了就加消费者</td>
+<td><strong>消费者数不能超过分区数</strong>，多出来的会闲置；而且加消费者会触发 rebalance，rebalance 期间整个组暂停消费</td>
+<td>先确认分区数是否够；扩分区需要谨慎（会破坏按 key 的顺序性）；扩消费者尽量在低峰期做</td>
+</tr>
+<tr>
+<td>去重窗口越长越安全</td>
+<td>窗口越长，需要记住的 key 越多，内存/状态线性增长。1 小时的窗口在 5 万 QPS 下就是 1.8 亿个 key</td>
+<td>窗口长度<strong>由业务规则决定</strong>（比如「同一用户 30 分钟内只算一次」），再用数据验证。<strong>技术窗口必须覆盖业务窗口</strong></td>
+</tr>
+<tr>
+<td>布隆过滤器可以删除元素</td>
+<td>标准布隆过滤器<strong>不支持删除</strong>——把某个 key 的位清零会同时影响其他 key 的判断</td>
+<td>需要删除能力时用<strong>计数布隆过滤器（Counting Bloom Filter）</strong>（更占内存）或 <strong>Cuckoo Filter</strong>（支持删除、空间效率更高）</td>
+</tr>
+<tr>
+<td>流处理系统不需要对账</td>
+<td>迟到数据、假阳性、上游时钟错误、逻辑 bug——这些误差<strong>无法被完全消除</strong></td>
+<td><strong>对账是流处理系统的最后一道防线</strong>，也是计费类系统的强制要求。而且阈值必须由业务方（财务）定义</td>
+</tr>
+<tr>
+<td>Kafka 的 lag 就是队列长度</td>
+<td>Kafka 是<strong>分布式提交日志</strong>，消息消费后不立即删除（按保留策略过期）</td>
+<td>正确的指标是 <strong>records-lag</strong>（最新 offset − 已提交 offset）。监控「队列长度」在 Kafka 里是没有意义的</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：这是一个<strong>无界数据流上的精确聚合系统</strong>——用事件时间对齐窗口、用水位线处理乱序、用去重和恰好一次保证计费准确、用对账兜住残余误差。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>写入密集</strong>：10 亿次/天 → 平均 10k QPS、峰值 50k QPS、每月 3 TB。原始数据进冷存储，聚合数据进 Cassandra。</li>
+<li><strong>架构分层</strong>：Kafka（解耦 + 削峰）→ Map 节点（清洗 + 按 <code>ad_id</code> 重分区）→ Aggregate 节点（内存窗口聚合）→ Reduce 节点（汇总）。节点间用 DAG 组织。</li>
+<li><strong>时间语义</strong>：因为要计费，必须用<strong>事件时间</strong>；乱序靠<strong>水位线</strong> + <strong>允许迟到</strong> + <strong>侧输出流</strong>处理；残余误差靠<strong>日终对账</strong>修正。</li>
+<li><strong>去重与恰好一次</strong>：系统级重复靠<strong>幂等写入</strong>或<strong>两阶段提交</strong>；业务级重复靠<strong>布隆过滤器 / Redis SET / Flink State</strong>，去重窗口由业务规则决定。</li>
+<li><strong>正确性保障链</strong>：<code>恰好一次处理</code> → <code>去重</code> → <code>对账</code>。三者是叠加的，不是互相替代的。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动区分<strong>水位线</strong>和<strong>允许迟到</strong>，并说出<strong>侧输出流</strong>的用途。</li>
+<li>主动区分<strong>Lambda 与 Kappa</strong>，并指出 Kappa 的关键判据是「一套代码」而非「没有批处理」。</li>
+<li>主动算出<strong>去重的内存成本</strong>（1.8 亿 key → 布隆 216 MB vs Redis 20~30 GB），用数字支撑选型。</li>
+<li>主动提到<strong>热点 key 的加盐拆分</strong>和<strong>两阶段聚合</strong>。</li>
+<li>主动指出 <strong>Kafka 监控要看 records-lag 而不是队列长度</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;水位线设多长？&quot;</em>
+→ 先测量「处理时间 − 事件时间」差值的分布，取 <strong>P99</strong> 作为水位线长度；剩余 1% 交给允许迟到 + 侧输出流；再做<strong>日终对账</strong>兜底。关键是要用<strong>分布</strong>说话，不是拍脑袋。</li>
+<li><em>&quot;同一个用户点了两次广告，算几次？&quot;</em>
+→ 这是<strong>业务规则</strong>问题，必须先问清计费模式。CPC 下通常「同一 <code>user_id</code> + 同一 <code>ad_id</code> 在 30 分钟内算一次」。技术上用 <code>ad_id + click_id</code> 做去重键，短窗口用精确结构（Redis SET / Flink State），长窗口用布隆过滤器粗筛，残余误差靠对账修正。</li>
+<li><em>&quot;Flink 怎么做端到端恰好一次？&quot;</em>
+→ 三段式：① <strong>检查点</strong>（Chandy-Lamport 快照）保证状态不丢不重；② <strong>两阶段提交 Sink</strong>（预提交 → 检查点完成 → 提交）保证输出不重；③ 如果 Sink 天然幂等（UPSERT），可以省掉②。<strong>先问下游是否幂等，再决定要不要上事务。</strong></li>
+<li><em>&quot;某个广告突然爆火，单个聚合节点扛不住怎么办？&quot;</em>
+→ 短期：节点向资源管理器申请资源，把事件拆成多组并行处理再汇总。长期：用<strong>两阶段聚合</strong>（先本地聚合再全局合并）或<strong>给热点 key 加盐</strong>（<code>ad_001_0</code> ~ <code>ad_001_9</code>），把热点打散。本质上和第 1 章的热点 key 问题是同一个解法。</li>
+<li><em>&quot;怎么知道聚合结果是对的？&quot;</em>
+→ 三层：① <strong>实时监控</strong>（端到端延迟、records-lag、节点资源）；② <strong>对账</strong>（T+1 用批任务从原始数据重算，逐维度比对，差异超阈值分级告警）；③ <strong>可回溯</strong>（保留原始数据，任何逻辑 bug 都能回填重算）。<strong>阈值必须由财务方定义，不能技术团队自己拍。</strong></li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://flink.apache.org/" target="_blank" rel="noopener noreferrer">Apache Flink 官方文档</a> — 原笔记 <code>[13]</code> 引用的流处理引擎，重点看「Windows」「Event Time」「Checkpointing」三节</li>
+<li><a href="https://www.oreilly.com/radar/questioning-the-lambda-architecture/" target="_blank" rel="noopener noreferrer">Jay Kreps: Questioning the Lambda Architecture</a> — Kappa 架构的原始提出文章，理解「为什么只需要一套代码」</li>
+<li><a href="http://nathanmarz.com/blog/how-to-beat-the-cap-theorem.html" target="_blank" rel="noopener noreferrer">Nathan Marz: How to beat the CAP theorem</a> — Lambda 架构的原始提出文章</li>
+<li><a href="https://kafka.apache.org/documentation/#semantics" target="_blank" rel="noopener noreferrer">Apache Kafka 官方文档：Exactly-Once Semantics</a> — 幂等生产者与事务的官方说明</li>
+<li><a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/guarantees/" target="_blank" rel="noopener noreferrer">Flink 官方文档：End-to-End Exactly-Once</a> — 两阶段提交 Sink 的实现细节</li>
+<li><a href="https://dataintensive.net/" target="_blank" rel="noopener noreferrer">Martin Kleppmann《Designing Data-Intensive Applications》第 11 章</a> — 流处理的权威教材，时间语义部分讲得极透彻</li>
+<li><a href="https://research.google/pubs/pub43864/" target="_blank" rel="noopener noreferrer">Tyler Akidau et al.: The Dataflow Model</a> — Google 的流处理模型论文，水位线与窗口理论的开山之作</li>
+<li><a href="https://clickhouse.com/docs/en/engines/table-engines" target="_blank" rel="noopener noreferrer">Apache Druid 与 ClickHouse 对比</a> — OLAP 选型参考</li>
+<li><a href="https://mediaratingcouncil.org/" target="_blank" rel="noopener noreferrer">MRC 无效流量（IVT）标准</a> — 广告行业对有效点击的定义与审计要求</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../20/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">监控告警系统</span></a><a class="next" href="../22/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">酒店预订系统</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-业务背景与需求澄清">1. 业务背景与需求澄清</a>
+<a class="lv3" href="#数字广告与实时竞价">数字广告与实时竞价</a>
+<a class="lv3" href="#需求澄清step-1">需求澄清（Step 1）</a>
+<a class="lv3" href="#量级估算">量级估算</a>
+<a class="lv2" href="#2-高层设计step-2">2. 高层设计（Step 2）</a>
+<a class="lv3" href="#查询-api-设计">查询 API 设计</a>
+<a class="lv3" href="#数据模型">数据模型</a>
+<a class="lv3" href="#高层架构">高层架构</a>
+<a class="lv2" href="#3-用-mapreduce-做聚合">3. 用 MapReduce 做聚合</a>
+<a class="lv3" href="#为什么需要一个独立的-map-节点">为什么需要一个独立的 Map 节点？</a>
+<a class="lv3" href="#三个用例">三个用例</a>
+<a class="lv2" href="#4-流处理-vs-批处理lambda-与-kappa">4. 流处理 vs 批处理：Lambda 与 Kappa</a>
+<a class="lv3" href="#三类系统的对比">三类系统的对比</a>
+<a class="lv3" href="#lambda-架构">Lambda 架构</a>
+<a class="lv3" href="#kappa-架构">Kappa 架构</a>
+<a class="lv3" href="#原文对本系统架构的判断">原文对本系统架构的判断</a>
+<a class="lv2" href="#5-时间语义本章最大的难点">5. 时间语义：本章最大的难点</a>
+<a class="lv3" href="#事件时间与处理时间">事件时间与处理时间</a>
+<a class="lv3" href="#水位线watermark">水位线（Watermark）</a>
+<a class="lv3" href="#迟到数据的完整处理流程">迟到数据的完整处理流程</a>
+<a class="lv3" href="#一个具体的参数怎么定">一个具体的参数怎么定</a>
+<a class="lv2" href="#6-窗口window">6. 窗口（Window）</a>
+<a class="lv3" href="#选型速查">选型速查</a>
+<a class="lv2" href="#7-投递语义与数据去重">7. 投递语义与数据去重</a>
+<a class="lv3" href="#三种投递语义">三种投递语义</a>
+<a class="lv3" href="#数据为什么会重复">数据为什么会重复</a>
+<a class="lv3" href="#业务级去重为什么广告点击必须去重">业务级去重：为什么广告点击必须去重</a>
+<a class="lv3" href="#去重的三种实现方案">去重的三种实现方案</a>
+<a class="lv3" href="#去重窗口该开多久">去重窗口该开多久？</a>
+<a class="lv2" href="#8-扩展系统">8. 扩展系统</a>
+<a class="lv3" href="#扩展消息队列">扩展消息队列</a>
+<a class="lv3" href="#扩展聚合服务">扩展聚合服务</a>
+<a class="lv3" href="#扩展数据库">扩展数据库</a>
+<a class="lv3" href="#热点问题hotspot">热点问题（Hotspot）</a>
+<a class="lv2" href="#9-容错fault-tolerance">9. 容错（Fault Tolerance）</a>
+<a class="lv3" href="#端到端恰好一次检查点-两阶段提交">端到端恰好一次：检查点 + 两阶段提交</a>
+<a class="lv2" href="#10-数据监控与正确性">10. 数据监控与正确性</a>
+<a class="lv3" href="#对账reconciliation">对账（Reconciliation）</a>
+<a class="lv2" href="#11-替代方案">11. 替代方案</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1把允许迟到时间误称为水位线watermark">勘误 1：把「允许迟到时间」误称为水位线（Watermark）</a>
+<a class="lv3" href="#勘误-2窗口类型分类混乱hopping-与-sliding-是同一个东西">勘误 2：窗口类型分类混乱，Hopping 与 Sliding 是同一个东西</a>
+<a class="lv3" href="#勘误-3把按维度预聚合称为星型模型star-schema">勘误 3：把「按维度预聚合」称为星型模型（Star Schema）</a>
+<a class="lv3" href="#勘误-4kappa-架构的判定依据不严谨">勘误 4：Kappa 架构的判定依据不严谨</a>
+<a class="lv3" href="#勘误-5投递语义的表述不完整">勘误 5：投递语义的表述不完整</a>
+<a class="lv3" href="#补充-1lambda-与-kappa-的完整对比">补充 1：Lambda 与 Kappa 的完整对比</a>
+<a class="lv3" href="#补充-2时间语义的完整体系">补充 2：时间语义的完整体系</a>
+<a class="lv3" href="#补充-3业务级数据去重原文完全缺失">补充 3：业务级数据去重（原文完全缺失）</a>
+<a class="lv3" href="#补充-4对账reconciliation的完整机制">补充 4：对账（Reconciliation）的完整机制</a>
+<a class="lv3" href="#补充-5flink-的端到端恰好一次实现">补充 5：Flink 的端到端恰好一次实现</a>
+<a class="lv3" href="#补充-6背压backpressure">补充 6：背压（Backpressure）</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

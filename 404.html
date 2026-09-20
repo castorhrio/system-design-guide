@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>页面不存在 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="/system-design-guide/assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="/system-design-guide/"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout no-toc">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home active" href="/system-design-guide/">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="/system-design-guide/guide/">学习指南</a><a class="nav-item" href="/system-design-guide/guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="/system-design-guide/guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="/system-design-guide/ch/01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="/system-design-guide/ch/02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="/system-design-guide/ch/03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="/system-design-guide/ch/04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="/system-design-guide/ch/05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="/system-design-guide/ch/06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="/system-design-guide/ch/07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="/system-design-guide/ch/08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="/system-design-guide/ch/09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="/system-design-guide/ch/10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="/system-design-guide/ch/11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="/system-design-guide/ch/12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="/system-design-guide/ch/13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="/system-design-guide/ch/14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="/system-design-guide/ch/15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="/system-design-guide/ch/16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="/system-design-guide/ch/17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="/system-design-guide/ch/18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="/system-design-guide/ch/19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="/system-design-guide/ch/20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="/system-design-guide/ch/21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="/system-design-guide/ch/22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="/system-design-guide/ch/23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="/system-design-guide/ch/24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="/system-design-guide/ch/25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="/system-design-guide/ch/26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="/system-design-guide/ch/27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="/system-design-guide/ch/28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="/system-design-guide/appendix/glossary.html">术语表</a><a class="nav-item" href="/system-design-guide/appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="/system-design-guide/appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="p404">404 · 页面不存在</h1>
+<p>这个地址没有对应内容。试试从<a href="/system-design-guide/">首页</a>进入，或者用右上角的搜索框。</p>
+    </article>
+    <nav class="pager"></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"/system-design-guide/"};</script>
+<script src="/system-design-guide/assets/app.js" defer></script>
+</body>
+</html>

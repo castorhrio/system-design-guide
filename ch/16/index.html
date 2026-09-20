@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 16 章：设计附近服务（Proximity Service） · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item active" href="./"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-16-章设计附近服务proximity-service">第 16 章：设计附近服务（Proximity Service）</h1>
+<blockquote>
+<p>原章节：Proximity Service · 原项目路径 <code>16. Proximity Service/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>打开地图 App，点&quot;附近的餐厅&quot;，一秒钟内返回结果。这个功能简单得让人觉得理所当然。</p>
+<p>但这里藏着一个数据库根本无法直接回答的问题：</p>
+<blockquote>
+<p><strong>「给我找出这个点周围 500 米内的所有商家」——这条查询，用 B+ 树索引怎么写？</strong></p>
+</blockquote>
+<p>答案是：<strong>写不出来</strong>。B+ 树是一维索引，它只能高效地回答&quot;某个字段在某个范围内&quot;的查询。而&quot;周围 500 米&quot;是<strong>二维范围查询</strong>——纬度和经度必须<strong>同时</strong>满足条件。对纬度建索引，只能过滤掉南北方向的候选；对经度建索引，只能过滤东西方向。两个索引都用上，数据库也只能各扫一遍再求交集，数据量一大就彻底跑不动。</p>
+<p><strong>所以这一章的核心问题只有一个：怎么把二维的空间位置，压缩成一维的、可以用普通索引快速查找的键。</strong></p>
+<p>学完这一章，你应该能回答：GeoHash 到底是什么、它有什么著名的坑、为什么工业界最终选了 Redis GEO 或 PostGIS、以及处理用户位置数据时要遵守哪些合规要求。</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>为什么朴素的范围查询和普通索引都无法解决二维搜索问题</li>
+<li><strong>GeoHash</strong> 的编码原理，以及<strong>不同长度对应多大的实际范围</strong>（本章会完整验算）</li>
+<li>GeoHash 最著名的坑——<strong>边界问题</strong>，以及为什么&quot;查询相邻 8 个格子&quot;是必需的</li>
+<li><strong>四叉树（Quadtree）</strong> 如何按数据密度自适应划分空间，以及它的运维代价</li>
+<li><strong>Google S2</strong> 与 Hilbert 曲线，以及它为什么适合地理围栏（Geofencing）</li>
+<li>工业界的两大实现：<strong>Redis GEO</strong> 与 <strong>PostGIS</strong>，以及它们底层用的索引结构</li>
+<li>数据库分片与缓存键的选择（为什么缓存键应该是 geohash 而不是坐标）</li>
+<li>位置数据的<strong>隐私合规</strong>要求与工程对策</li>
+</ul>
+<hr />
+<h2 id="1-需求与范围">1. 需求与范围</h2>
+<p><strong>附近服务（Proximity Service）</strong> 用来查找附近的地点：餐厅、酒店、加油站、商户等。Google Maps、Yelp 这类应用都提供这个功能。</p>
+<h3 id="功能需求">功能需求</h3>
+<ol>
+<li><strong>按位置搜索商家</strong>：给定用户的经纬度和搜索半径，返回附近的商家</li>
+<li><strong>商家维护</strong>：商家所有者可以新增、更新、删除商家信息（<strong>不要求实时生效</strong>）</li>
+<li><strong>查看详情</strong>：按需返回商家的详细信息</li>
+</ol>
+<blockquote>
+<p><strong>注意第 2 条的&quot;不要求实时生效&quot;</strong>。这一句看起来是限制，实际上是<strong>巨大的简化</strong>——它允许我们把商家数据做成<strong>每天批量更新</strong>，从而彻底绕开&quot;写操作如何影响空间索引&quot;这个难题。<strong>在系统设计里，识别出&quot;哪些需求不要求实时&quot;，往往能省掉一半的复杂度。</strong></p>
+</blockquote>
+<h3 id="非功能需求">非功能需求</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>需求</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>低延迟</strong></td>
+<td>用户要立刻拿到结果</td>
+</tr>
+<tr>
+<td><strong>数据隐私</strong></td>
+<td>遵守 GDPR 和 CCPA 等法规</td>
+</tr>
+<tr>
+<td><strong>高可用</strong></td>
+<td>能扛住热门地区的流量峰值</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="粗略估算">粗略估算</h3>
+<pre><code>日活用户（DAU）         = 1 亿
+商家总数                = 2 亿
+每用户每天搜索次数       = 5 次
+
+搜索 QPS = 1 亿 × 5 / 86,400 秒
+         = 5 亿 / 86,400
+         ≈ 5,787 QPS
+</code></pre>
+<blockquote>
+<p><strong>勘误提示</strong>：原笔记写的是「≈ 5,000 QPS」。按它自己给的数字算出来应该是 <strong>约 5,800 QPS</strong>。详见文末【勘误与补充】。</p>
+</blockquote>
+<p><strong>还要注意：QPS 是平均值，不是峰值。</strong> 位置服务的流量有极强的时段性和地域性——周五晚上 7 点，市中心的搜索量可能是凌晨的几十倍。所以容量规划要按<strong>峰值 QPS = 平均 QPS × 峰值系数</strong>来算，通常取 2～3 倍，也就是<strong>约 1.2 万 ～ 1.7 万 QPS</strong>。</p>
+<hr />
+<h2 id="2-api-设计">2. API 设计</h2>
+<h3 id="搜索附近商家">搜索附近商家</h3>
+<pre><code>GET /v1/search/nearby
+</code></pre>
+<p>请求参数：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>latitude</code></td>
+<td>用户所在纬度</td>
+</tr>
+<tr>
+<td><code>longitude</code></td>
+<td>用户所在经度</td>
+</tr>
+<tr>
+<td><code>radius</code></td>
+<td>搜索半径（默认 5000 米）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="商家管理-api">商家管理 API</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>端点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /v1/businesses/{id}</code></td>
+<td>获取商家详情</td>
+</tr>
+<tr>
+<td><code>POST /v1/businesses</code></td>
+<td>新增商家</td>
+</tr>
+<tr>
+<td><code>PUT /v1/businesses/{id}</code></td>
+<td>更新商家信息</td>
+</tr>
+<tr>
+<td><code>DELETE /v1/businesses/{id}</code></td>
+<td>删除商家</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="3-数据模型与高层架构">3. 数据模型与高层架构</h2>
+<h3 id="数据模型">数据模型</h3>
+<p>原笔记的判断是：因为「搜索附近商家」和「查看商家详情」这两个功能读取量极大，所以<strong>关系型数据库（如 MySQL）是合适的选择</strong>。</p>
+<p><strong>这个判断是对的，而且理由值得展开：</strong></p>
+<ul>
+<li>这是一个<strong>读多写极少</strong>的系统。商家信息由店主维护，更新频率低（每天批量一次）；而搜索和查看详情是高频操作。</li>
+<li>商家信息是<strong>高度结构化</strong>的（名称、地址、电话、营业时间、分类），并且需要<strong>事务保证</strong>（比如&quot;新增商家的同时写入索引&quot;）。</li>
+<li>数据量（2 亿条）对现代关系型数据库完全在可控范围内。</li>
+</ul>
+<h3 id="数据表">数据表</h3>
+<p>两张核心表：</p>
+<ul>
+<li><strong>商家表（Business Table）</strong>：存商家的详细信息</li>
+<li><strong>空间索引表（Geospatial Index Table）</strong>：存&quot;格子 → 商家 ID&quot;的映射</li>
+</ul>
+<h3 id="高层架构">高层架构</h3>
+<div align="center">
+  <img src="./images/high-level-design.png" alt="附近服务高层架构：负载均衡器、位置服务、商家服务与数据库集群" width="420" loading="lazy" decoding="async">
+</div>
+<p>系统分成两部分：</p>
+<p><strong>① 位置服务（LBS，Location-Based Service）</strong></p>
+<ul>
+<li>处理基于位置的搜索查询</li>
+<li><strong>只读、无写请求</strong></li>
+<li>QPS 很高（尤其是密集区域的峰值时段），且服务本身<strong>无状态</strong></li>
+</ul>
+<p><strong>② 商家服务（Business Service）</strong></p>
+<ul>
+<li>处理两类请求：商家所有者增删改商家；顾客查看商家详情</li>
+</ul>
+<p><strong>③ 负载均衡器</strong>：把流量路由到 LBS 和商家服务。</p>
+<p><strong>④ 数据库集群</strong></p>
+<ul>
+<li>用 <strong>Primary-Replica（主副本）</strong> 架构应对读多的负载</li>
+<li><strong>LBS 读到的数据可能和主库刚写入的数据有短暂不一致</strong></li>
+<li><strong>但这个不一致不是问题，因为商家信息本来就不是实时更新的</strong></li>
+</ul>
+<blockquote>
+<p><strong>&quot;这个不一致不是问题&quot;这句话是本章最优雅的一个设计判断。</strong> 它把一条&quot;看起来是缺陷&quot;的特性，通过业务约束（商家信息不要求实时）转化成了&quot;可以接受&quot;。</p>
+<p><strong>在面试中主动做这种判断，比堆砌技术方案更有说服力。</strong> 它说明你不是在&quot;套架构&quot;，而是在&quot;根据约束做取舍&quot;。</p>
+</blockquote>
+<hr />
+<h2 id="4-朴素方案二维范围查询为什么不行">4. 朴素方案：二维范围查询为什么不行</h2>
+<div align="center">
+  <img src="./images/2d-search.png" alt="二维范围查询：以用户位置为圆心画一个半径范围" width="280" loading="lazy" decoding="async">
+</div>
+<p>最直觉的做法是：以用户位置为圆心、给定半径画一个圆，找出圆内所有商家。</p>
+<h3 id="原笔记给的-sql">原笔记给的 SQL</h3>
+<pre><code class="language-sql">SELECT business_id, latitude, longitude
+FROM business
+WHERE (latitude BETWEEN :lat - radius AND :lat + radius)
+AND (longitude BETWEEN :long - radius AND :long + radius);
+</code></pre>
+<p><strong>这段 SQL 有一个严重的单位错误。</strong></p>
+<ul>
+<li><code>radius</code> 的单位是<strong>米</strong>（默认 5000 米）</li>
+<li><code>latitude</code> 和 <code>longitude</code> 的单位是<strong>度</strong></li>
+</ul>
+<p><strong>你不能用&quot;度&quot;减去&quot;米&quot;。</strong> <code>:lat - radius</code> 在语义上是错的——把 5000 米当成 5000 度来算，结果会是&quot;从北极到南极&quot;的整个范围。详见文末【勘误与补充】。</p>
+<p><strong>正确的写法需要把距离换算成度数：</strong></p>
+<pre><code class="language-sql">-- 1 度纬度 ≈ 111,320 米（全球近似恒定）
+-- 1 度经度 ≈ 111,320 × cos(纬度) 米（随纬度收缩）
+SELECT business_id, latitude, longitude
+FROM business
+WHERE latitude
+      BETWEEN :lat - (:radius / 111320.0)
+          AND :lat + (:radius / 111320.0)
+  AND longitude
+      BETWEEN :long - (:radius / (111320.0 * COS(RADIANS(:lat))))
+          AND :long + (:radius / (111320.0 * COS(RADIANS(:lat))));
+</code></pre>
+<h3 id="这里还有第二个问题方框-圆">这里还有第二个问题：方框 ≠ 圆</h3>
+<p>上面这段 SQL 查出来的是一个<strong>矩形（包围盒）</strong>，不是圆。矩形的四个角上的商家，实际距离圆心超过半径，属于<strong>误报（False Positive）</strong>。</p>
+<div align="center">
+  <img src="./images/dataset-intersection.png" alt="两个一维范围扫描（纬度带与经度带）求交集得到包围盒" width="520" loading="lazy" decoding="async">
+</div>
+<p><strong>所以完整的流程是&quot;两阶段&quot;：</strong></p>
+<ol>
+<li><strong>粗筛</strong>：用包围盒 + 索引快速捞出候选集（可能包含误报）</li>
+<li><strong>精筛</strong>：对候选集逐个计算真实球面距离（Haversine 公式），过滤掉圆外的点，再按距离排序</li>
+</ol>
+<blockquote>
+<p><strong>这种&quot;先用廉价的空间索引粗筛、再用精确计算精筛&quot;的两阶段模式，是所有空间数据库的通用做法。</strong> PostGIS 的 <code>ST_DWithin</code>、Redis 的 <code>GEOSEARCH</code>、Elasticsearch 的 geo 查询，内部都是这么做的。</p>
+</blockquote>
+<h3 id="为什么给经纬度建索引也没用">为什么给经纬度建索引也没用</h3>
+<p>原笔记写的是：「在经度和纬度列上建索引，虽然会稍微好一点，但仍然非常慢。」</p>
+<p><strong>这个结论对，但理由要讲清楚，否则初学者会以为&quot;两个索引加起来就行&quot;：</strong></p>
+<ul>
+<li><strong>B+ 树索引是严格一维的。</strong> 对 <code>latitude</code> 建索引后，数据库能快速定位到&quot;纬度在 [37.77, 37.78] 之间&quot;的那一段记录，但这些记录<strong>在经度上是完全乱序的</strong>。</li>
+<li>同理，<code>longitude</code> 索引在纬度上是乱序的。</li>
+<li><strong>两个索引的交集</strong>只能靠&quot;分别扫描两段再求交&quot;，而两段各自都可能包含几百万条记录。<strong>索引帮你缩小了范围，但没有解决&quot;二维同时约束&quot;这个根本问题。</strong></li>
+<li>建<strong>复合索引</strong> <code>(latitude, longitude)</code> 也不行：复合索引只在&quot;第一个字段是等值查询&quot;时才能高效利用后续字段。这里是<strong>范围查询</strong>，第二个字段依然用不上。</li>
+</ul>
+<p><strong>结论：一维索引无法解决二维范围查询。必须先把二维数据映射成一维键，或者改用专门的空间索引结构。</strong></p>
+<hr />
+<h2 id="5-把二维压成一维空间索引的两大流派">5. 把二维压成一维：空间索引的两大流派</h2>
+<div align="center">
+  <img src="./images/geospatial-index-types.png" alt="空间索引的两大流派：哈希类（均匀网格、GeoHash）与树类（四叉树、Google S2、R 树）" width="480" loading="lazy" decoding="async">
+</div>
+<p>原笔记的分类是对的，这里把它的含义讲清楚：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>流派</th>
+<th>代表</th>
+<th>核心思想</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>哈希类（Hash）</strong></td>
+<td>均匀网格（Even Grid）、<strong>GeoHash</strong></td>
+<td>把空间切成固定形状的格子，<strong>格子编号就是一维键</strong>。查询变成&quot;先算格子编号，再按键查表&quot;</td>
+</tr>
+<tr>
+<td><strong>树类（Tree）</strong></td>
+<td><strong>四叉树（Quadtree）</strong>、<strong>Google S2</strong>、<strong>R 树（R-Tree）</strong></td>
+<td>用树结构递归划分空间，<strong>划分粒度随数据密度自适应</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>两派的核心差异只有一个：格子大小是固定的还是自适应的。</strong></p>
+<ul>
+<li><strong>固定格子</strong>：实现极简单（算编号 → 查索引），但<strong>无法适应数据密度</strong>——市中心 1 平方公里有 1000 家店，郊区 100 平方公里只有 1 家。用同一个格子大小，要么市中心格子塞爆，要么郊区格子空得浪费。</li>
+<li><strong>自适应格子</strong>：树结构会根据数据量决定&quot;这个区域要不要继续细分&quot;，密度高的地方格子小、密度低的地方格子大。代价是<strong>索引结构复杂，更新代价高</strong>。</li>
+</ul>
+<blockquote>
+<p><strong>记住这个权衡，本章后面所有方案的取舍都是它的展开。</strong></p>
+</blockquote>
+<hr />
+<h2 id="6-方案一均匀网格even-grid">6. 方案一：均匀网格（Even Grid）</h2>
+<div align="center">
+  <img src="./images/even-grid.png" alt="均匀网格方案：把世界切成固定大小的小方格" width="420" loading="lazy" decoding="async">
+</div>
+<p><strong>做法</strong>：把世界切成固定大小的方格，每个格子有编号，格子编号 → 商家 ID 列表。</p>
+<p><strong>问题</strong>：<strong>商家分布极不均匀。</strong></p>
+<ul>
+<li>曼哈顿的一个格子可能有几千家餐厅；</li>
+<li>撒哈拉沙漠的一个格子可能一家都没有。</li>
+</ul>
+<p><strong>结果</strong>：市中心格子对应的商家列表极长，查询变成一次大列表遍历；而绝大多数格子是空的，浪费索引空间。</p>
+<blockquote>
+<p><strong>这就是&quot;固定格子&quot;流派的根本局限。</strong> 后面两种方案，本质上都是在用不同方式缓解这个问题。</p>
+</blockquote>
+<hr />
+<h2 id="7-方案二geohash">7. 方案二：GeoHash</h2>
+<div align="center">
+  <img src="./images/geohash.png" alt="GeoHash 的基本划分：沿本初子午线和赤道把地球分成四个象限，再逐层四分" width="380" loading="lazy" decoding="async">
+  <img src="./images/geohash-1.png" alt="GeoHash 逐层细分后的编码" width="360" loading="lazy" decoding="async">
+</div>
+<h3 id="编码原理">编码原理</h3>
+<p>原笔记的描述是对的，这里讲得更细一点：</p>
+<ol>
+<li><strong>第一次划分</strong>：沿**本初子午线（经度 0°）<strong>和</strong>赤道（纬度 0°）**把地球分成四个象限。</li>
+<li><strong>每层再四分</strong>：每个格子再分成四个更小的格子，如此递归。</li>
+<li><strong>交错编码</strong>：每个格子的编号由<strong>经度位和纬度位交替</strong>组成——第 1 位是经度，第 2 位是纬度，第 3 位是经度……依此类推。</li>
+</ol>
+<p><strong>为什么经度位和纬度位要交替？</strong> 因为这样能让&quot;相邻的格子&quot;拥有<strong>相邻的编号</strong>。如果先把所有经度位排完再排纬度位，那么南北相邻的两个格子编号会相差极大，无法利用&quot;编号范围&quot;做邻域查询。<strong>交错（也叫 Morton 编码 / Z-order 曲线）就是为了保持空间局部性。</strong></p>
+<p>最后，把这一串二进制位每 5 位一组，用 <strong>base32</strong> 编码成字符。base32 的字母表是：</p>
+<pre><code>0123456789bcdefghjkmnpqrstuvwxyz
+</code></pre>
+<p>注意它<strong>去掉了 <code>a</code>、<code>i</code>、<code>l</code>、<code>o</code> 四个字母</strong>——因为它们和数字 <code>0</code>、<code>1</code> 太容易混淆。所以一个 geohash 字符串里永远不会出现这四个字母。</p>
+<p><strong>GeoHash 共有 12 个精度层级（12 个字符）。</strong></p>
+<h3 id="精度验算不同长度对应多大的范围">精度验算：不同长度对应多大的范围</h3>
+<p>这是本章最需要&quot;自己算一遍&quot;的地方。先把公式写出来：</p>
+<pre><code>长度为 n 的 geohash 有 5n 个二进制位
+其中经度占 ⌈5n/2⌉ 位，纬度占 ⌊5n/2⌋ 位（第 1 位是经度）
+
+经度格宽 = 360° / 2^⌈5n/2⌉
+纬度格高 = 180° / 2^⌊5n/2⌋
+
+换算：1° 纬度 ≈ 111.32 km（全球近似恒定）
+      1° 经度 ≈ 111.32 × cos(纬度) km（随纬度收缩）
+</code></pre>
+<p>按这个公式算出来（以赤道附近为例，经度按最大宽度计）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>长度</th>
+<th>总 bit</th>
+<th>经度 bit</th>
+<th>纬度 bit</th>
+<th>经度格宽</th>
+<th>纬度格高</th>
+<th><strong>实际范围</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>5</td>
+<td>3</td>
+<td>2</td>
+<td>45°</td>
+<td>45°</td>
+<td>约 <strong>5000 km × 5000 km</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>10</td>
+<td>5</td>
+<td>5</td>
+<td>11.25°</td>
+<td>5.625°</td>
+<td>约 <strong>1250 km × 625 km</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>15</td>
+<td>8</td>
+<td>7</td>
+<td>1.40625°</td>
+<td>1.40625°</td>
+<td>约 <strong>156 km × 156 km</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>20</td>
+<td>10</td>
+<td>10</td>
+<td>0.3515625°</td>
+<td>0.17578125°</td>
+<td>约 <strong>39.1 km × 19.6 km</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>25</td>
+<td>13</td>
+<td>12</td>
+<td>0.043945°</td>
+<td>0.043945°</td>
+<td>约 <strong>4.9 km × 4.9 km</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>30</td>
+<td>15</td>
+<td>15</td>
+<td>0.010986°</td>
+<td>0.005493°</td>
+<td>约 <strong>1.22 km × 0.61 km</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>35</td>
+<td>18</td>
+<td>17</td>
+<td>0.0013733°</td>
+<td>0.0013733°</td>
+<td>约 <strong>153 m × 153 m</strong></td>
+</tr>
+<tr>
+<td>8</td>
+<td>40</td>
+<td>20</td>
+<td>20</td>
+<td>0.00034332°</td>
+<td>0.00017166°</td>
+<td>约 <strong>38.2 m × 19.1 m</strong></td>
+</tr>
+<tr>
+<td>9</td>
+<td>45</td>
+<td>23</td>
+<td>22</td>
+<td>4.2915e-5°</td>
+<td>4.2915e-5°</td>
+<td>约 <strong>4.8 m × 4.8 m</strong></td>
+</tr>
+<tr>
+<td>10</td>
+<td>50</td>
+<td>25</td>
+<td>25</td>
+<td>1.0729e-5°</td>
+<td>5.3644e-6°</td>
+<td>约 <strong>1.19 m × 0.60 m</strong></td>
+</tr>
+<tr>
+<td>11</td>
+<td>55</td>
+<td>28</td>
+<td>27</td>
+<td>1.3411e-6°</td>
+<td>1.3411e-6°</td>
+<td>约 <strong>14.9 cm × 14.9 cm</strong></td>
+</tr>
+<tr>
+<td>12</td>
+<td>60</td>
+<td>30</td>
+<td>30</td>
+<td>3.3528e-7°</td>
+<td>1.6764e-7°</td>
+<td>约 <strong>3.7 cm × 1.9 cm</strong></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>验算示例（长度 6）</strong>：</p>
+<pre><code>30 bit，经度 15 bit，纬度 15 bit
+经度格宽 = 360° / 2^15 = 360 / 32768 = 0.010986328125°
+换算成米 = 0.010986328125 × 111.32 km = 1.2230 km
+纬度格高 = 180° / 2^15 = 180 / 32768 = 0.0054931640625°
+换算成米 = 0.0054931640625 × 111.32 km = 0.6115 km
+</code></pre>
+<p>所以 <strong>6 位 geohash ≈ 1.22 km × 0.61 km</strong>，与常见资料一致。</p>
+</blockquote>
+<p><strong>一个必须注意的细节：格子的实际宽度随纬度收缩。</strong></p>
+<p>上面表格里的经度宽度是<strong>赤道上的最大值</strong>。经度 1° 的实际长度 = <code>111.32 × cos(纬度)</code> km。所以：</p>
+<ul>
+<li>在赤道（纬度 0°）：6 位 geohash ≈ <strong>1.22 km × 0.61 km</strong></li>
+<li>在北纬 37.77°（旧金山）：<code>cos(37.77°) ≈ 0.790</code>，实际是 <strong>约 0.97 km × 0.61 km</strong></li>
+<li>在北纬 60°（赫尔辛基）：<code>cos(60°) = 0.5</code>，实际只有 <strong>约 0.61 km × 0.61 km</strong></li>
+<li>在极点附近：经度宽度趋近于 0，格子退化成一条线</li>
+</ul>
+<blockquote>
+<p><strong>所以&quot;6 位 geohash 是 1.2 km × 0.6 km&quot;这个说法只在赤道严格成立。</strong> 工程上做容量估算时，<strong>必须按服务覆盖区域的最高纬度来算</strong>，否则会低估北半球高纬度地区的格子数量。</p>
+</blockquote>
+<h3 id="如何用-geohash-长度匹配搜索半径">如何用 geohash 长度匹配搜索半径</h3>
+<div align="center">
+  <img src="./images/geohash-radius-mapping.png" alt="原笔记给出的搜索半径与 GeoHash 长度对照表" width="520" loading="lazy" decoding="async">
+</div>
+<p>原笔记给出的映射表是：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>搜索半径</th>
+<th>GeoHash 长度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.5 km</td>
+<td>6</td>
+</tr>
+<tr>
+<td>1 km</td>
+<td>5</td>
+</tr>
+<tr>
+<td>2 km</td>
+<td>5</td>
+</tr>
+<tr>
+<td>5 km</td>
+<td>4</td>
+</tr>
+<tr>
+<td>20 km</td>
+<td>4</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>这个表大体合理，但有一项是边界情况，需要修正。</strong> 我们用&quot;格子尺寸应当不小于搜索半径（取较小的那个维度，即纬度方向）&quot;这条规则验算一遍：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>半径</th>
+<th>长度 6（0.61 km）</th>
+<th>长度 5（4.9 km）</th>
+<th>长度 4（19.6 km）</th>
+<th>长度 3（156 km）</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.5 km</td>
+<td><strong>够</strong>（0.61 ≥ 0.5）</td>
+<td>够但浪费</td>
+<td>—</td>
+<td>—</td>
+<td><strong>6</strong> ✓</td>
+</tr>
+<tr>
+<td>1 km</td>
+<td>不够（0.61 &lt; 1）</td>
+<td><strong>够</strong></td>
+<td>够但浪费</td>
+<td>—</td>
+<td><strong>5</strong> ✓</td>
+</tr>
+<tr>
+<td>2 km</td>
+<td>不够</td>
+<td><strong>够</strong></td>
+<td>够但浪费</td>
+<td>—</td>
+<td><strong>5</strong> ✓</td>
+</tr>
+<tr>
+<td>5 km</td>
+<td>不够</td>
+<td>不够（4.9 &lt; 5）</td>
+<td><strong>够</strong></td>
+<td>够但浪费</td>
+<td><strong>4</strong> ✓</td>
+</tr>
+<tr>
+<td>20 km</td>
+<td>不够</td>
+<td>不够</td>
+<td><strong>不够（19.6 &lt; 20）</strong></td>
+<td><strong>够</strong></td>
+<td><strong>应为 3，或改用 5×5 邻域</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>结论</strong>：前四项都正确；<strong>最后一项「20 km → 长度 4」是边界情况</strong>——长度 4 的格子在纬度方向只有约 19.6 km，<strong>略小于 20 km 的搜索半径</strong>。严格来说应该用长度 3（约 156 km），但那样检索范围会放大近 8 倍，代价太高。</p>
+<p><strong>实践中的折中</strong>：继续用长度 4，但把邻域从 <strong>3×3 扩展到 5×5</strong>。5 个格子的纬度跨度 = 5 × 19.6 = 98 km，远超 20 km，完全覆盖得住。详见文末【勘误与补充】。</p>
+<h3 id="geohash-的局部性保证注意它是单向的">GeoHash 的&quot;局部性保证&quot;——注意它是单向的</h3>
+<p>原笔记写的是：「GeoHash 保证两个 geohash 共享的前缀越长，它们就越近。」</p>
+<p><strong>这句话是对的</strong>，因为共享长度为 k 的前缀意味着两个点落在<strong>同一个 k 级格子里</strong>，它们的距离必然不超过该格子的对角线长度。</p>
+<p><strong>但真正要命的是它的逆命题不成立：</strong></p>
+<blockquote>
+<p><strong>两个位置很近的点，geohash 可能共享极短的前缀，甚至完全没有共享前缀。</strong></p>
+</blockquote>
+<p><strong>这就是 GeoHash 最著名的坑——边界问题。</strong></p>
+<hr />
+<h2 id="8-geohash-的边界问题">8. GeoHash 的边界问题</h2>
+<div align="center">
+  <img src="./images/boundary-issue.png" alt="GeoHash 边界问题：中心格子 9q8zn9 的八个邻居格子分别有不同的 geohash 前缀" width="420" loading="lazy" decoding="async">
+</div>
+<h3 id="问题一相邻格子不共享前缀">问题一：相邻格子不共享前缀</h3>
+<p>看上面这张图。中心格子是 <code>9q8zn9</code>，它的八个邻居分别是：</p>
+<pre><code>9q8zn6   9q8znd   9q8znf
+9q8zn3   9q8zn9   9q8znc
+9q8zn2   9q8zn8   9q8znb
+</code></pre>
+<p><strong>关键观察</strong>：这九个格子的 geohash <strong>只在最后一个字符上不同</strong>，它们共享的前缀只有 <strong>5 个字符</strong>（<code>9q8zn</code>）。</p>
+<p><strong>这意味着什么？</strong> 假设用户站在 <code>9q8zn9</code> 的东边界上，往东 10 米就有一家餐厅——那家餐厅的 geohash 是 <code>9q8znc</code>。如果你只用&quot;前缀匹配 <code>9q8zn9</code>&quot;来查询，<strong>这家近在眼前的餐厅会被完全漏掉</strong>。</p>
+<h3 id="问题二极近的两个点可能完全没有共享前缀">问题二：极近的两个点可能完全没有共享前缀</h3>
+<p>原笔记提到的这个情况是真实存在的，而且比第一个问题更极端：</p>
+<blockquote>
+<p><strong>赤道上的两个点，纬度分别是 +0.0001° 和 −0.0001°。它们的实际距离只有约 22 米，但 geohash 可能一个字符都不共享。</strong></p>
+</blockquote>
+<p><strong>为什么？</strong> 回顾编码规则：第 1 位是经度，<strong>第 2 位是纬度</strong>。赤道以北，第 2 位是 <code>0</code>；赤道以南，第 2 位是 <code>1</code>。两个点在第 2 位就分道扬镳，<strong>所以它们的第一个字符就已经不同了。</strong></p>
+<p><strong>同样的问题还会出现在：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>边界</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>赤道（纬度 0°）</strong></td>
+<td>第 2 位翻转，最极端的情况</td>
+</tr>
+<tr>
+<td><strong>本初子午线（经度 0°）</strong></td>
+<td>第 1 位翻转</td>
+</tr>
+<tr>
+<td><strong>180° 经线（反经线）</strong></td>
+<td>东西半球分界，格子需要环绕（Wrap-around）</td>
+</tr>
+<tr>
+<td><strong>两极附近</strong></td>
+<td>经度方向的格子被极度压缩，编码退化</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="解决方案查询相邻格子">解决方案：查询相邻格子</h3>
+<p><strong>做法</strong>：先算出用户所在的格子，再算出它周围的 <strong>8 个邻居格子</strong>，然后<strong>同时查询这 9 个格子</strong>，最后合并去重、按距离排序。</p>
+<pre><code>查询键列表 = [my_geohash, 邻居1, 邻居2, ..., 邻居8]   ← 共 9 个
+</code></pre>
+<p><strong>工程上要注意四个细节：</strong></p>
+<p><strong>① 9 个格子是&quot;最小覆盖集&quot;，不是&quot;完整覆盖集&quot;。</strong></p>
+<p>如果用户站在格子的角落，半径又刚好大于格子尺寸，那么 3×3 可能仍然不够——需要根据&quot;半径 / 格子尺寸&quot;的比值动态扩大邻域（如 5×5）。<strong>通用做法是：取能覆盖 <code>半径 + 格子对角线</code> 的最小邻域。</strong></p>
+<p><strong>② 反经线需要环绕处理。</strong></p>
+<p>如果一个格子位于经度 180° 附近，它东边的邻居应该&quot;绕回&quot;到 −180°。<strong>如果实现时忘了处理，就会出现&quot;在日期变更线附近搜不到东西&quot;的诡异 bug。</strong> Redis 的 geohash 辅助函数内部就实现了这种环绕。</p>
+<p><strong>③ 两极需要特殊处理。</strong></p>
+<p>纬度接近 ±90° 时，经度方向的格子宽度趋近于 0，同一纬度圈上的格子数量会爆炸。<strong>实际业务里一般直接限制服务范围（比如不覆盖极地），而不是硬解这个问题。</strong></p>
+<p><strong>④ 9 个格子查完还要去重。</strong></p>
+<p>同一家商家只会落在一个格子里，所以 9 次查询的结果<strong>天然不重复</strong>。但如果你查询的邻域重叠了（比如两次查询的邻域有交集），就可能重复。<strong>最后一步的去重不能省。</strong></p>
+<blockquote>
+<p><strong>一句话记住 GeoHash 的边界问题</strong>：<strong>GeoHash 保证&quot;前缀相同 ⇒ 位置相近&quot;，但不保证&quot;位置相近 ⇒ 前缀相同&quot;。</strong> 前者让查询成为可能，后者让查询必须查邻域。<strong>这个不对称性，是面试中最容易被追问的点。</strong></p>
+</blockquote>
+<hr />
+<h2 id="9-方案三四叉树quadtree">9. 方案三：四叉树（Quadtree）</h2>
+<div align="center">
+  <img src="./images/quadtree.png" alt="四叉树结构：每个内部节点恰好有四个子节点，对应四个子区域" width="480" loading="lazy" decoding="async">
+</div>
+<h3 id="什么是四叉树">什么是四叉树</h3>
+<p><strong>四叉树（Quadtree）</strong> 是一种树形数据结构，它递归地把二维空间分成四个象限，<strong>每个内部节点恰好有四个子节点</strong>，分别对应四个子区域。</p>
+<p><strong>关键规则</strong>：从根节点开始递归四分，<strong>直到每个叶子节点包含的商家数量不超过 x 个</strong>（本章取 x = 100）。</p>
+<div align="center">
+  <img src="./images/building-quadtree.png" alt="构建四叉树：递归细分直到每个叶子节点不超过 100 个商家" width="480" loading="lazy" decoding="async">
+</div>
+<div align="center">
+  <img src="./images/realworld-quadtree.png" alt="真实世界的四叉树：城市区域被细分得更细，郊区格子更大" width="420" loading="lazy" decoding="async">
+</div>
+<p><strong>这就是&quot;自适应格子&quot;的威力</strong>：市中心商家密集，树会自动细分很多层，格子很小；郊区商家稀疏，树很快就停止细分，格子很大。<strong>格子大小自动匹配数据密度，不需要人工调参。</strong></p>
+<h3 id="四叉树适合什么查询">四叉树适合什么查询</h3>
+<p><strong>四叉树特别适合 k 近邻（k-Nearest Neighbors, kNN）查询</strong>，比如&quot;找出离我最近的加油站&quot;。</p>
+<p><strong>为什么？</strong> 因为 kNN 查询可以<strong>从用户所在的叶子节点开始，逐层向外扩展</strong>：先看本叶子，不够就回溯到父节点看兄弟节点，直到凑够 k 个且确定不会有更近的。<strong>这个&quot;由近及远&quot;的搜索顺序，正是树结构天然支持的。</strong></p>
+<blockquote>
+<p><strong>对比一下 GeoHash</strong>：GeoHash 查询&quot;半径 R 内的所有商家&quot;很自然，但查&quot;最近的 3 家&quot;就有点别扭——你不知道该选多大的半径。<strong>四叉树的层次结构让&quot;逐步扩大搜索范围&quot;变得优雅。</strong></p>
+</blockquote>
+<h3 id="内存占用验算">内存占用验算</h3>
+<p>原笔记说：「四叉树索引不会占用太多内存（通常在 GB 级别），很容易放进一台服务器。」</p>
+<p><strong>我们验算一下：</strong></p>
+<pre><code>2 亿个商家，每个叶子节点最多 100 个商家
+叶子节点数 ≈ 2 亿 / 100 = 200 万个
+内部节点数 ≈ 200 万 / 3 ≈ 67 万个（每个内部节点有 4 个子节点，所以内部节点数约为叶子的 1/3）
+总节点数 ≈ 267 万个
+
+叶子节点存储商家 ID：2 亿 × 8 字节 = 1.6 GB
+加上节点边界、指针等开销，总计约 2 GB 量级
+</code></pre>
+<p><strong>所以&quot;GB 级别&quot;这个判断是准确的。</strong> ✓</p>
+<h3 id="构建时间">构建时间</h3>
+<p>原笔记说：「构建树的时间复杂度是 O(n log n)，可能需要几分钟。」</p>
+<p><strong>这个也是对的。</strong> 每次插入的代价是树的深度（约 <code>log₄(2亿/100) ≈ 10</code> 层），n 次插入即 O(n log n)。2 亿次插入，实测量级确实在几分钟。</p>
+<h3 id="运维上的三个坑">运维上的三个坑</h3>
+<p>原笔记在这一节写得相当扎实，这里补充说明为什么每个坑都致命：</p>
+<p><strong>① 构建期间无法服务流量</strong></p>
+<p>树在服务器启动时构建，<strong>构建完成前这台服务器不能处理请求</strong>。所以新版本必须<strong>灰度发布</strong>到一小部分服务器，而不是一次性全量重启——否则会出现&quot;所有服务器同时不可用&quot;的窗口。</p>
+<p><strong>② 增量重建会导致大量缓存失效</strong></p>
+<p>商家信息变更时，最简单的做法是&quot;重建整棵树&quot;。但重建会让<strong>所有服务器的树结构都变</strong>，而如果树是按 geohash 或其他键分片缓存的，缓存会大面积失效。</p>
+<p><strong>③ 在线更新需要加锁，实现复杂</strong></p>
+<p>也可以在树构建完成后动态更新，但<strong>多线程读写同一棵树必须加锁</strong>，这会引入并发正确性问题和性能瓶颈。</p>
+<blockquote>
+<p><strong>这三条合起来说明一件事：四叉树是一个&quot;读极快、写极痛&quot;的结构。</strong> 它适合&quot;数据每天批量更新一次&quot;的场景——<strong>而这恰好就是本章的需求</strong>（商家信息不要求实时）。<strong>需求和数据结构的匹配，就是架构设计的本质。</strong></p>
+</blockquote>
+<hr />
+<h2 id="10-方案四google-s2">10. 方案四：Google S2</h2>
+<div align="center">
+  <img src="./images/hilbert-curve.png" alt="Hilbert 曲线：在二维空间中连续遍历并保持局部性" width="300" loading="lazy" decoding="async">
+  <img src="./images/geofence.png" alt="地理围栏：用 S2 单元格覆盖任意形状的区域" width="340" loading="lazy" decoding="async">
+</div>
+<h3 id="核心思想">核心思想</h3>
+<p><strong>S2</strong> 把球面映射到一维索引，<strong>基于 Hilbert 曲线</strong>。原笔记的表述是：「Hilbert 曲线上彼此靠近的两个点，在一维空间中也是靠近的。」</p>
+<p><strong>这里值得补充一点：Hilbert 曲线比 GeoHash 用的 Z-order 曲线（Morton 编码）有更好的局部性。</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>曲线</th>
+<th>局部性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Z-order（Morton）</strong></td>
+<td>一般</td>
+<td>存在&quot;跳跃&quot;——相邻的两个格子编号可能相差很大</td>
+</tr>
+<tr>
+<td><strong>Hilbert</strong></td>
+<td><strong>更好</strong></td>
+<td>连续移动时<strong>从不相邻跨越</strong>，相邻格子的编号总是接近</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>直观理解</strong>：Z-order 曲线是&quot;画 Z 字&quot;，从一个象限跳到下一个象限时会跨过一段距离；Hilbert 曲线是&quot;画 U 字再旋转&quot;，它在二维空间里连续爬行，<strong>不会出现长距离跳跃</strong>。所以在&quot;按编号范围查询&quot;时，Hilbert 曲线能圈出更紧凑的空间区域，<strong>扫描的无效数据更少</strong>。</p>
+</blockquote>
+<h3 id="s2-的独特优势">S2 的独特优势</h3>
+<p>原笔记列出的几点都正确：</p>
+<ol>
+<li><strong>把地球分成小格子，基于 Hilbert 曲线</strong></li>
+<li><strong>非常适合地理围栏（Geofencing）</strong>：它可以<strong>用不同层级的格子覆盖任意形状的区域</strong></li>
+<li><strong>地理围栏还允许定义围绕目标区域的参数</strong></li>
+<li><strong>可以指定最小层级、最大层级和最大格子数</strong>，而不是只能用固定的精度</li>
+</ol>
+<p><strong>这第 4 点才是 S2 真正的杀手锏。</strong> 用 GeoHash 时，你只能选&quot;长度 6&quot;或&quot;长度 7&quot;这样的单一精度。但一个城市级的区域，用长度 6 覆盖会产生海量格子，用长度 4 又太粗糙、会覆盖到区域外。</p>
+<p><strong>S2 允许你混用不同层级的格子来逼近目标形状</strong>——大块区域用粗格子，边界处用细格子。<strong>这就是&quot;用最少的格子覆盖任意形状&quot;的能力，也是地理围栏的核心需求。</strong></p>
+<blockquote>
+<p><strong>什么是地理围栏？</strong> 它是&quot;当用户进入/离开某个区域时触发动作&quot;的功能，比如&quot;到家时自动打开灯&quot;、&quot;进入商场推送优惠券&quot;。<strong>它的难点不是判断一个点是否在区域内，而是如何高效地为几千万个用户同时判断。</strong></p>
+</blockquote>
+<hr />
+<h2 id="11-工业实现redis-geo-与-postgis">11. 工业实现：Redis GEO 与 PostGIS</h2>
+<p>原笔记只给了算法，没有提工业实现。<strong>但面试和实际工作中，你几乎不会自己实现 GeoHash——你会直接用现成的系统。</strong> 这里补上两个最主流的。</p>
+<h3 id="redis-geo">Redis GEO</h3>
+<p><strong>它是什么</strong>：Redis 内置的地理位置功能，用几个命令就能完成&quot;附近搜索&quot;。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GEOADD key lon lat member</code></td>
+<td>添加一个位置</td>
+</tr>
+<tr>
+<td><code>GEOPOS key member</code></td>
+<td>查询某个成员的坐标</td>
+</tr>
+<tr>
+<td><code>GEODIST key m1 m2 [unit]</code></td>
+<td>计算两个成员之间的距离</td>
+</tr>
+<tr>
+<td><code>GEOSEARCH key FROMMEMBER m BYRADIUS 500 m</code></td>
+<td>半径搜索（推荐使用）</td>
+</tr>
+<tr>
+<td><code>GEORADIUS</code> / <code>GEORADIUSBYMEMBER</code></td>
+<td>旧版半径搜索命令（Redis 6.2 起已废弃）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>底层用的是什么索引？</strong></p>
+<blockquote>
+<p><strong>Redis GEO 的底层不是一棵空间树，而是一个有序集合（Sorted Set，ZSET），score 是 52 位的 GeoHash 整数。</strong></p>
+</blockquote>
+<p>具体来说：</p>
+<ul>
+<li><strong>每个坐标被编码成一个 52 位整数</strong>（经度 26 位 + 纬度 26 位，交错排列），这个整数作为 ZSET 的 score。</li>
+<li>ZSET 内部用<strong>跳跃表（Skip List）+ 哈希表</strong>实现。跳跃表让&quot;按 score 范围查找&quot;的复杂度为 O(log N)。</li>
+<li>执行 <code>GEOSEARCH</code> 时，Redis 会<strong>计算查询区域对应的 GeoHash 覆盖（通常是 3×3 邻域）</strong>，对每个格子做一次 score 范围扫描，捞出候选，<strong>再逐点计算真实距离过滤并排序</strong>。</li>
+</ul>
+<p><strong>所以 Redis GEO 就是&quot;GeoHash + ZSET 范围查询&quot;的工程化封装</strong>，正好对应本章第 7 节讲的算法。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>极低延迟</strong>（纯内存，通常亚毫秒级）</li>
+<li>使用简单，不需要额外的数据库</li>
+<li>天然支持高并发读</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><strong>数据必须全部放进内存</strong>。本章的 2 亿商家索引约 4 GB，单机内存还能扛；但数据量再大就很贵。</li>
+<li><strong>持久化能力弱于数据库</strong>。Redis 的 RDB/AOF 可以持久化，但它的定位是缓存而不是权威数据源。<strong>生产系统通常把 Redis 当&quot;索引缓存&quot;，真正的权威数据在 MySQL/PostgreSQL 里。</strong></li>
+<li><strong>不支持复杂的空间运算</strong>（如多边形相交、缓冲区分析）。</li>
+</ul>
+<p><strong>容量验算</strong>：2 亿条记录，每条 = geohash 6 字符（约 6 字节）+ business_id（8 字节）+ ZSET 的跳跃表指针和哈希表开销（每条约几十字节）。粗算下来<strong>约 4～8 GB</strong>，单台大内存机器可以承载。</p>
+<h3 id="postgis">PostGIS</h3>
+<p><strong>它是什么</strong>：PostgreSQL 的空间扩展，给关系型数据库加上完整的空间数据类型和空间查询能力。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>geometry</code> / <code>geography</code> 类型</td>
+<td>表示点、线、多边形等空间对象</td>
+</tr>
+<tr>
+<td><code>ST_DWithin(geom, point, distance)</code></td>
+<td>距离范围内的查询（会用索引）</td>
+</tr>
+<tr>
+<td><code>ST_Distance</code> / <code>ST_DistanceSphere</code></td>
+<td>计算距离</td>
+</tr>
+<tr>
+<td><code>ST_Contains</code> / <code>ST_Intersects</code></td>
+<td>空间关系判断（点在多边形内、两个形状相交）</td>
+</tr>
+<tr>
+<td><code>ST_Buffer</code></td>
+<td>缓冲区（生成一个点周围的圆/多边形）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>底层用的是什么索引？</strong></p>
+<blockquote>
+<p><strong>PostGIS 默认使用 GiST（Generalized Search Tree，通用搜索树）索引。对于二维几何数据，GiST 的行为等价于一棵 R 树（R-Tree）——一棵由&quot;最小包围矩形（MBR）&quot;构成的自平衡树。</strong></p>
+</blockquote>
+<pre><code class="language-sql">-- 建表
+CREATE TABLE business (
+    id      BIGSERIAL PRIMARY KEY,
+    name    TEXT,
+    geog    GEOGRAPHY(POINT, 4326)   -- 4326 是 WGS84 坐标系
+);
+
+-- 建空间索引
+CREATE INDEX idx_business_geog ON business USING GIST (geog);
+
+-- 查询 500 米内的商家（索引会被自动使用）
+SELECT id, name,
+       ST_Distance(geog, ST_MakePoint(-122.416730, 37.776720)::geography) AS dist_m
+FROM business
+WHERE ST_DWithin(
+        geog,
+        ST_MakePoint(-122.416730, 37.776720)::geography,
+        500
+      )
+ORDER BY dist_m
+LIMIT 50;
+</code></pre>
+<p><strong>GiST / R 树的工作原理</strong>：树上的每个节点存一个<strong>最小包围矩形</strong>，把所有子节点包含在内。查询时，<strong>如果一个节点的包围矩形和查询区域完全不相交，整棵子树直接剪掉</strong>。这就是它能加速二维范围查询的原因。</p>
+<p><strong>PostGIS 的优势</strong>：</p>
+<ul>
+<li><strong>数据和索引都在数据库里</strong>，天然有事务、备份、复制能力</li>
+<li>支持<strong>复杂的空间运算</strong>（多边形、缓冲区、相交判断）</li>
+<li>数据量可以远超内存（靠磁盘和 B 树/GiST 的磁盘友好结构）</li>
+<li>可以用 SQL 和业务数据 JOIN（比如&quot;找出我关注过的、附近的餐厅&quot;）</li>
+</ul>
+<p><strong>PostGIS 的劣势</strong>：</p>
+<ul>
+<li>延迟高于 Redis（有磁盘 IO 和查询解析开销）</li>
+<li>单机写入吞吐有限，需要靠分片扩展</li>
+</ul>
+<h3 id="其他工业实现速查">其他工业实现速查</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>索引结构</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MySQL</strong></td>
+<td><strong>R 树</strong>（InnoDB <code>SPATIAL INDEX</code>，MySQL 5.7+）</td>
+<td>提供 <code>ST_Distance_Sphere</code> 等函数</td>
+</tr>
+<tr>
+<td><strong>Elasticsearch</strong></td>
+<td><strong>BKD 树</strong>（Lucene 实现）</td>
+<td><code>geo_point</code> 类型，支持聚合和排序</td>
+</tr>
+<tr>
+<td><strong>MongoDB</strong></td>
+<td><code>2dsphere</code> 索引（球面几何）、<code>2d</code> 索引（平面）</td>
+<td>支持 <code>$near</code>、<code>$geoWithin</code></td>
+</tr>
+<tr>
+<td><strong>Uber H3</strong></td>
+<td><strong>六边形</strong>分层索引</td>
+<td>见下方补充</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>补充：为什么 Uber 要做 H3（六边形网格）？</strong></p>
+<p>GeoHash 和四叉树用的是<strong>正方形</strong>格子。正方形有一个几何缺陷：它有 <strong>4 个边邻居</strong>（距离 = 边长）和 <strong>4 个角邻居</strong>（距离 = 边长 × √2 ≈ 1.41 倍）。<strong>这意味着&quot;移动一格&quot;的实际距离取决于方向</strong>，做&quot;扩大一圈搜索&quot;时会产生方向性偏差。</p>
+<p><strong>六边形没有这个问题：它的 6 个邻居到中心的距离完全相等。</strong> 这让&quot;逐环扩展搜索&quot;和&quot;按环形聚合统计&quot;变得干净。H3 在 Uber 被大量用于定价分区、供需热力图等场景。</p>
+<p><strong>这是&quot;网格形状会影响算法正确性&quot;的一个很好的例子</strong>——初学者容易以为格子形状只是审美问题。</p>
+</blockquote>
+<hr />
+<h2 id="12-索引方案横向对比">12. 索引方案横向对比</h2>
+<h3 id="原笔记的对比保留">原笔记的对比（保留）</h3>
+<p><strong>GeoHash</strong></p>
+<ul>
+<li>易于使用和实现——不需要构建/重建树</li>
+<li>支持固定半径的结果</li>
+<li>更新索引很简单</li>
+<li><strong>无法根据人口密度动态调整格子大小</strong></li>
+</ul>
+<p><strong>Quadtree</strong></p>
+<ul>
+<li>实现稍微难一些</li>
+<li>支持 k 近邻查询</li>
+<li><strong>可以根据人口密度动态调整格子大小</strong></li>
+<li>更新索引更复杂，可能需要重建整棵树</li>
+</ul>
+<h3 id="补充三方案完整对比">补充：三方案完整对比</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>GeoHash</th>
+<th>Quadtree</th>
+<th>Google S2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>索引结构</strong></td>
+<td>固定网格（哈希）</td>
+<td>自适应树</td>
+<td>Hilbert 曲线上的变层级格子</td>
+</tr>
+<tr>
+<td><strong>实现难度</strong></td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+</tr>
+<tr>
+<td><strong>是否需构建树</strong></td>
+<td>否</td>
+<td>是（启动时构建，数分钟）</td>
+<td>否（库函数）</td>
+</tr>
+<tr>
+<td><strong>自适应密度</strong></td>
+<td>否</td>
+<td><strong>是</strong></td>
+<td><strong>是</strong>（可指定 min/max level）</td>
+</tr>
+<tr>
+<td><strong>半径查询</strong></td>
+<td>天然支持</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>k 近邻查询</strong></td>
+<td>需估算半径</td>
+<td><strong>最擅长</strong></td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>地理围栏</strong></td>
+<td>弱（只能近似）</td>
+<td>一般</td>
+<td><strong>最强</strong>（任意形状）</td>
+</tr>
+<tr>
+<td><strong>索引更新</strong></td>
+<td>简单</td>
+<td><strong>困难</strong>（可能重建整棵树）</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><strong>边界问题</strong></td>
+<td><strong>有</strong>（需查邻域）</td>
+<td>无</td>
+<td>无（曲线连续）</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>固定半径的&quot;附近搜索&quot;</td>
+<td>k 近邻、数据密度差异大</td>
+<td>复杂地理围栏、大规模地图服务</td>
+</tr>
+<tr>
+<td><strong>工业代表</strong></td>
+<td>Redis GEO、MongoDB <code>2d</code></td>
+<td>自建 LBS 服务</td>
+<td>Google Maps、Uber H3（同类思路）</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>本章的选择</strong>：因为是&quot;固定半径的附近搜索&quot;，且商家数据每天批量更新（可以容忍重建索引），原笔记选择了 <strong>GeoHash + Redis</strong>。<strong>这是一个&quot;用最简单能满足需求的方案&quot;的决策</strong>，而不是&quot;用最先进的技术&quot;。<strong>在面试中说出这个理由，比直接说&quot;用 GeoHash&quot;更有价值。</strong></p>
+</blockquote>
+<hr />
+<h2 id="13-数据库扩展与缓存策略">13. 数据库扩展与缓存策略</h2>
+<h3 id="商家表的分片">商家表的分片</h3>
+<p>原笔记写的是：「<strong>按商家 ID 分片</strong>能保证数据均匀分布。」</p>
+<p><strong>这个做法可行，但需要说清代价：</strong></p>
+<ul>
+<li><strong>优点</strong>：商家 ID 是自增或随机的，分布均匀，不会出现热点分片。</li>
+<li><strong>代价</strong>：<strong>按 ID 分片意味着&quot;按地理位置查询&quot;必须查所有分片</strong>。所以商家表的分片只适用于&quot;按 ID 查详情&quot;这个场景，<strong>地理位置搜索必须靠独立的索引表（Redis GEO）来承担</strong>。</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>geohash</th>
+<th>business_id</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>9q9hvu</code></td>
+<td>343</td>
+</tr>
+<tr>
+<td><code>9q9hvu</code></td>
+<td>347</td>
+</tr>
+<tr>
+<td><code>9q9hvu</code></td>
+<td>112</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="空间索引表的扩展">空间索引表的扩展</h3>
+<p>原笔记的判断很精准：「<strong>可能不太适合分片。在这种情况下所有数据都能放进一台服务器，所以没有分片的技术理由。更好的做法是用只读副本（Read Replica）来分担读负载。</strong>」</p>
+<p><strong>验算一下&quot;能放进一台服务器&quot;这个判断：</strong></p>
+<pre><code>2 亿条索引记录 × (geohash 约 6 字节 + business_id 8 字节 + 索引开销约 20 字节)
+≈ 2 亿 × 34 字节 ≈ 6.8 GB
+</code></pre>
+<p><strong>约 7 GB，单台大内存服务器完全可以承载。</strong> ✓ 原笔记的判断成立。</p>
+<h3 id="缓存策略">缓存策略</h3>
+<p>原笔记这一段写得很好，指出了&quot;用坐标做缓存键&quot;的三个问题：</p>
+<ol>
+<li><strong>GPS 坐标不精确</strong>——同一位置，两次定位结果可能相差几米到几十米，导致缓存永远不命中。</li>
+<li><strong>用户会移动</strong>——坐标一变，缓存键就变。</li>
+<li><strong>更好的缓存键是 geohash</strong>。</li>
+</ol>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>缓存键</th>
+<th>缓存值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>geohash</code></td>
+<td>该格子内的商家 ID 列表</td>
+</tr>
+<tr>
+<td><code>business_id</code></td>
+<td>商家详情（名称、地址、评价等）</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>为什么 geohash 做缓存键能解决前两个问题？</strong> 因为<strong>量化（Quantization）</strong>——无论 GPS 报出的坐标是 <code>37.7767201</code> 还是 <code>37.7767298</code>，只要它们落在同一个 geohash 格子里，缓存键就是同一个。<strong>&quot;把连续值离散化，从而让缓存命中&quot;，是一个通用且非常重要的缓存设计技巧</strong>（和第 1 章讲的&quot;过期时间加随机抖动&quot;是同一类思想）。</p>
+<p><strong>顺带一提</strong>：把坐标量化成 geohash 再发给服务端，<strong>同时也是一个隐私保护手段</strong>——服务端永远拿不到用户的精确位置，只知道&quot;他在这个约 1.2 km × 0.6 km 的格子里&quot;。<strong>一个设计同时解决了性能和隐私两个问题</strong>，这是很好的架构。</p>
+</blockquote>
+<p><strong>缓存的两个层次：</strong></p>
+<ul>
+<li><strong>geohash → 商家 ID 列表</strong>：命中率最高，因为同一格子会被大量用户重复查询。<strong>但要设置较短的过期时间</strong>，否则商家信息更新后会长时间不一致。</li>
+<li><strong>business_id → 商家详情</strong>：可以设较长的过期时间（因为商家信息本来就不实时）。</li>
+</ul>
+<hr />
+<h2 id="14-部署策略与最终架构">14. 部署策略与最终架构</h2>
+<h3 id="区域与可用区">区域与可用区</h3>
+<ul>
+<li>把 LBS 和商家服务<strong>部署到多个区域（Region）</strong>。</li>
+<li>每个区域内部跨多个<strong>可用区（Availability Zone）</strong> 部署，保证单机房故障不影响服务。</li>
+</ul>
+<blockquote>
+<p><strong>对位置服务来说，多区域部署还有一个额外的必要性：延迟。</strong> 用户的搜索请求如果跨洲传输，光速带来的延迟就有 100 毫秒以上。<strong>把 LBS 部署到用户附近，是满足&quot;低延迟&quot;这个非功能需求的必要手段。</strong></p>
+</blockquote>
+<h3 id="实时更新怎么处理">实时更新怎么处理</h3>
+<p>原笔记写的是：「<strong>商家更新每天批量处理一次。</strong>」</p>
+<p><strong>这是一个非常重要的架构决策，值得展开说明它的好处：</strong></p>
+<ol>
+<li><strong>空间索引不需要支持在线写入</strong>——这就完全绕开了&quot;四叉树在线更新要加锁&quot;、&quot;GeoHash 索引更新会引入不一致&quot;这些难题。</li>
+<li><strong>可以用离线批处理构建索引</strong>——把索引当成&quot;每天重新生成的产物&quot;，而不是&quot;需要实时维护的状态&quot;。</li>
+<li><strong>可以容忍副本延迟</strong>——因为数据本来就有一天的新鲜度容忍度。</li>
+</ol>
+<blockquote>
+<p><strong>这就是为什么第 1 节里&quot;商家维护不要求实时生效&quot;这条需求如此关键。</strong> 一条看似无关紧要的需求描述，直接决定了整个索引架构可以有多简单。<strong>读需求时，一定要特别留意&quot;实时性&quot;和&quot;一致性&quot;这两类约束。</strong></p>
+</blockquote>
+<h3 id="最终架构与检索流程">最终架构与检索流程</h3>
+<div align="center">
+  <img src="./images/final-design.png" alt="最终架构：负载均衡器、LBS、商家服务、GeoHash Redis、商家详情 Redis 与数据库集群" width="480" loading="lazy" decoding="async">
+</div>
+<p><strong>完整的附近商家检索流程：</strong></p>
+<p><strong>① 用户请求</strong>
+用户在半径 <strong>500 米</strong>内搜索餐厅。客户端把<strong>纬度（37.776720）、经度（−122.416730）、半径（500m）</strong> 发给负载均衡器。</p>
+<p><strong>② 请求转发</strong>
+负载均衡器把请求转发给<strong>位置服务（LBS）</strong>。</p>
+<p><strong>③ 计算 GeoHash 长度</strong>
+LBS 根据半径确定合适的 geohash 长度。查参考表：<strong>500 米 对应 geohash 长度 = 6</strong>。</p>
+<blockquote>
+<p>验算：长度 6 的格子约 <strong>1.22 km × 0.61 km</strong>，纬度方向 0.61 km ≥ 0.5 km 半径，<strong>够用</strong>。✓</p>
+</blockquote>
+<p><strong>④ 计算相邻格子</strong>
+LBS 计算周围的相邻格子，得到 9 个格子的列表：</p>
+<pre><code>[my_geohash, neighbor1_geohash, ..., neighbor8_geohash]
+</code></pre>
+<p><strong>⑤ 从 Redis 拉取商家 ID</strong>
+对列表中的每个 geohash，LBS 查询 <strong>GeoHash Redis 服务器</strong>，取回商家 ID 列表。<strong>这些查询并行执行以最小化延迟。</strong></p>
+<p><strong>⑥ 取详情并排序</strong>
+LBS 从<strong>商家信息 Redis 服务器</strong>取回完整的商家详情，<strong>按与用户的距离排序</strong>，把排好序的结果返回给客户端。</p>
+<blockquote>
+<p><strong>注意第 ⑥ 步的&quot;按距离排序&quot;是必需的</strong>：因为 geohash 格子是正方形，落在格子里的商家可能位于格子的任何位置。<strong>按 geohash 查出来的顺序和真实距离无关</strong>，必须重新计算距离并排序。</p>
+<p>而且这里还应该做<strong>精筛</strong>：把包围盒四个角上、实际超出 500 米的商家过滤掉。<strong>原笔记的流程里没有明确提到这一步。</strong></p>
+</blockquote>
+<h3 id="关键优化">关键优化</h3>
+<p>原笔记总结的三条都正确：</p>
+<ul>
+<li><strong>并行 Redis 调用</strong>：降低响应时间</li>
+<li><strong>GeoHash 索引</strong>：保证空间查询高效</li>
+<li><strong>缓存</strong>：加速查找和详情获取</li>
+</ul>
+<blockquote>
+<p><strong>补充第四条：限制返回条数并做分页。</strong> 市中心的 500 米内可能有几千家餐厅，全部返回既慢又没用。<strong>应该只返回最近的 N 条（如 50 条），或做分页。</strong> 这也是 <code>LIMIT</code> 在空间查询里几乎是必需的原因。</p>
+</blockquote>
+<hr />
+<h2 id="15-位置数据的隐私合规">15. 位置数据的隐私合规</h2>
+<p>原笔记在非功能需求里提到了&quot;遵守 GDPR 和 CCPA&quot;，但正文完全没有展开。<strong>而位置数据是监管最严格的数据类型之一，这一节不能省。</strong></p>
+<h3 id="为什么位置数据特别敏感">为什么位置数据特别敏感</h3>
+<p><strong>位置数据本身可能不敏感，但它能推断出极敏感的信息：</strong></p>
+<ul>
+<li>频繁出现在某宗教场所 → <strong>宗教信仰</strong></li>
+<li>频繁出现在某医院/诊所 → <strong>健康状况</strong></li>
+<li>夜间出现在某些特定场所 → <strong>性取向</strong></li>
+<li>住所 + 工作时间 → <strong>可精确定位到个人</strong></li>
+</ul>
+<blockquote>
+<p><strong>所以&quot;位置数据&quot;在很多法域里不是普通个人信息，而是需要额外保护的类型。</strong></p>
+</blockquote>
+<h3 id="主要法规要求">主要法规要求</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>法规</th>
+<th>对位置数据的要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GDPR（欧盟）</strong></td>
+<td>位置数据属于个人数据。处理需要合法性基础；必须遵循<strong>数据最小化、目的限制、存储期限限制</strong>原则；大规模位置处理通常需要做<strong>数据保护影响评估（DPIA）</strong></td>
+</tr>
+<tr>
+<td><strong>CCPA / CPRA（美国加州）</strong></td>
+<td><strong>「精确地理位置（Precise Geolocation）」被明确列为敏感个人信息</strong>，消费者有权知情、删除、限制使用</td>
+</tr>
+<tr>
+<td><strong>PIPL（中国《个人信息保护法》）</strong></td>
+<td><strong>「行踪轨迹」被明确列为敏感个人信息</strong>，处理需取得<strong>单独同意</strong>，且必须具有特定的目的和充分的必要性</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>注意中国法规的一个特殊之处</strong>：PIPL 对敏感个人信息要求<strong>单独同意（Separate Consent）</strong>——不能用一揽子隐私政策打包获取，必须为位置数据单独弹窗取得同意。此外，在中国提供地图和位置服务还涉及<strong>测绘资质与地图数据合规</strong>的要求，这是另一个独立的合规维度。</p>
+</blockquote>
+<h3 id="工程上的六条对策">工程上的六条对策</h3>
+<p><strong>① 数据最小化：不存原始 GPS 轨迹</strong></p>
+<blockquote>
+<p><strong>最常见也最严重的错误是：把用户的每一次定位都落库，形成一条精确的轨迹。</strong> 这条轨迹的价值密度极高，一旦泄露后果严重，而绝大多数业务根本用不到它。</p>
+<p><strong>正确做法</strong>：只在内存里处理当次请求的坐标，<strong>用完即弃</strong>；确实需要保留时，只保留<strong>降精度后的数据</strong>（如 geohash 长度 5 或 6）。</p>
+</blockquote>
+<p><strong>② 坐标量化 / 网格吸附（Grid Snapping）</strong></p>
+<p><strong>在客户端就把坐标吸附到 geohash 格子的中心，再发给服务端。</strong> 服务端永远拿不到精确位置，只知道&quot;用户在这个约 1.2 km × 0.6 km 的格子里&quot;。</p>
+<p><strong>这个做法同时解决了性能和隐私问题</strong>（前面第 13 节已经讲过缓存键的量化效应）。<strong>精度可以按业务需要调整</strong>：找餐厅用长度 6 就够了；如果是打车，可能需要长度 7 或更高。</p>
+<p><strong>③ 优先在客户端计算</strong></p>
+<p>把 geohash 索引缓存在客户端，<strong>&quot;附近搜索&quot;直接在本地完成</strong>，根本不上传坐标。代价是数据新鲜度（缓存需要定期更新），<strong>适合对实时性要求不高的场景</strong>。</p>
+<p><strong>④ 短期保留 + 自动删除</strong></p>
+<p>如果业务确实需要保留位置历史（如行程记录），必须设置<strong>明确的保留期限</strong>并自动删除（如 30 天）。<strong>&quot;永久保留&quot;在 GDPR 和 PIPL 下都是高风险的。</strong></p>
+<p><strong>⑤ 匿名化 vs 假名化——这两者不一样</strong></p>
+<blockquote>
+<p><strong>这是最容易被误解的一点：</strong></p>
+<ul>
+<li><strong>假名化（Pseudonymization）</strong>：用用户 ID 替换真实身份。<strong>假名化后的数据仍然是个人数据</strong>，因为可以通过 ID 重新关联回个人。</li>
+<li><strong>匿名化（Anonymization）</strong>：数据<strong>不可逆地</strong>无法关联到任何个人。<strong>只有真正匿名的数据才不受 GDPR 约束。</strong></li>
+</ul>
+<p><strong>关键陷阱</strong>：把位置数据里的用户 ID 去掉，<strong>并不等于匿名化</strong>。因为<strong>位置本身就是一个强标识符</strong>——研究表明，<strong>只要知道一个人 4 个时间点的位置，就足以在 150 万人中唯一识别出他</strong>。所以&quot;删掉姓名就叫匿名&quot;是错的。</p>
+</blockquote>
+<p><strong>⑥ 访问控制与审计日志</strong></p>
+<p><strong>&quot;谁能查询某个用户的位置&quot;必须被严格限制并留痕。</strong> 内部人员滥用位置查询权限是实际发生过的严重事故类型。做法：最小权限、双人审批、全量审计日志。</p>
+<blockquote>
+<p><strong>在面试中主动提到&quot;把坐标吸附到 geohash 格子中心，服务端不接触精确位置&quot;，是一个很强的加分项。</strong> 它同时体现了技术能力和合规意识，而且<strong>方案本身很简单</strong>——好的设计往往就是这样。</p>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>本节逐条指出原笔记中不准确、过时或缺失的地方。</p>
+</blockquote>
+<h3 id="勘误-1二维范围查询的-sql-单位错误用度减米">勘误 1：二维范围查询的 SQL 单位错误——用「度」减「米」</h3>
+<ul>
+<li><strong>原文说法</strong>：<pre><code class="language-sql">WHERE (latitude BETWEEN :lat - radius AND :lat + radius)
+AND (longitude BETWEEN :long - radius AND :long + radius);
+</code></pre>
+</li>
+<li><strong>问题</strong>：<strong>单位不匹配。</strong> <code>radius</code> 的单位是<strong>米</strong>（API 定义里默认 5000m），而 <code>latitude</code> / <code>longitude</code> 的单位是<strong>度</strong>。<code>:lat - radius</code> 相当于&quot;用纬度减去 5000&quot;，得出的范围会覆盖从南极到北极的整个地球，<strong>查询完全失效</strong>。这是一个硬性的技术错误，不是表述问题。</li>
+<li><strong>正确说法</strong>：必须先把距离换算成度数：<pre><code class="language-sql">-- 1 度纬度 ≈ 111,320 米
+-- 1 度经度 ≈ 111,320 × cos(纬度) 米（随纬度收缩）
+WHERE latitude
+      BETWEEN :lat - (:radius / 111320.0)
+          AND :lat + (:radius / 111320.0)
+  AND longitude
+      BETWEEN :long - (:radius / (111320.0 * COS(RADIANS(:lat))))
+          AND :long + (:radius / (111320.0 * COS(RADIANS(:lat))));
+</code></pre>
+<strong>注意经度那一项必须乘 <code>cos(纬度)</code></strong>——因为在北纬 60° 处，1 度经度的实际长度只有赤道的一半。<strong>如果漏掉这个因子，高纬度地区会漏掉一半的结果。</strong></li>
+<li><strong>延伸</strong>：同时要意识到<strong>包围盒 ≠ 圆</strong>。上面的查询会返回矩形四角上的商家，它们的实际距离超过半径。<strong>必须做第二阶段精筛</strong>：用 Haversine 公式计算真实球面距离，过滤掉圆外的点，再按距离排序。</li>
+</ul>
+<h3 id="勘误-2搜索-qps-的算术有偏差">勘误 2：搜索 QPS 的算术有偏差</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Search QPS = (100M × 5) / 86,400 ≈ 5,000 QPS</code>。</li>
+<li><strong>问题</strong>：按原笔记自己给的数字计算，<code>5 亿 / 86,400 = 5,787</code>，<strong>约 5,800 QPS，不是 5,000</strong>。虽然只差 16%，但在粗略估算中，<strong>保留两位有效数字比取整到整数更有价值</strong>（因为你后面要乘峰值系数，误差会被放大）。</li>
+<li><strong>正确说法</strong>：<strong>约 5,800 QPS（平均）</strong>。更重要的是，<strong>必须再乘峰值系数</strong>——位置服务的流量有极强的时段性和地域性（周五晚 7 点的市中心可能是凌晨的几十倍）。按 2～3 倍估算，<strong>峰值约 1.2 万 ～ 1.7 万 QPS</strong>。</li>
+<li><strong>延伸</strong>：<strong>粗略估算里&quot;平均值&quot;和&quot;峰值&quot;的区别，比算得准不准重要得多。</strong> 用平均 QPS 做容量规划，系统一定会在高峰时段挂掉。</li>
+</ul>
+<h3 id="勘误-3geohash-半径映射表中20-km-长度-4是边界情况">勘误 3：GeoHash 半径映射表中「20 km → 长度 4」是边界情况</h3>
+<ul>
+<li><strong>原文说法</strong>：参考表给出 <code>20 km → geohash length = 4</code>。</li>
+<li><strong>问题</strong>：长度 4 的 geohash 格子在<strong>纬度方向只有约 19.6 km</strong>，而搜索半径是 20 km，<strong>格子尺寸小于搜索半径</strong>。按&quot;格子尺寸应当不小于搜索半径&quot;这条规则，长度 4 严格来说不够用（详见第 7 节的验算表）。</li>
+<li><strong>正确说法</strong>：有两种处理方式：
+<ol>
+<li><strong>改用长度 3</strong>（约 156 km × 156 km）——安全，但检索范围放大近 8 倍，代价高；</li>
+<li><strong>保持长度 4，但把邻域从 3×3 扩展到 5×5</strong>——5 个格子的纬度跨度约 98 km，远超 20 km。<strong>这是实践中更合理的折中。</strong></li>
+</ol>
+</li>
+<li><strong>延伸</strong>：表格中的前四项（0.5 km → 6、1 km → 5、2 km → 5、5 km → 4）<strong>都正确</strong>。这个勘误只针对最后一项。<strong>而且它揭示了一个更普遍的道理：这类&quot;半径 → 精度&quot;的对照表都是近似值，实现时必须用公式验证，并动态选择邻域大小。</strong></li>
+</ul>
+<h3 id="勘误-4geohash-保证共享前缀越长越近这句话需要补上它的逆命题不成立">勘误 4：「GeoHash 保证共享前缀越长越近」这句话需要补上它的逆命题不成立</h3>
+<ul>
+<li>
+<p><strong>原文说法</strong>：<code>Geohash guarantees that the longer a shared prefix is between two geohashes, the closer they are.</code>（GeoHash 保证两个 geohash 共享的前缀越长，它们就越近。）</p>
+</li>
+<li>
+<p><strong>问题</strong>：<strong>这句话本身是正确的</strong>（共享长度为 k 的前缀意味着两个点落在同一个 k 级格子里，距离不超过该格子的对角线）。原笔记在 Challenges 一节也正确指出了边界问题。<strong>但把这句话单独放在正文里，极容易让读者误以为&quot;距离近 ⇒ 前缀长&quot;也成立。</strong> 而这个逆命题<strong>恰恰是错的</strong>——这就是 GeoHash 最著名的坑。</p>
+</li>
+<li>
+<p><strong>正确说法</strong>：应当明确表述为<strong>单向保证</strong>：</p>
+<blockquote>
+<p><strong>「前缀相同 ⇒ 位置相近」成立；「位置相近 ⇒ 前缀相同」不成立。</strong></p>
+</blockquote>
+<p>后半句的两个反例：① 相邻格子（如 <code>9q8zn9</code> 和 <code>9q8znc</code>）只共享 5 个字符的前缀；② 赤道两侧相距约 22 米的两个点，<strong>可能连一个字符都不共享</strong>（因为第 2 位是纬度位，会在赤道处翻转）。</p>
+</li>
+<li>
+<p><strong>延伸</strong>：<strong>必须查询相邻的 8 个格子</strong>，并处理反经线环绕和两极退化。另外要注意邻域大小不是固定的 3×3——<strong>当搜索半径大于格子尺寸时需要动态扩大邻域</strong>（取能覆盖&quot;半径 + 格子对角线&quot;的最小邻域）。</p>
+</li>
+</ul>
+<h3 id="勘误-5quadtree-小节内容准确无技术错误">勘误 5：Quadtree 小节内容准确，无技术错误</h3>
+<ul>
+<li><strong>原文说法</strong>：四叉树&quot;每个内部节点恰好有四个子节点&quot;；&quot;递归细分直到每个节点不超过 x 个商家（这里取 100）&quot;；&quot;内存占用通常在 GB 级别&quot;；&quot;构建时间复杂度 O(n log n)，可能需要几分钟&quot;。</li>
+<li><strong>核查结果</strong>：<strong>这一节内容准确，我们逐条验算过：</strong>
+<ul>
+<li>2 亿商家 / 每叶 100 个 ≈ 200 万叶子 + 约 67 万内部节点 ≈ 267 万节点；仅商家 ID 就需 <code>2 亿 × 8 字节 = 1.6 GB</code>，加节点开销约 2 GB 量级——<strong>&quot;GB 级别&quot;成立</strong> ✓</li>
+<li>每次插入代价为树深（约 <code>log₄(2亿/100) ≈ 10</code> 层），n 次插入即 <strong>O(n log n)</strong> ✓</li>
+<li>&quot;构建期间不能服务流量 → 需要灰度发布&quot;、&quot;增量重建导致缓存失效&quot;、&quot;在线更新需要加锁&quot;这三条运维注意事项，<strong>都是真实存在的问题，写得相当扎实</strong> ✓</li>
+</ul>
+</li>
+<li><strong>补充</strong>：四叉树的<strong>核心优势是自适应密度</strong>，核心劣势是<strong>写代价高</strong>。它最适合&quot;数据每天批量更新一次&quot;的场景——<strong>这恰好匹配本章&quot;商家信息不要求实时&quot;的需求</strong>。</li>
+</ul>
+<h3 id="补充-1geohash-精度的完整验算表">补充 1：GeoHash 精度的完整验算表</h3>
+<p>原笔记给出了半径映射表，但没有给出&quot;不同长度对应多大范围&quot;的完整表格和推导公式。详见第 7 节。<strong>核心结论：6 位 geohash ≈ 1.22 km × 0.61 km（赤道），这个数字在常见资料中是对的。</strong> 但要注意两点：</p>
+<ul>
+<li>经度方向的宽度<strong>随纬度收缩</strong>（北纬 37.77° 处只有约 0.97 km）；</li>
+<li>12 个精度层级从 5000 km 一直细分到 3.7 cm，<strong>跨越了 5 个数量级</strong>。</li>
+</ul>
+<h3 id="补充-2geohash-的边界问题及解决方案">补充 2：GeoHash 的边界问题及解决方案</h3>
+<p>原笔记提到了边界问题并给出&quot;需要搜索相邻格子&quot;，但<strong>没有说清问题的严重程度、也没有给出完整的解决方案</strong>。详见第 8 节。<strong>这是本章最容易被面试追问的点。</strong></p>
+<h3 id="补充-3redis-geo-与-postgis-的工业实现">补充 3：Redis GEO 与 PostGIS 的工业实现</h3>
+<p>原笔记只讲了算法，没有提工业实现。详见第 11 节。核心结论：</p>
+<ul>
+<li><strong>Redis GEO 的底层是一个 ZSET（有序集合），score 是 52 位 GeoHash 整数，内部用跳跃表 + 哈希表。</strong> <code>GEOSEARCH</code> 做的是&quot;GeoHash 邻域 + score 范围扫描 + 精确距离过滤&quot;。</li>
+<li><strong>PostGIS 默认用 GiST 索引，对二维几何数据的行为等价于 R 树（最小包围矩形树）。</strong></li>
+</ul>
+<h3 id="补充-4uber-h3-与六边形网格的价值">补充 4：Uber H3 与「六边形网格」的价值</h3>
+<p>原笔记没提。详见第 11 节末。<strong>核心洞察：正方形网格有 4 个边邻居（距离 = 1 格）和 4 个角邻居（距离 = 1.41 格），做环形扩展搜索时会产生方向偏差；六边形的 6 个邻居距离完全相等，因此更适合&quot;逐环扩展&quot;和&quot;环形聚合&quot;。</strong></p>
+<h3 id="补充-5位置数据的隐私合规与工程对策">补充 5：位置数据的隐私合规与工程对策</h3>
+<p>原笔记在非功能需求里提了 GDPR 和 CCPA，正文完全没有展开。详见第 15 节。<strong>最重要的三条：</strong></p>
+<ul>
+<li><strong>「假名化 ≠ 匿名化」</strong>——删掉用户 ID 不等于匿名，因为位置本身就是强标识符；</li>
+<li><strong>在客户端把坐标吸附到 geohash 格子中心</strong>，服务端不接触精确位置——<strong>一个设计同时解决性能和隐私</strong>；</li>
+<li><strong>中国 PIPL 把「行踪轨迹」列为敏感个人信息，需要「单独同意」</strong>，不能打包在通用隐私政策里。</li>
+</ul>
+<h3 id="补充-6最终检索流程缺少精筛和限制条数">补充 6：最终检索流程缺少「精筛」和「限制条数」</h3>
+<p>原笔记的检索流程在第 ⑥ 步做了&quot;按距离排序&quot;，但<strong>没有明确说明要过滤掉包围盒四角上的误报</strong>，也没有提到限制返回条数。详见第 14 节。<strong>在市中心，500 米内可能有几千家餐厅，全部返回既慢又无用。</strong></p>
+<h3 id="补充-7缓存键用-geohash-的深层原因">补充 7：缓存键用 geohash 的深层原因</h3>
+<p>原笔记给出了结论（&quot;更好的键是 geohash&quot;）和理由（GPS 不精确、用户会移动），但没说透。详见第 13 节。<strong>本质是「量化（Quantization）」——把连续值离散化，让缓存键稳定，从而让缓存能命中。</strong></p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>给经纬度各建一个索引，二维查询就快了</td>
+<td>B+ 树是<strong>严格一维</strong>的；两个一维索引的交集仍需各扫一遍</td>
+<td>必须先把二维映射成一维键（GeoHash），或改用 R 树 / 四叉树等空间索引</td>
+</tr>
+<tr>
+<td>用 <code>latitude ± radius</code> 就能做范围查询</td>
+<td><code>radius</code> 是米，<code>latitude</code> 是度，<strong>单位不匹配</strong></td>
+<td>必须换算：纬度用 <code>radius / 111320</code>，经度用 <code>radius / (111320 × cos(纬度))</code></td>
+</tr>
+<tr>
+<td>包围盒查询的结果就是最终结果</td>
+<td>矩形四角上的商家实际距离超过半径，属误报</td>
+<td><strong>两阶段</strong>：包围盒粗筛 → Haversine 精筛 → 按距离排序</td>
+</tr>
+<tr>
+<td>GeoHash 前缀相同就意味着距离近，反之亦然</td>
+<td>只有<strong>单向</strong>成立：「前缀相同 ⇒ 距离近」对；<strong>「距离近 ⇒ 前缀相同」错</strong></td>
+<td>必须查询<strong>相邻 8 个格子</strong>，并处理反经线环绕与两极退化</td>
+</tr>
+<tr>
+<td>GeoHash 的格子大小是固定的</td>
+<td>经度方向的实际宽度<strong>随纬度收缩</strong>（1° 经度 = 111.32 × cos(纬度) km）</td>
+<td>容量估算要按服务区域的<strong>最高纬度</strong>算，否则高纬度地区会低估格子数</td>
+</tr>
+<tr>
+<td>查询固定用 3×3 邻域就够了</td>
+<td>当搜索半径大于格子尺寸时，3×3 覆盖不足</td>
+<td>取能覆盖「半径 + 格子对角线」的<strong>最小邻域</strong>，半径大时要扩到 5×5</td>
+</tr>
+<tr>
+<td>用坐标当缓存键最自然</td>
+<td>GPS 有抖动（同一位置两次定位不同），用户还会移动，<strong>缓存永远不命中</strong></td>
+<td>用 <strong>geohash 当缓存键</strong>——把坐标量化，让缓存键稳定</td>
+</tr>
+<tr>
+<td>四叉树什么场景都比 GeoHash 好</td>
+<td>四叉树<strong>写代价极高</strong>：在线更新要加锁，重建会让缓存大面积失效</td>
+<td>数据频繁更新的场景用 GeoHash；每天批量更新的场景才适合四叉树</td>
+</tr>
+<tr>
+<td>把位置数据里的用户 ID 删掉就匿名了</td>
+<td><strong>位置本身就是强标识符</strong>——几个时间点的位置就足以唯一识别一个人</td>
+<td>那是<strong>假名化</strong>，仍是个人数据；真正的匿名化要求不可逆</td>
+</tr>
+<tr>
+<td>在中国做位置服务，只要遵守 GDPR 就够了</td>
+<td>PIPL 对**「行踪轨迹」**有额外要求，且地图服务还有测绘资质合规</td>
+<td>需要<strong>单独同意</strong>，且地图/位置服务有独立的合规维度</td>
+</tr>
+<tr>
+<td>位置服务可以只部署在一个区域</td>
+<td>跨洲请求的光速延迟就超过 100 ms，无法满足低延迟要求</td>
+<td>多区域部署，LBS 就近服务用户</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：附近服务要解决的核心是<strong>二维空间范围查询</strong>——B+ 树索引解决不了它，所以必须把二维位置<strong>压成一维键</strong>（GeoHash）或改用<strong>空间索引结构</strong>（四叉树 / R 树 / S2）。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>一维索引无法做二维范围查询</strong>。朴素方案要么全表扫描，要么两个一维索引求交，都不行。</li>
+<li><strong>GeoHash 把二维压成一维</strong>：经度位与纬度位交错（Morton 编码），每 5 位一组做 base32 编码，共 12 个精度层级。<strong>6 位 ≈ 1.22 km × 0.61 km（赤道）</strong>。</li>
+<li><strong>必须查询相邻格子</strong>：GeoHash 只保证「前缀相同 ⇒ 距离近」，不保证反向。赤道两侧相距 22 米的点可能零共享前缀。要查 3×3（必要时 5×5）邻域，并处理反经线环绕。</li>
+<li><strong>两阶段查询</strong>：包围盒粗筛 → Haversine 精筛 → 按距离排序，并限制返回条数。</li>
+<li><strong>缓存键用 geohash 而不是坐标</strong>，因为坐标有 GPS 抖动且会随用户移动而变。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动说出<strong>工业实现</strong>：Redis GEO 底层是 <strong>ZSET + 52 位 GeoHash 整数（跳跃表）</strong>；PostGIS 默认用 <strong>GiST 索引，行为等价于 R 树</strong>。</li>
+<li>主动指出**「商家更新不要求实时」这条需求的价值**——它让索引可以每天离线批量重建，从而完全绕开&quot;空间索引如何在线更新&quot;这个难题。</li>
+<li>主动提到<strong>把坐标吸附到 geohash 格子中心</strong>，一个设计同时解决缓存命中率和隐私合规两个问题。</li>
+<li>主动区分<strong>假名化与匿名化</strong>，并指出位置本身就是强标识符。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;为什么不用两个普通索引？&quot;</em>
+→ B+ 树是严格一维的。纬度索引能定位纬度范围，但这些记录在经度上完全乱序；两个索引的交集只能靠分别扫描再求交，数据量大时退化成近似全表扫描。复合索引 <code>(lat, lon)</code> 也没用，因为第一个字段是范围查询时第二个字段用不上。必须改用空间索引结构。</li>
+<li><em>&quot;GeoHash 有什么坑？&quot;</em>
+→ 边界问题。核心是<strong>单向保证</strong>：「前缀相同 ⇒ 距离近」成立，但「距离近 ⇒ 前缀相同」不成立。相邻格子只共享父级前缀（如 9 个格子只共享 5 个字符）；赤道两侧相距 22 米的点因为纬度位翻转可能零共享前缀。解法是查询 3×3（半径大时 5×5）邻域，并处理反经线环绕与两极退化。</li>
+<li><em>&quot;GeoHash 和四叉树怎么选？&quot;</em>
+→ 看两件事：<strong>查询类型</strong>和<strong>更新频率</strong>。固定半径搜索选 GeoHash（实现简单、无需建树、更新容易）；k 近邻查询或数据密度差异极大时选四叉树（自适应密度、天然支持 kNN）。但四叉树<strong>写代价极高</strong>（在线更新要加锁、重建会让缓存大面积失效），所以只适合数据批量更新的场景。本章的商家数据每天批量更新，两者都可行；GeoHash 实现更简单，所以选它。</li>
+<li><em>&quot;位置数据怎么合规？&quot;</em>
+→ 三条核心措施：① 在客户端把坐标<strong>吸附到 geohash 格子中心</strong>再上传，服务端不接触精确位置；② <strong>不落库原始 GPS 轨迹</strong>，确需保留则降精度 + 设保留期限；③ 严格限制内部人员的位置查询权限并全量审计。同时要清楚<strong>假名化不等于匿名化</strong>——位置本身就是强标识符。中国 PIPL 还把「行踪轨迹」列为敏感个人信息，需要单独同意。</li>
+<li><em>&quot;峰值流量怎么扛？&quot;</em>
+→ 平均 QPS 约 5,800，按 2～3 倍峰值系数规划到约 1.2 万～1.7 万 QPS。LBS 是<strong>无状态</strong>的，可以直接水平扩展；空间索引数据量约 7 GB，可以整体放进 Redis 集群并靠只读副本分担读负载；缓存以 geohash 为键，命中率天然很高。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://www.movable-type.co.uk/scripts/geohash.html" target="_blank" rel="noopener noreferrer">GeoHash 在线工具与算法说明</a> — 可视化验证本章的精度表格</li>
+<li><a href="https://redis.io/docs/latest/commands/geoadd/" target="_blank" rel="noopener noreferrer">Redis 官方文档：Geospatial commands</a> — <code>GEOSEARCH</code> 等命令的权威说明</li>
+<li><a href="https://postgis.net/documentation/" target="_blank" rel="noopener noreferrer">PostGIS 官方文档</a> — <code>ST_DWithin</code> 与 GiST 索引的使用</li>
+<li><a href="https://s2geometry.io/" target="_blank" rel="noopener noreferrer">Google S2 Geometry</a> — S2 的官方文档与设计说明</li>
+<li><a href="https://h3geo.org/" target="_blank" rel="noopener noreferrer">Uber H3</a> — 六边形分层空间索引，与 GeoHash 的对比很有启发</li>
+<li><a href="https://en.wikipedia.org/wiki/Quadtree" target="_blank" rel="noopener noreferrer">Quadtree（维基百科）</a> — 四叉树的基本定义与变体</li>
+<li><a href="https://en.wikipedia.org/wiki/Hilbert_curve" target="_blank" rel="noopener noreferrer">Hilbert 曲线与空间填充曲线</a> — 理解 S2 局部性优势的数学基础</li>
+<li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-queries.html" target="_blank" rel="noopener noreferrer">Elasticsearch：Geospatial queries</a> — BKD 树的工业应用</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../15/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">Google Drive</span></a><a class="next" href="../17/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">附近的朋友</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求与范围">1. 需求与范围</a>
+<a class="lv3" href="#功能需求">功能需求</a>
+<a class="lv3" href="#非功能需求">非功能需求</a>
+<a class="lv3" href="#粗略估算">粗略估算</a>
+<a class="lv2" href="#2-api-设计">2. API 设计</a>
+<a class="lv3" href="#搜索附近商家">搜索附近商家</a>
+<a class="lv3" href="#商家管理-api">商家管理 API</a>
+<a class="lv2" href="#3-数据模型与高层架构">3. 数据模型与高层架构</a>
+<a class="lv3" href="#数据模型">数据模型</a>
+<a class="lv3" href="#数据表">数据表</a>
+<a class="lv3" href="#高层架构">高层架构</a>
+<a class="lv2" href="#4-朴素方案二维范围查询为什么不行">4. 朴素方案：二维范围查询为什么不行</a>
+<a class="lv3" href="#原笔记给的-sql">原笔记给的 SQL</a>
+<a class="lv3" href="#这里还有第二个问题方框-圆">这里还有第二个问题：方框 ≠ 圆</a>
+<a class="lv3" href="#为什么给经纬度建索引也没用">为什么给经纬度建索引也没用</a>
+<a class="lv2" href="#5-把二维压成一维空间索引的两大流派">5. 把二维压成一维：空间索引的两大流派</a>
+<a class="lv2" href="#6-方案一均匀网格even-grid">6. 方案一：均匀网格（Even Grid）</a>
+<a class="lv2" href="#7-方案二geohash">7. 方案二：GeoHash</a>
+<a class="lv3" href="#编码原理">编码原理</a>
+<a class="lv3" href="#精度验算不同长度对应多大的范围">精度验算：不同长度对应多大的范围</a>
+<a class="lv3" href="#如何用-geohash-长度匹配搜索半径">如何用 geohash 长度匹配搜索半径</a>
+<a class="lv3" href="#geohash-的局部性保证注意它是单向的">GeoHash 的&quot;局部性保证&quot;——注意它是单向的</a>
+<a class="lv2" href="#8-geohash-的边界问题">8. GeoHash 的边界问题</a>
+<a class="lv3" href="#问题一相邻格子不共享前缀">问题一：相邻格子不共享前缀</a>
+<a class="lv3" href="#问题二极近的两个点可能完全没有共享前缀">问题二：极近的两个点可能完全没有共享前缀</a>
+<a class="lv3" href="#解决方案查询相邻格子">解决方案：查询相邻格子</a>
+<a class="lv2" href="#9-方案三四叉树quadtree">9. 方案三：四叉树（Quadtree）</a>
+<a class="lv3" href="#什么是四叉树">什么是四叉树</a>
+<a class="lv3" href="#四叉树适合什么查询">四叉树适合什么查询</a>
+<a class="lv3" href="#内存占用验算">内存占用验算</a>
+<a class="lv3" href="#构建时间">构建时间</a>
+<a class="lv3" href="#运维上的三个坑">运维上的三个坑</a>
+<a class="lv2" href="#10-方案四google-s2">10. 方案四：Google S2</a>
+<a class="lv3" href="#核心思想">核心思想</a>
+<a class="lv3" href="#s2-的独特优势">S2 的独特优势</a>
+<a class="lv2" href="#11-工业实现redis-geo-与-postgis">11. 工业实现：Redis GEO 与 PostGIS</a>
+<a class="lv3" href="#redis-geo">Redis GEO</a>
+<a class="lv3" href="#postgis">PostGIS</a>
+<a class="lv3" href="#其他工业实现速查">其他工业实现速查</a>
+<a class="lv2" href="#12-索引方案横向对比">12. 索引方案横向对比</a>
+<a class="lv3" href="#原笔记的对比保留">原笔记的对比（保留）</a>
+<a class="lv3" href="#补充三方案完整对比">补充：三方案完整对比</a>
+<a class="lv2" href="#13-数据库扩展与缓存策略">13. 数据库扩展与缓存策略</a>
+<a class="lv3" href="#商家表的分片">商家表的分片</a>
+<a class="lv3" href="#空间索引表的扩展">空间索引表的扩展</a>
+<a class="lv3" href="#缓存策略">缓存策略</a>
+<a class="lv2" href="#14-部署策略与最终架构">14. 部署策略与最终架构</a>
+<a class="lv3" href="#区域与可用区">区域与可用区</a>
+<a class="lv3" href="#实时更新怎么处理">实时更新怎么处理</a>
+<a class="lv3" href="#最终架构与检索流程">最终架构与检索流程</a>
+<a class="lv3" href="#关键优化">关键优化</a>
+<a class="lv2" href="#15-位置数据的隐私合规">15. 位置数据的隐私合规</a>
+<a class="lv3" href="#为什么位置数据特别敏感">为什么位置数据特别敏感</a>
+<a class="lv3" href="#主要法规要求">主要法规要求</a>
+<a class="lv3" href="#工程上的六条对策">工程上的六条对策</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1二维范围查询的-sql-单位错误用度减米">勘误 1：二维范围查询的 SQL 单位错误——用「度」减「米」</a>
+<a class="lv3" href="#勘误-2搜索-qps-的算术有偏差">勘误 2：搜索 QPS 的算术有偏差</a>
+<a class="lv3" href="#勘误-3geohash-半径映射表中20-km-长度-4是边界情况">勘误 3：GeoHash 半径映射表中「20 km → 长度 4」是边界情况</a>
+<a class="lv3" href="#勘误-4geohash-保证共享前缀越长越近这句话需要补上它的逆命题不成立">勘误 4：「GeoHash 保证共享前缀越长越近」这句话需要补上它的逆命题不成立</a>
+<a class="lv3" href="#勘误-5quadtree-小节内容准确无技术错误">勘误 5：Quadtree 小节内容准确，无技术错误</a>
+<a class="lv3" href="#补充-1geohash-精度的完整验算表">补充 1：GeoHash 精度的完整验算表</a>
+<a class="lv3" href="#补充-2geohash-的边界问题及解决方案">补充 2：GeoHash 的边界问题及解决方案</a>
+<a class="lv3" href="#补充-3redis-geo-与-postgis-的工业实现">补充 3：Redis GEO 与 PostGIS 的工业实现</a>
+<a class="lv3" href="#补充-4uber-h3-与六边形网格的价值">补充 4：Uber H3 与「六边形网格」的价值</a>
+<a class="lv3" href="#补充-5位置数据的隐私合规与工程对策">补充 5：位置数据的隐私合规与工程对策</a>
+<a class="lv3" href="#补充-6最终检索流程缺少精筛和限制条数">补充 6：最终检索流程缺少「精筛」和「限制条数」</a>
+<a class="lv3" href="#补充-7缓存键用-geohash-的深层原因">补充 7：缓存键用 geohash 的深层原因</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 20 章：指标监控与告警系统 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item active" href="./"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-20-章指标监控与告警系统">第 20 章：指标监控与告警系统</h1>
+<blockquote>
+<p>原章节：Metrics Monitoring and Alerting System · 原项目路径 <code>20. Metrics Monitoring and Alerting System/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>系统上线只是开始。真正难的是：<strong>你怎么知道它现在是好的？</strong></p>
+<p>凌晨三点，数据库连接池被耗尽，所有请求超时。如果没有人发现，直到早上用户投诉才知道——这就是没有监控的系统。而如果监控配得太敏感，一晚上给你发 800 条告警，你会在第三天开始全部忽略——这就是<strong>告警疲劳</strong>，它比没有告警更危险。</p>
+<p>这一章我们要设计一个能支撑 <strong>1000 万台机器、1000 万条时间序列</strong>的监控告警系统。它会带你搞清楚：指标（Metric）到底是什么？为什么 Prometheus 用「拉」而 CloudWatch 用「推」？一条标签写错为什么能让整个监控系统内存爆炸？「告警」这件事真正难的地方在哪里？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>监控系统的五个核心组件，以及它们各自的职责边界</li>
+<li>时间序列（Time Series）的数据模型：指标名 + 标签 + 时间戳 + 值</li>
+<li><strong>基数爆炸（Cardinality Explosion）</strong>——生产环境最常见、也最容易自己制造的事故</li>
+<li>拉模式（Pull）与推模式（Push）的六个维度对比，以及为什么短生命周期任务必须用 Pushgateway</li>
+<li>消息队列在采集管道里的作用，以及聚合可以发生在哪三个位置</li>
+<li>数据编码压缩（delta-of-delta、XOR）、降采样（Downsampling）与长期存储方案</li>
+<li>现代告警实践：告警风暴、聚合、抑制、静默，以及基于 SLO 与错误预算（Error Budget）的告警</li>
+<li>RED 方法与 USE 方法这两套黄金指标体系</li>
+</ul>
+<hr />
+<h2 id="1-监控与告警到底解决什么问题">1. 监控与告警到底解决什么问题</h2>
+<p>先分清两个经常被混为一谈的概念：</p>
+<ul>
+<li><strong>监控（Monitoring）</strong> 回答「现在发生了什么」。它是指标的采集、存储和展示。CPU 使用率 92%、QPS 8000、P99 延迟 340ms——这些是监控。</li>
+<li><strong>告警（Alerting）</strong> 回答「什么时候该叫人」。它是对指标的持续判断：如果连续 5 分钟错误率超过 1%，就叫醒值班工程师。</li>
+</ul>
+<p>两者是一体的：<strong>没有监控就没有告警的依据，没有告警监控就只是好看但没人看的图。</strong></p>
+<p>原文给这个系统的定位是「对保证高可用和可靠性至关重要」。说得更具体一点，监控系统要支撑三件事：</p>
+<ol>
+<li><strong>发现故障</strong>：在用户投诉之前知道出问题了。</li>
+<li><strong>定位故障</strong>：出事时能回答「是哪个服务、哪台机器、从什么时候开始的」。</li>
+<li><strong>验证变更</strong>：发了新版本、改了配置之后，指标是变好了还是变坏了。</li>
+</ol>
+<hr />
+<h2 id="2-需求澄清从-100-万到-1000-万条时间序列">2. 需求澄清：从 100 万到 1000 万条时间序列</h2>
+<p>监控系统可以指很多东西，先问清楚边界——<strong>面试官可能只想聊基础设施指标，而你在设计一个日志系统</strong>，那就完全跑偏了。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>提问</th>
+<th>回答</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>给谁用？内部系统还是 SaaS？</td>
+<td>只做内部使用</td>
+<td>决定要不要多租户隔离与计费</td>
+</tr>
+<tr>
+<td>采集哪些指标？</td>
+<td>操作系统指标（CPU、内存、磁盘）+ 高层指标（每秒请求数）。<strong>不含业务指标</strong></td>
+<td>划定范围，避免设计过度</td>
+</tr>
+<tr>
+<td>被监控的基础设施规模？</td>
+<td>1 亿日活、1000 个服务器池、每池 100 台机器</td>
+<td>决定数据量与分区策略</td>
+</tr>
+<tr>
+<td>数据保留多久？</td>
+<td>1 年</td>
+<td>决定存储成本模型</td>
+</tr>
+<tr>
+<td>可以降低长期数据的分辨率吗？</td>
+<td>原始数据留 7 天；30 天内降到 1 分钟；之后降到 1 小时</td>
+<td>降采样（Downsampling）策略</td>
+</tr>
+<tr>
+<td>支持哪些告警通道？</td>
+<td>邮件、电话、PagerDuty、Webhook</td>
+<td>决定告警分发链路</td>
+</tr>
+<tr>
+<td>需要采集错误日志/访问日志吗？</td>
+<td>不需要</td>
+<td>排除日志系统</td>
+</tr>
+<tr>
+<td>需要分布式链路追踪吗？</td>
+<td>不需要</td>
+<td>排除 Tracing 系统</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="规模与假设">规模与假设</h3>
+<p>被监控的基础设施规模是：</p>
+<ul>
+<li><strong>1 亿日活（DAU）</strong>；</li>
+<li><strong>1000 个服务器池 × 每池 100 台机器 × 每台约 100 个指标 ≈ 1000 万条时间序列</strong>；</li>
+<li>数据保留 1 年；</li>
+<li>保留策略：原始数据 7 天 → 1 分钟分辨率 30 天 → 1 小时分辨率 1 年。</li>
+</ul>
+<blockquote>
+<p><strong>这个数字值得自己算一遍</strong></p>
+<p>1000 池 × 100 台 = <strong>10 万台机器</strong>；每台 100 个指标 → <strong>1000 万条时间序列</strong>。</p>
+<p>如果采集间隔是 10 秒，写入速率就是 <code>1000 万 ÷ 10 = 每秒 100 万个数据点</code>。</p>
+<p>一天就是 <code>100 万 × 86400 ≈ 864 亿个数据点</code>。按每点压缩后约 2 字节估算（时序数据库的典型压缩水平），大约 <strong>170 GB/天</strong>。</p>
+<p>再套用保留策略：7 天原始数据约 <strong>1.2 TB</strong>；30 天的 1 分钟数据约 <strong>0.9 TB</strong>；剩下约 328 天的 1 小时数据约 <strong>0.16 TB</strong>。<strong>稳态总占用约 2.2 TB</strong>——这是个完全可控的数字，但前提是<strong>每一条时间序列都真的有必要存在</strong>。第 4 节会讲这条前提是怎么被打破的。</p>
+</blockquote>
+<h3 id="非功能需求">非功能需求</h3>
+<ul>
+<li><strong>可扩展（Scalability）</strong>：能容纳更多指标和告警；</li>
+<li><strong>低延迟（Low Latency）</strong>：仪表盘和告警的查询必须快——告警慢一分钟，故障就多持续一分钟；</li>
+<li><strong>可靠（Reliability）</strong>：不能漏掉关键告警；</li>
+<li><strong>灵活（Flexibility）</strong>：未来能方便地接入新技术。</li>
+</ul>
+<h3 id="明确排除的范围">明确排除的范围</h3>
+<ul>
+<li><strong>日志监控（Log Monitoring）</strong>：ELK 技术栈是这个场景的主流方案，不在本章范围；</li>
+<li><strong>分布式链路追踪（Distributed Tracing）</strong>：指跟踪一个请求在多个服务之间流转的完整生命周期，也不在本章范围。</li>
+</ul>
+<blockquote>
+<p>面试里**主动说出「这两个不在范围内」**是加分项——它说明你知道监控、日志、追踪是三个不同的领域（业界常称为可观测性的三大支柱）。</p>
+</blockquote>
+<hr />
+<h2 id="3-五个核心组件与高层架构">3. 五个核心组件与高层架构</h2>
+<p>一个指标监控与告警系统有五个核心组件：</p>
+<div align="center"><img src="./images/metrics-monitoring-core-components.png" alt="监控告警系统的五个核心组件：采集、传输、存储、告警、可视化" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li><strong>数据采集（Data Collection）</strong>：从各种来源收集指标数据；</li>
+<li><strong>数据传输（Data Transmission）</strong>：把数据从来源传到监控系统；</li>
+<li><strong>数据存储（Data Storage）</strong>：组织和存储收到的数据；</li>
+<li><strong>告警（Alerting）</strong>：分析数据、检测异常、产生告警；</li>
+<li><strong>可视化（Visualization）</strong>：用图表展示数据。</li>
+</ul>
+<p>对应的高层设计：</p>
+<div align="center"><img src="./images/high-level-design.png" alt="监控告警系统的高层设计" width="520" loading="lazy" decoding="async"></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>指标来源（Metrics Source）</strong></td>
+<td>应用服务器、SQL 数据库、消息队列等</td>
+</tr>
+<tr>
+<td><strong>指标采集器（Metrics Collector）</strong></td>
+<td>收集指标数据并写入时序数据库</td>
+</tr>
+<tr>
+<td><strong>时序数据库（Time-Series Database）</strong></td>
+<td>以时间序列形式存储指标，提供专用查询接口</td>
+</tr>
+<tr>
+<td><strong>查询服务（Query Service）</strong></td>
+<td>让查询和检索更容易。如果数据库自带接口足够强，这一层可以省掉</td>
+</tr>
+<tr>
+<td><strong>告警系统（Alerting System）</strong></td>
+<td>向各个告警接收方发送通知</td>
+</tr>
+<tr>
+<td><strong>可视化系统（Visualization System）</strong></td>
+<td>用图表展示指标</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-数据模型时间序列与标签">4. 数据模型：时间序列与标签</h2>
+<p>指标数据通常记录为<strong>时间序列（Time Series）</strong>：一组带时间戳的值。一条序列由<strong>名字</strong>和一组<strong>可选的标签（Tag / Label）</strong> 唯一标识。</p>
+<p><strong>例 1：生产服务器 i631 在 20:00 的 CPU 负载是多少？</strong></p>
+<div align="center"><img src="./images/metrics-example-1.png" alt="按主机名查询 CPU 负载" width="520" loading="lazy" decoding="async"></div>
+<div align="center"><img src="./images/metrics-example-1-data.png" alt="CPU 负载的表格形式数据" width="520" loading="lazy" decoding="async"></div>
+<p>这条时间序列由<strong>指标名、标签、以及某个具体时刻上的一个点</strong>共同标识。</p>
+<p><strong>例 2：us-west 区域所有 Web 服务器最近 10 分钟的平均 CPU 负载是多少？</strong></p>
+<pre><code>CPU.load host=webserver01,region=us-west 1613707265 50
+CPU.load host=webserver01,region=us-west 1613707265 62
+CPU.load host=webserver02,region=us-west 1613707265 43
+CPU.load host=webserver02,region=us-west 1613707265 53
+...
+</code></pre>
+<p>把最后一列的值取平均，就得到了答案。这种格式叫<strong>行协议（Line Protocol）</strong>，很多主流监控软件都在用。</p>
+<blockquote>
+<p><strong>原文这里有两处不准确，先记一笔</strong></p>
+<p>① 上面这个例子的<strong>字段顺序并不符合 InfluxDB 的行协议</strong>。InfluxDB 的格式是 <code>&lt;指标名&gt;[,&lt;标签&gt;...] &lt;字段&gt;=&lt;值&gt; [&lt;时间戳&gt;]</code>，比如 <code>weather,location=us-midwest temperature=82 1465839830100400200</code>——<strong>字段名和值必须在时间戳之前，而且要有 <code>=</code></strong>。原文的例子把时间戳放在值前面，格式是错的。</p>
+<p>② 原文说这个格式「被 Prometheus、OpenTSDB 等使用」——<strong>Prometheus 不用行协议</strong>。它有自己的文本暴露格式 <code>metric_name{label=&quot;value&quot;} 42</code>，远程写则是 protobuf。三种格式被混在一起了。详见文末【勘误与补充】。</p>
+</blockquote>
+<p>一条时间序列由什么构成：</p>
+<div align="center"><img src="./images/time-series-data-example.png" alt="时间序列的组成：指标名、标签、时间戳、值" width="520" loading="lazy" decoding="async"></div>
+<p>一个直观的可视化方式：</p>
+<div align="center"><img src="./images/time-series-data-viz.png" alt="时间序列可视化：横轴是时间，纵轴是查询维度" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li>横轴（x）是<strong>时间</strong>；</li>
+<li>纵轴（y）是<strong>你要查询的维度</strong>——比如指标名、标签等。</li>
+</ul>
+<p><strong>数据的访问模式</strong>是：<strong>写入密集 + 读取呈尖峰</strong>。我们持续采集海量指标，但这些数据平时很少被读——只在出事故时被集中、大量地读取。</p>
+<h3 id="原笔记缺失的核心内容基数爆炸">原笔记缺失的核心内容：基数爆炸</h3>
+<p>原文只有一句「保持标签基数低很重要」，但没说清楚后果。这是本章最该讲透的工程风险。</p>
+<p><strong>基数（Cardinality）</strong> 指的是<strong>不同时间序列的总条数</strong>。它由所有标签的<strong>取值组合数</strong>决定：</p>
+<pre><code>序列条数 = (标签 A 的取值数) × (标签 B 的取值数) × (标签 C 的取值数) × ...
+</code></pre>
+<p><strong>关键点：标签是相乘的，不是相加的。</strong> 这是所有事故的根源。</p>
+<p>看一个真实场景。你给一个 HTTP 请求指标打了几个看起来很合理的标签：</p>
+<pre><code>http_requests_total{method=&quot;GET&quot;, path=&quot;/api/user&quot;, status=&quot;200&quot;} 1
+</code></pre>
+<p>基数 = 3 种 method × 10 条 path × 5 种 status = <strong>150 条序列</strong>。完全没问题。</p>
+<p>现在有人加了两个「方便排查」的标签：</p>
+<pre><code>http_requests_total{method=&quot;GET&quot;, path=&quot;/api/user&quot;, status=&quot;200&quot;,
+                    user_id=&quot;88231&quot;, request_id=&quot;a3f9-...&quot;} 1
+</code></pre>
+<ul>
+<li><code>user_id</code> 有 100 万个取值 → 基数 × 100 万</li>
+<li><code>request_id</code> 每条请求都不一样 → 基数 <strong>无限增长</strong></li>
+</ul>
+<p>结果是：<strong>这个指标每天新增几亿条序列，每条序列至少要占内存里的一份索引和元数据</strong>。监控系统会在几小时内 OOM 崩溃。而崩溃的监控系统，在你最需要它的时候是彻底没用的。</p>
+<p><strong>什么样的标签是危险的？</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>标签类型</th>
+<th>例子</th>
+<th>危险程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>枚举值，取值固定且少</td>
+<td><code>method</code>、<code>status</code>、<code>region</code>、<code>env</code></td>
+<td>安全</td>
+</tr>
+<tr>
+<td>取值有限但较多</td>
+<td><code>path</code>（如果是 RESTful 路由模板，如 <code>/api/user/:id</code>）</td>
+<td>可用，但要控制数量</td>
+</tr>
+<tr>
+<td>取值随业务增长</td>
+<td><code>user_id</code>、<code>order_id</code>、<code>tenant_id</code></td>
+<td><strong>危险</strong>，会随用户量线性增长</td>
+</tr>
+<tr>
+<td>每次都不同</td>
+<td><code>request_id</code>、<code>trace_id</code>、<code>session_id</code>、时间戳</td>
+<td><strong>绝对禁止</strong>，会无限增长</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>正确做法：</strong></p>
+<ol>
+<li><strong>永远不要用高基数维度做标签</strong>。<code>user_id</code>、<code>request_id</code> 这类信息应该写进<strong>日志（Log）或追踪（Trace）</strong>，而不是指标标签——日志系统是按量存储的，天然能承受这种维度。</li>
+<li><strong>路径要归一化</strong>。用路由模板 <code>/api/user/:id</code> 而不是真实路径 <code>/api/user/88231</code>。</li>
+<li><strong>用聚合换基数</strong>。如果确实需要统计每个用户的请求数，把它做成一个独立的、只在需要时开启的指标，或者放到业务数仓里算。</li>
+<li><strong>监控你的监控系统</strong>。给「当前活跃序列数」本身设一条指标和告警，基数是<strong>渐进式</strong>失控的，早发现能救你一命。</li>
+<li><strong>用直方图（Histogram）而不是标签来记录延迟分布</strong>。这是 Prometheus 的经典实践。</li>
+</ol>
+<blockquote>
+<p><strong>一句话总结</strong>：标签是<strong>乘法</strong>的。加一个标签很容易，加完之后基数可能涨一万倍。设计指标时先问自己：「这个标签的取值会随时间增长吗？」如果答案是「会」，就不要用它。</p>
+</blockquote>
+<hr />
+<h2 id="5-时序数据库为什么不能用-mysql">5. 时序数据库：为什么不能用 MySQL</h2>
+<p>数据存储系统是整个设计的核心。</p>
+<ul>
+<li><strong>不建议用通用数据库</strong>。虽然专家级调优后也能撑住一定规模，但通用数据库的存储引擎、索引结构、查询优化器都不是为时序数据设计的。</li>
+<li><strong>NoSQL 理论上可以</strong>，但很难设计出一套能高效存储和查询时间序列的可扩展模式（Schema）。</li>
+</ul>
+<p>于是出现了一批<strong>专门为时序数据设计的数据库</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>产品</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OpenTSDB</strong></td>
+<td>分布式时序数据库，但基于 Hadoop 和 HBase。如果你没有这套基础设施，用起来会很吃力</td>
+</tr>
+<tr>
+<td><strong>MetricsDB</strong></td>
+<td>Twitter 内部使用的时序数据库</td>
+</tr>
+<tr>
+<td><strong>Amazon Timestream</strong></td>
+<td>AWS 的托管时序数据库服务</td>
+</tr>
+<tr>
+<td><strong>InfluxDB</strong></td>
+<td>最流行的时序数据库之一，基于<strong>内存缓存 + 磁盘存储</strong></td>
+</tr>
+<tr>
+<td><strong>Prometheus</strong></td>
+<td>最流行的监控系统之一，自带 TSDB，同样是内存 + 磁盘结构</td>
+</tr>
+</tbody>
+</table></div>
+<p>InfluxDB 官方给出的一个规模参考：<strong>8 核 32GB 内存的机器，写入能力超过每秒 25 万点</strong>。</p>
+<div align="center"><img src="./images/influxdb-scale.png" alt="InfluxDB 在 8 核 32GB 配置下的写入性能" width="520" loading="lazy" decoding="async"></div>
+<p>原文说「不要求你理解指标数据库的内部实现，这属于小众知识」。这句话对面试场景成立，但对<strong>工程判断</strong>不成立：至少要知道两件事——<strong>标签基数决定内存占用</strong>，<strong>压缩算法决定存储成本</strong>。这两点会直接决定你的监控系统能不能活过第一个月。</p>
+<p>时序数据库的一个核心能力是<strong>按标签高效聚合和分析海量时序数据</strong>。InfluxDB 会为每个标签建立索引。</p>
+<blockquote>
+<p><strong>但索引是有代价的</strong>：索引本身要占内存。标签取值越多，索引越大。这就是上一节基数爆炸在存储层的直接后果——<strong>不是磁盘写不下，而是内存先爆</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="6-指标采集一拉模式pull">6. 指标采集（一）：拉模式（Pull）</h2>
+<p>采集指标时，<strong>偶尔丢几个数据点不是关键问题</strong>——客户端可以「发完就忘（Fire and Forget）」。这个前提很重要，它意味着采集链路可以用比较轻量的协议。</p>
+<div align="center"><img src="./images/metrics-collection.png" alt="指标采集：从各类来源收集数据" width="520" loading="lazy" decoding="async"></div>
+<p>采集有两种实现方式：<strong>拉（Pull）</strong> 和 <strong>推（Push）</strong>。</p>
+<p>拉模式的形态如下：</p>
+<div align="center"><img src="./images/pull-model-example.png" alt="拉模式：采集器主动去各服务的指标端点抓取" width="520" loading="lazy" decoding="async"></div>
+<p>采集器需要维护一份<strong>最新</strong>的服务与指标端点列表，这就要靠<strong>服务发现（Service Discovery）</strong>，可以用 ZooKeeper 或 etcd 实现。服务发现里包含「从哪采、什么时候采」的配置规则：</p>
+<div align="center"><img src="./images/service-discovery-example.png" alt="服务发现配置：采集目标、采集间隔、超时与重试参数" width="520" loading="lazy" decoding="async"></div>
+<p>完整的采集流程：</p>
+<div align="center"><img src="./images/metrics-collection-flow.png" alt="拉模式的完整采集流程" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li>采集器从服务发现获取配置元数据，包括<strong>采集间隔、IP 地址、超时与重试参数</strong>；</li>
+<li>采集器通过预定义的 HTTP 端点（比如 <code>/metrics</code>）拉取指标，通常由客户端库暴露；</li>
+<li>或者，采集器向服务发现<strong>注册变更事件通知</strong>，端点变化时被主动告知；</li>
+<li>另一种方式是采集器<strong>定期轮询</strong>指标端点配置的变更。</li>
+</ol>
+<h3 id="多个采集器之间怎么协调">多个采集器之间怎么协调</h3>
+<p>在我们的规模下，单个采集器肯定不够，必须部署多个实例。但多个采集器之间必须同步，<strong>否则两个采集器会重复采集同一批指标</strong>。</p>
+<p>一个解决方案是把<strong>采集器和被采集服务器放在同一个一致性哈希环（Consistent Hash Ring）上</strong>，让一组服务器只对应一个采集器：</p>
+<div align="center"><img src="./images/consistent-hash-ring.png" alt="一致性哈希环：一组服务器只由一个采集器负责" width="520" loading="lazy" decoding="async"></div>
+<hr />
+<h2 id="7-指标采集二推模式push与取舍">7. 指标采集（二）：推模式（Push）与取舍</h2>
+<p>推模式下，服务主动把指标推给采集器：</p>
+<div align="center"><img src="./images/push-model-example.png" alt="推模式：服务主动把指标推给采集器" width="520" loading="lazy" decoding="async"></div>
+<p>这种方案通常会在服务实例旁边部署一个<strong>采集代理（Agent）</strong>：代理从服务器收集指标，再推给采集器。</p>
+<div align="center"><img src="./images/metrics-collector-agent.png" alt="采集代理与被监控服务部署在一起" width="520" loading="lazy" decoding="async"></div>
+<p>推模式的一个好处是：<strong>可以在发送前先在本地做聚合</strong>，从而减少采集器要处理的数据量。反过来，采集器可能因为处理不过来而<strong>拒绝</strong>推送请求——所以采集器必须放在负载均衡器后面的<strong>自动伸缩组（Auto-Scaling Group）</strong> 里。</p>
+<h3 id="六个维度的对比">六个维度的对比</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>拉模式（Pull）</th>
+<th>推模式（Push）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>调试便利性</strong></td>
+<td>应用服务器上的 <code>/metrics</code> 端点随时可以打开看指标，甚至在你自己的笔记本上就能验证。<strong>拉胜</strong></td>
+<td>采集器收不到数据时，你无法区分是服务挂了还是网络问题</td>
+</tr>
+<tr>
+<td><strong>健康检查</strong></td>
+<td>服务不响应拉取，立刻能判断它挂了。<strong>拉胜</strong></td>
+<td>同样无法区分服务挂了还是网络问题</td>
+</tr>
+<tr>
+<td><strong>短生命周期任务</strong></td>
+<td>批量任务存活时间太短，来不及被拉到</td>
+<td><strong>推胜</strong>。这是拉模式的硬伤，需要用 Pushgateway 弥补</td>
+</tr>
+<tr>
+<td><strong>防火墙与复杂网络</strong></td>
+<td>要求所有指标端点都能被采集器访问，多数据中心场景下可能很麻烦</td>
+<td>采集器配好负载均衡和自动伸缩后，可以从任何地方接收数据。<strong>推胜</strong></td>
+</tr>
+<tr>
+<td><strong>性能</strong></td>
+<td>拉模式通常用 TCP</td>
+<td>推模式常被说成「用 UDP，延迟更低」——<strong>这个说法不准确</strong>，见文末勘误</td>
+</tr>
+<tr>
+<td><strong>数据真实性</strong></td>
+<td>采集目标在配置里预先定义，来源可信</td>
+<td>任何客户端都能推数据。需要用白名单或鉴权来限制</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>没有绝对的赢家。</strong> 大型组织往往两种都要支持——毕竟有些场景下你根本没法在目标机器上安装推送代理。</p>
+<blockquote>
+<p><strong>补充：短生命周期任务与 Pushgateway</strong></p>
+<p>这是拉模式唯一真正的硬伤，值得单独说清楚。</p>
+<p>一个每天跑一次、只活 30 秒的定时任务，Prometheus 每 15 秒拉一次，<strong>大概率一次都拉不到</strong>——任务早就退出了。你可能会想「把采集间隔调小」？但采集间隔是全局配置，为了一个 30 秒的任务把全局间隔调到 5 秒，会让整个系统的数据量涨三倍。</p>
+<p><strong>正确解法是 Pushgateway</strong>：任务在退出前，主动把自己的指标 <code>POST</code> 到 Pushgateway；Pushgateway 常驻运行，对外暴露 <code>/metrics</code>，让 Prometheus 像拉普通服务一样拉它。</p>
+<p>但 Pushgateway 有三个必须知道的坑：</p>
+<ol>
+<li><strong>它不会自动清理</strong>。推送上去的指标会<strong>永久保留</strong>，直到你手动删除或重启。一个跑了一次的任务，它的指标会一直显示在监控里——这是最常见的误用。</li>
+<li><strong>它不适合长期运行的服务</strong>。Pushgateway 会丢失实例维度（多个实例推同一个 job 会互相覆盖），也让「实例是否存活」的监控失效。</li>
+<li><strong>它无法做健康检查</strong>。因为指标是「推上来的」，Pushgateway 不知道推送者是否还活着。</li>
+</ol>
+<p><strong>一句话原则</strong>：<strong>长期运行的服务用 Pull，短生命周期的批处理任务用 Push（经由 Pushgateway）</strong>。不要为了图方便把所有东西都推给 Pushgateway。</p>
+</blockquote>
+<hr />
+<h2 id="8-传输管道用消息队列削峰">8. 传输管道：用消息队列削峰</h2>
+<div align="center"><img src="./images/metrics-transmission-pipeline.png" alt="指标传输管道：采集器位于自动伸缩组中" width="520" loading="lazy" decoding="async"></div>
+<p>无论用推还是拉，采集器都部署在<strong>自动伸缩组</strong>里。但如果时序数据库宕机，采集到的数据就会丢失。为了缓解这个问题，我们引入一个<strong>排队机制</strong>：</p>
+<div align="center"><img src="./images/queuing-mechanism.png" alt="排队机制：采集器先写入 Kafka，再由消费者写入时序数据库" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li>采集器把指标数据推入 <strong>Kafka</strong>；</li>
+<li>消费者或流处理服务（如 Apache Storm、Flink、Spark）处理数据，再写入时序数据库。</li>
+</ul>
+<p>这个方案有几个好处：</p>
+<ul>
+<li>Kafka 是一个<strong>高可靠、可扩展</strong>的分布式消息平台；</li>
+<li>它把<strong>数据采集</strong>和<strong>数据处理</strong>解耦；</li>
+<li>数据保留在 Kafka 里，可以<strong>防止数据丢失</strong>——时序数据库恢复了再补写。</li>
+</ul>
+<p>Kafka 可以按<strong>指标名分区</strong>，让消费者按指标名聚合数据。要进一步扩展，可以再按<strong>标签</strong>分区，并对指标做分类和优先级排序，优先采集重要指标。</p>
+<div align="center"><img src="./images/metrics-collection-kafka.png" alt="用 Kafka 分区来做指标聚合" width="520" loading="lazy" decoding="async"></div>
+<p>用 Kafka 的主要缺点是<strong>运维开销</strong>。一个替代方案是使用大规模摄取系统，比如 Facebook 的 <strong>Gorilla</strong>。</p>
+<blockquote>
+<p><strong>原文这里有个数字问题，值得算一下</strong></p>
+<p>原文说「Kafka 可以配置成<strong>每个指标名一个分区</strong>」。听起来很合理，但套到我们自己的规模上：<strong>1000 万个指标名 → 1000 万个分区</strong>。</p>
+<p>这个数量级是<strong>不可行</strong>的。Kafka 的每个分区都有固定开销（文件句柄、内存中的索引、副本同步线程），业界实践中单个集群的分区总数通常控制在<strong>几十万</strong>量级——而 KRaft 模式的目标也只是「百万级分区」。1000 万分区需要十个满配集群，而且消费者数量、再均衡时间都会失控。</p>
+<p><strong>更现实的做法</strong>：按「指标名的哈希值」分区（而不是每个指标名一个分区），让同一个指标的数据落在同一个分区里，这样既能做按指标聚合，分区数又保持在一个可控的量级（比如几百到几千个）。再要扩展，就叠加一层标签哈希。</p>
+</blockquote>
+<h3 id="聚合可以发生在哪里">聚合可以发生在哪里</h3>
+<p>指标可以在三个位置聚合，各有取舍：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>位置</th>
+<th>做法</th>
+<th>优点</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>采集代理（Collection Agent）</strong></td>
+<td>客户端本地做简单聚合，比如「统计 1 分钟内的计数器再上报」</td>
+<td>大幅减少传输量</td>
+<td>只能做简单逻辑；丢失原始精度</td>
+</tr>
+<tr>
+<td><strong>摄取管道（Ingestion Pipeline）</strong></td>
+<td>写库前用 Flink 之类的流处理引擎聚合</td>
+<td>减少写入量</td>
+<td><strong>丢失数据精度</strong>，原始数据不再存在</td>
+</tr>
+<tr>
+<td><strong>查询侧（Query Side）</strong></td>
+<td>查询时在可视化系统里聚合</td>
+<td>不丢数据，随时可以换聚合方式</td>
+<td>查询慢，因为要处理大量原始数据</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>怎么选？</strong> 一个实用的判断标准是：<strong>保留原始数据的时间要短，聚合数据的时间要长</strong>。所以常见的组合是——采集代理做轻量预聚合，摄取管道做分钟级降采样，长期数据靠查询侧。</p>
+<hr />
+<h2 id="9-查询服务与查询语言">9. 查询服务与查询语言</h2>
+<p>把查询服务从时序数据库里独立出来，可以让可视化和告警系统与数据库解耦，从而能自由更换数据库而不影响上层。</p>
+<p>我们还可以加一层<strong>缓存</strong>来减轻时序数据库的压力：</p>
+<div align="center"><img src="./images/cache-layer-query-service.png" alt="在查询服务前加缓存层" width="520" loading="lazy" decoding="async"></div>
+<p>不过也可以<strong>完全不建查询服务</strong>——大多数可视化和告警系统都有强大的插件能直接对接主流时序数据库。如果选对了数据库，连自己写缓存层都不需要。</p>
+<h3 id="为什么时序数据库通常不支持-sql">为什么时序数据库通常不支持 SQL</h3>
+<p>大多数时序数据库不支持标准 SQL，原因很简单：<strong>SQL 表达时序查询非常低效</strong>。原文给了一个计算指数移动平均的例子：</p>
+<pre><code class="language-sql">select id,
+       temp,
+       avg(temp) over (partition by group_nr order by time_read) as rolling_avg
+from (
+  select id,
+         temp,
+         time_read,
+         interval_group,
+         id - row_number() over (partition by interval_group order by time_read) as group_nr
+  from (
+    select id,
+    time_read,
+    &quot;epoch&quot;::timestamp + &quot;900 seconds&quot;::interval * (extract(epoch from time_read)::int4 / 900) as interval_group,
+    temp
+    from readings
+  ) t1
+) t2
+order by time_read;
+</code></pre>
+<p>同样的查询用 InfluxDB 的查询语言 Flux 写出来：</p>
+<pre><code>from(db:&quot;telegraf&quot;)
+  |&gt; range(start:-1h)
+  |&gt; filter(fn: (r) =&gt; r._measurement == &quot;foo&quot;)
+  |&gt; exponentialMovingAverage(size:-10s)
+</code></pre>
+<p>差距一目了然：SQL 版本需要三层嵌套子查询加窗口函数，Flux 版本用管道（Pipe）把「取时间范围 → 过滤 → 计算」串起来，语义直白得多。</p>
+<blockquote>
+<p><strong>补充：PromQL 与记录规则（Recording Rules）</strong></p>
+<p>现代监控里最重要的查询语言是 Prometheus 的 <strong>PromQL</strong>。它有几个概念值得提前建立：</p>
+<ul>
+<li><strong>瞬时向量（Instant Vector）</strong>：某个时刻的一组序列，如 <code>http_requests_total</code>；</li>
+<li><strong>区间向量（Range Vector）</strong>：一段时间窗口内的样本，用 <code>[5m]</code> 表示；</li>
+<li><strong>速率计算</strong>：<code>rate(http_requests_total[5m])</code> 计算每秒增长率——这是最常用的写法，也是初学者最容易写错的（计数器只能配 <code>rate</code>/<code>increase</code>，不能直接算差值，因为进程重启会让计数器归零）；</li>
+<li><strong>聚合</strong>：<code>sum by (service) (rate(http_requests_total[5m]))</code> 按服务维度求和；</li>
+<li><strong>分位数</strong>：<code>histogram_quantile(0.99, ...)</code> 从直方图估算 P99 延迟。</li>
+</ul>
+<p><strong>记录规则（Recording Rules）</strong> 解决的是另一个问题：如果仪表盘上有个很重的查询（比如跨 100 万台机器的 <code>rate</code> 再聚合），每次打开都要现算，会拖垮数据库。记录规则让你<strong>定期把查询结果预先算好、存成一条新指标</strong>，仪表盘直接读结果。这是「查询侧的降采样」。</p>
+</blockquote>
+<hr />
+<h2 id="10-存储层编码降采样与长期存储">10. 存储层：编码、降采样与长期存储</h2>
+<p>选时序数据库要谨慎。Facebook 发表过一项研究：<strong>对运维存储的查询中，约 85% 是针对过去 26 小时数据的</strong>。</p>
+<p>如果我们选一个能利用这个特性的数据库，对系统性能会有显著影响——InfluxDB 就是这类设计（近期的热数据优先）。</p>
+<p>无论选哪个数据库，都有一些通用的优化手段。</p>
+<h3 id="数据编码与压缩">数据编码与压缩</h3>
+<p>编码和压缩能显著减小数据体积，好的时序数据库通常内置了这些能力。</p>
+<div align="center"><img src="./images/double-delta-encoding.png" alt="双增量编码：只存时间戳的差值" width="520" loading="lazy" decoding="async"></div>
+<p>上面这个例子里，我们<strong>不存完整时间戳，而是存时间戳的增量（Delta）</strong>。</p>
+<blockquote>
+<p><strong>补充：原文说的是「增量」，而图里展示的是「双增量」</strong></p>
+<p>图的名字叫 double-delta encoding（双增量编码），来自 Facebook 的 Gorilla 论文。它的做法比原文描述的更进一步：</p>
+<ul>
+<li><strong>时间戳用 delta-of-delta（增量之增量）</strong>。如果采集间隔稳定是 10 秒，那么「增量」永远是 10，而「增量的增量」永远是 0——<strong>一串 0 几乎不占空间</strong>。一旦间隔抖动，增量之增量才变成一个小数字，也能用很少的比特表示。</li>
+<li><strong>数值用 XOR 编码</strong>。相邻两个数值通常很接近（比如 CPU 使用率 51.2 → 51.3），二进制表示的高位几乎相同。把当前值和上一个值做<strong>异或（XOR）</strong>，结果里绝大多数位是 0，再用前导零/尾随零压缩，往往能把 64 位压到几个比特。</li>
+</ul>
+<p>Gorilla 论文报告的整体压缩效果是<strong>平均每个数据点约 1.37 字节</strong>——相比原始 16 字节（8 字节时间戳 + 8 字节浮点值），压缩比超过 10 倍。这是上一节那个「2.2 TB」估算能成立的前提。</p>
+</blockquote>
+<h3 id="降采样downsampling">降采样（Downsampling）</h3>
+<p>把高分辨率数据转换成低分辨率，以减少磁盘占用。可以用在旧数据上，并把规则配置成：</p>
+<ul>
+<li>7 天内：不降采样；</li>
+<li>30 天内：降采样到 1 分钟；</li>
+<li>1 年内：降采样到 1 小时。</li>
+</ul>
+<p>原文给了一个例子，10 秒分辨率的数据：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>metric</th>
+<th>timestamp</th>
+<th>hostname</th>
+<th>Metric_value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cpu</td>
+<td>2021-10-24T19:00:00Z</td>
+<td>host-a</td>
+<td>10</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>2021-10-24T19:00:10Z</td>
+<td>host-a</td>
+<td>16</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>2021-10-24T19:00:20Z</td>
+<td>host-a</td>
+<td>20</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>2021-10-24T19:00:30Z</td>
+<td>host-a</td>
+<td>30</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>2021-10-24T19:00:40Z</td>
+<td>host-a</td>
+<td>20</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>2021-10-24T19:00:50Z</td>
+<td>host-a</td>
+<td>30</td>
+</tr>
+</tbody>
+</table></div>
+<p>降采样到 30 秒分辨率：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>metric</th>
+<th>timestamp</th>
+<th>hostname</th>
+<th>Metric_value (avg)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cpu</td>
+<td>2021-10-24T19:00:00Z</td>
+<td>host-a</td>
+<td>19</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>2021-10-24T19:00:30Z</td>
+<td>host-a</td>
+<td>25</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>这张表的算术是错的，自己算一遍就知道</strong></p>
+<p>10 秒降到 30 秒，意味着<strong>每个 30 秒的桶里正好装 3 个点</strong>。</p>
+<ul>
+<li>第一个桶：<code>(10 + 16 + 20) ÷ 3 = 46 ÷ 3 ≈ 15.3</code></li>
+<li>第二个桶：<code>(30 + 20 + 30) ÷ 3 = 80 ÷ 3 ≈ 26.7</code></li>
+</ul>
+<p>表里写的却是 <strong>19 和 25</strong>。19 是怎么来的？<code>(10 + 16 + 20 + 30) ÷ 4 = 76 ÷ 4 = 19</code>——它把<strong>前四个点</strong>算成一组。25 则是 <code>(20 + 30) ÷ 2</code>——<strong>后两个点</strong>一组。</p>
+<p>也就是说，这张表用的是「4 个点 + 2 个点」这种<strong>桶大小不一致</strong>的分组方式，与它自己声明的「10 秒 → 30 秒」规则矛盾。正确结果应该是 <strong>15.3 和 26.7</strong>。</p>
+<p>这个错误本身不严重，但它提醒了一件事：<strong>降采样规则必须写清楚「桶的边界怎么对齐、桶里放几个点、空桶怎么办」</strong>，否则不同工具算出来的降采样结果会不一致，历史数据和实时数据在图上会「对不上」。</p>
+</blockquote>
+<h3 id="冷存储与长期存储">冷存储与长期存储</h3>
+<p>最后，可以用<strong>冷存储（Cold Storage）</strong> 来存放不再被频繁访问的旧数据，成本远低于在线存储。</p>
+<blockquote>
+<p><strong>补充：现代长期存储方案</strong></p>
+<p>原文只说了「用冷存储」，但没说具体怎么做。这是初级开发者最需要补的一块——因为<strong>Prometheus 本身不是为长期存储设计的</strong>：它的本地 TSDB 通常只保留 15 天到几个月，且<strong>不支持水平扩展</strong>（单节点，无法分片）。</p>
+<p>业界的标准解法是「<strong>Prometheus + 远程存储</strong>」，主流方案有四类：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>思路</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Thanos</strong></td>
+<td>在每个 Prometheus 实例旁挂一个 Sidecar，把数据块上传到对象存储；再由 Querier 层统一查询</td>
+<td>CNCF 项目，与 Prometheus 结合最紧密；查询层可以跨多个 Prometheus 与历史数据</td>
+</tr>
+<tr>
+<td><strong>Grafana Mimir / Cortex</strong></td>
+<td>完全替换 Prometheus 的存储与查询层，用微服务架构做多租户水平扩展</td>
+<td>适合大规模、多团队场景；运维复杂度高</td>
+</tr>
+<tr>
+<td><strong>VictoriaMetrics</strong></td>
+<td>单二进制的高性能 TSDB，兼容 PromQL 和 Prometheus 远程写协议</td>
+<td><strong>运维最简单</strong>，资源占用低，中小团队的首选</td>
+</tr>
+<tr>
+<td><strong>Prometheus 远程写 + 云托管</strong></td>
+<td>直接远程写到 Amazon Managed Service for Prometheus、Grafana Cloud 等</td>
+<td>免运维，但要考虑成本和数据出境</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>怎么选？</strong> 一个实用原则：</p>
+<ul>
+<li>单集群、几百 GB 以内 → <strong>原生 Prometheus 就够了</strong>，别过早引入复杂度；</li>
+<li>需要跨集群统一查询、长期保留 → <strong>Thanos 或 Mimir</strong>；</li>
+<li>想要最低的运维成本 → <strong>VictoriaMetrics</strong>。</li>
+</ul>
+<p>另外要理解<strong>降采样和长期存储是两件不同的事</strong>：降采样减少的是<strong>存储体积</strong>，长期存储解决的是<strong>保留时长和查询范围</strong>。很多团队以为「配了降采样就能存一年」，其实原生 Prometheus 的保留策略仍会按时间删除旧数据——要存一年，必须有远程存储。</p>
+</blockquote>
+<hr />
+<h2 id="11-告警系统">11. 告警系统</h2>
+<div align="center"><img src="./images/alerting-system.png" alt="告警系统架构：规则配置、告警管理器、告警存储、通知通道" width="520" loading="lazy" decoding="async"></div>
+<p>配置被加载到缓存服务器。规则通常用 YAML 定义，例如：</p>
+<pre><code class="language-yaml">- name: instance_down
+  rules:
+  # 任何实例超过 5 分钟无法访问时告警
+  - alert: instance_down
+    expr: up == 0
+    for: 5m
+    labels:
+      severity: page
+</code></pre>
+<p><strong>告警管理器（Alert Manager）</strong> 从缓存获取告警配置，按配置规则以预定义的间隔调用查询服务；如果规则命中，就产生一条告警事件。</p>
+<p>告警管理器的其他职责：</p>
+<ul>
+<li><strong>过滤、合并与去重</strong>：比如同一个实例的告警被触发多次，只生成一条告警事件；</li>
+<li><strong>访问控制</strong>：告警管理操作应限制在特定人员范围内；</li>
+<li><strong>重试</strong>：确保告警<strong>至少被投递一次</strong>。</li>
+</ul>
+<p><strong>告警存储（Alert Store）</strong> 是一个 KV 数据库（比如 Cassandra），保存所有告警的状态，确保通知至少发送一次。告警被触发后，发布到 Kafka。</p>
+<p>最后，<strong>告警消费者</strong>从 Kafka 拉取告警数据，通过不同渠道发送通知——邮件、短信、PagerDuty、Webhook。</p>
+<blockquote>
+<p>原文特别指出：真实世界里有很多现成的告警系统解决方案，<strong>自建很难找到充分的理由</strong>。</p>
+</blockquote>
+<h3 id="原笔记缺失的核心内容告警真正的难点">原笔记缺失的核心内容：告警真正的难点</h3>
+<p>原文描述的是一套「<strong>阈值告警</strong>」流水线：规则命中 → 产生事件 → 去重 → 发通知。这套机制本身没错，但它只解决了「怎么把告警发出去」，没有解决「<strong>该不该发这条告警</strong>」。而后者才是运维团队真正的痛点。</p>
+<p><strong>① 告警风暴（Alert Storm）</strong></p>
+<p>一个底层组件故障，会引发上游所有依赖它的服务同时报错。如果每个服务都配了自己的阈值告警，一次数据库抖动可能产生<strong>几千条告警</strong>同时涌向值班工程师的手机。</p>
+<p>后果不是「有点吵」，而是<strong>信息被淹没</strong>：真正那条「数据库主节点已下线」的关键告警，混在几千条「服务 X 错误率上升」里，根本找不到。<strong>告警风暴会直接延长故障恢复时间。</strong></p>
+<p>对策：</p>
+<ul>
+<li><strong>告警聚合（Grouping）</strong>：把同一时刻、同一原因触发的多条告警<strong>合并成一条通知</strong>。Alertmanager 的做法是按标签（比如 <code>alertname</code>、<code>cluster</code>、<code>service</code>）分组，同一个组里的告警只发一条消息，并列出受影响的实例。</li>
+<li><strong>告警抑制（Inhibition）</strong>：<strong>当一条更严重的告警已经触发时，压制由它引起的下游告警</strong>。比如「机房断电」告警触发后，这个机房里所有机器的「实例不可达」告警都应该被抑制掉——因为它们不是独立问题，而是同一个原因的结果。</li>
+<li><strong>静默（Silencing）</strong>：在计划内维护期间（比如发版、扩容）<strong>主动屏蔽</strong>相关告警，避免制造无意义的噪音。注意静默必须有<strong>明确的过期时间</strong>，否则会变成「永久静音」这种非常危险的状态。</li>
+</ul>
+<p><strong>② 告警疲劳（Alert Fatigue）</strong></p>
+<p>如果告警经常误报，或者大部分告警都不需要人介入，工程师就会开始<strong>忽略告警</strong>——看到手机震动不再点开，或者直接关掉通知。<strong>这比没有告警更危险，因为它制造了虚假的安全感。</strong></p>
+<p>判断你的团队是否已经告警疲劳，看一个指标就够：<strong>有多少比例的告警最终需要人工操作？</strong> 如果低于 50%，说明告警太吵了，应该删掉或降级一部分。</p>
+<p><strong>③ 基于 SLO 与错误预算的告警</strong></p>
+<p>这是现代 SRE 实践对「阈值告警」的替代方案，也是最有价值的补充。</p>
+<p>先建立三个概念：</p>
+<ul>
+<li><strong>SLI（Service Level Indicator，服务水平指标）</strong>：一个<strong>可量化</strong>的服务质量度量。比如「HTTP 请求成功率」「P99 延迟」「可用性」。</li>
+<li><strong>SLO（Service Level Objective，服务水平目标）</strong>：给 SLI 定的<strong>内部目标</strong>。比如「30 天窗口内，99.9% 的请求成功」。</li>
+<li><strong>错误预算（Error Budget）</strong>：<code>100% - SLO</code>。如果 SLO 是 99.9%，那么错误预算就是 <strong>0.1%</strong>——在 30 天里大约允许 <strong>43 分钟</strong>的完全不可用（按 30 × 24 × 60 × 0.001 ≈ 43.2 分钟计算）。</li>
+</ul>
+<p><strong>为什么这比阈值告警好？</strong></p>
+<p>阈值告警的困境是：定得低会天天误报，定得高会漏掉真故障。而错误预算把问题转换了：</p>
+<ul>
+<li><strong>告警不再是「某个指标超过某个值」，而是「错误预算的消耗速度异常」。</strong></li>
+<li>一种常见做法是<strong>多窗口、多燃烧率（Multi-Window, Multi-Burn-Rate）</strong> 告警：
+<ul>
+<li><strong>快燃烧</strong>：1 小时窗口内消耗掉 2% 的错误预算（相当于按当前速度 5 小时就会耗尽全部预算）→ <strong>立即呼叫值班</strong>；</li>
+<li><strong>慢燃烧</strong>：6 小时窗口内消耗 5% 的错误预算 → <strong>开一张工单</strong>，不用半夜叫人。</li>
+</ul>
+</li>
+</ul>
+<p>这样做的效果是：<strong>告警的紧急程度直接对应业务受影响的程度</strong>，而不是对应某个技术指标的绝对值。误报大幅减少，而且每条告警都能回答「为什么现在必须处理」。</p>
+<p><strong>④ RED 方法与 USE 方法：两套黄金指标框架</strong></p>
+<p>面对一个服务，你该监控哪些指标？这两个框架给了现成答案。</p>
+<p><strong>RED 方法（面向服务）</strong>——由 Tom Wilkie 提出，适用于<strong>请求驱动的服务</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rate（速率）</strong></td>
+<td>每秒处理的请求数</td>
+</tr>
+<tr>
+<td><strong>Errors（错误）</strong></td>
+<td>每秒失败的请求数（或错误率）</td>
+</tr>
+<tr>
+<td><strong>Duration（时长）</strong></td>
+<td>请求的耗时分布（重点是 P95 / P99，而不是平均值）</td>
+</tr>
+</tbody>
+</table></div>
+<p>RED 方法的价值在于：<strong>三个指标就能画出服务的健康全貌</strong>，而且全部是「用户视角」的——直接反映用户体验。</p>
+<p><strong>USE 方法（面向资源）</strong>——由 Brendan Gregg 提出，适用于<strong>硬件资源与基础设施组件</strong>（CPU、内存、磁盘、网卡）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+<th>怎么理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Utilization（使用率）</strong></td>
+<td>资源被占用的时间比例</td>
+<td>比如 CPU 使用率 80%</td>
+</tr>
+<tr>
+<td><strong>Saturation（饱和度）</strong></td>
+<td>资源排队等待的程度</td>
+<td>比如 CPU 运行队列长度、磁盘 IO 等待队列</td>
+</tr>
+<tr>
+<td><strong>Errors（错误）</strong></td>
+<td>错误事件计数</td>
+<td>比如网卡丢包、磁盘坏块</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>两者的关系</strong>：RED 回答「服务好不好」，USE 回答「资源够不够」。排查故障时的典型路径是——<strong>从 RED 发现异常，用 USE 定位到具体资源</strong>。比如「支付服务错误率上升」（RED）→ 查资源发现「数据库磁盘饱和度 100%」（USE）。</p>
+<blockquote>
+<p><strong>一句话总结</strong>：阈值告警只能告诉你「某个数字越界了」，而 SLO + 错误预算告诉你「<strong>这件事有多紧急</strong>」。生产环境的告警体系应该是两者的组合——底层用 USE 指标做诊断，上层用 SLO 燃烧率决定要不要叫人。</p>
+</blockquote>
+<hr />
+<h2 id="12-可视化与最终架构">12. 可视化与最终架构</h2>
+<p>可视化系统用图表展示一段时间内的指标与告警。下面是用 Grafana 搭建的仪表盘：</p>
+<div align="center"><img src="./images/grafana-dashboard.png" alt="Grafana 仪表盘示例" width="520" loading="lazy" decoding="async"></div>
+<p><strong>高质量的可视化系统非常难做</strong>，很难找到不使用 Grafana 这类现成方案的理由。</p>
+<p>最终的完整设计：</p>
+<div align="center"><img src="./images/final-design.png" alt="监控告警系统的最终架构" width="520" loading="lazy" decoding="async"></div>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>原文对监控系统的整体架构描述是准确的，五个核心组件、拉/推对比、降采样与告警流程都没有方向性错误。但<strong>具体格式、数字和行业格局</strong>上有多处需要更新，另有几个现代实践完全缺失。</p>
+</blockquote>
+<h3 id="勘误-1行协议的格式写错了而且-prometheus-并不用它">勘误 1：行协议的格式写错了，而且 Prometheus 并不用它</h3>
+<ul>
+<li><strong>原文说法</strong>：给出 <code>CPU.load host=webserver01,region=us-west 1613707265 50</code> 这样的例子，称其为「行协议」，并说它「被 Prometheus、OpenTSDB 等使用」。</li>
+<li><strong>问题</strong>：两处错误。① <strong>字段顺序不对</strong>。InfluxDB 行协议的正确格式是 <code>&lt;measurement&gt;[,&lt;tag&gt;=&lt;value&gt;...] &lt;field&gt;=&lt;value&gt;[,&lt;field&gt;=&lt;value&gt;...] [&lt;timestamp&gt;]</code>，例如 <code>weather,location=us-midwest temperature=82 1465839830100400200</code>——字段必须写成 <code>名=值</code>，且位于时间戳<strong>之前</strong>。原文的例子把时间戳放在了值前面。② <strong>Prometheus 不使用行协议</strong>，它用的是自己的文本暴露格式 <code>metric_name{label=&quot;value&quot;} 42</code>，远程写走 protobuf。</li>
+<li><strong>正确说法</strong>：这是三种不同的格式被混在一起了——InfluxDB 行协议、OpenTSDB 的 <code>put</code> 协议、Prometheus 文本格式。写文档时要说清用的是哪一种。</li>
+<li><strong>延伸</strong>：这个细节在面试里不致命，但如果你说自己「用过 InfluxDB」，面试官让你手写一行行协议时就会露馅。</li>
+</ul>
+<h3 id="勘误-2降采样表格的算术是错的">勘误 2：降采样表格的算术是错的</h3>
+<ul>
+<li><strong>原文说法</strong>：把 10 秒分辨率的 <code>10, 16, 20, 30, 20, 30</code> 降采样到 30 秒分辨率，得到 <code>19, 25</code>。</li>
+<li><strong>问题</strong>：10 秒 → 30 秒意味着每个桶<strong>正好 3 个点</strong>，正确结果是 <code>(10+16+20)/3 ≈ 15.3</code> 和 <code>(30+20+30)/3 ≈ 26.7</code>。原文的 19 是 <code>(10+16+20+30)/4</code>，25 是 <code>(20+30)/2</code>——它用了「4 个点 + 2 个点」这种桶大小不一致的分组，与声明的规则自相矛盾。</li>
+<li><strong>正确说法</strong>：正确值是 <strong>15.3 和 26.7</strong>。</li>
+<li><strong>延伸</strong>：这个错误本身很小，但它暴露了一个真实的工程坑——<strong>降采样规则必须明确定义桶的边界对齐方式、每桶点数、以及空桶如何处理</strong>。不同工具（Prometheus recording rules、Thanos downsampling、InfluxDB continuous queries）在这些细节上做法不同，配置不当会导致<strong>历史数据与实时数据在图上对不上</strong>。</li>
+</ul>
+<h3 id="勘误-3推模式通常用-udp是不准确的">勘误 3：「推模式通常用 UDP」是不准确的</h3>
+<ul>
+<li>
+<p><strong>原文说法</strong>：对比表里写「Pull methods typically use TCP. Push methods typically use UDP. This means the push method provides lower-latency transports of metrics.」</p>
+</li>
+<li>
+<p><strong>问题</strong>：这是对特定实现的过度概括。<strong>StatsD</strong> 确实默认用 UDP（为了极低开销），但这不是「推模式」的固有属性：</p>
+<ul>
+<li><strong>Graphite 的 carbon</strong> 默认用 <strong>TCP</strong>（明文端口 2003，pickle 端口 2004）；</li>
+<li><strong>Amazon CloudWatch</strong> 通过 <strong>HTTPS</strong>（基于 TCP）接收指标；</li>
+<li><strong>OpenTelemetry</strong> 的 OTLP 协议主流实现是 <strong>gRPC/HTTP over TCP</strong>；</li>
+<li><strong>Prometheus 的 remote write</strong> 也是 HTTP over TCP。</li>
+</ul>
+<p>也就是说，<strong>今天绝大多数推送方案都跑在 TCP 上</strong>。</p>
+</li>
+<li>
+<p><strong>正确说法</strong>：UDP 只是 StatsD 这类「对丢包不敏感、追求极致轻量」的采集方式的选择。而且原文自己也给了反驳：「建立 TCP 连接的开销相比发送指标负载来说很小」——既然如此，就不该把「推模式 = 低延迟」列为推的优势。</p>
+</li>
+<li>
+<p><strong>延伸</strong>：UDP 在指标采集里的确有个合理场景：<strong>极高的采集频率 + 可容忍丢包</strong>（比如每秒钟采一次的高频指标）。但代价是<strong>数据可能乱序、丢失、被中间设备静默丢弃</strong>，而且没有拥塞控制。生产环境的默认选择应该是 TCP。</p>
+</li>
+</ul>
+<h3 id="勘误-4每个指标名一个-kafka-分区在本书的规模下不可行">勘误 4：「每个指标名一个 Kafka 分区」在本书的规模下不可行</h3>
+<ul>
+<li><strong>原文说法</strong>：「Kafka can be configured with one partition per metric name, so that consumers can aggregate data by metric names.」</li>
+<li><strong>问题</strong>：套用本章自己的规模假设（1000 万条时间序列），这意味着<strong>上千万个分区</strong>。Kafka 的每个分区都有文件句柄、内存索引和副本同步线程的固定开销，实践中单集群分区总数通常在<strong>几十万</strong>量级，KRaft 的目标也只是「百万级」。1000 万分区需要多个满配集群，而且消费者数量和再均衡时间都会失控。</li>
+<li><strong>正确说法</strong>：按<strong>指标名的哈希值</strong>分区，让同一指标的数据落在同一分区（这就能满足「按指标名聚合」的需求），分区总数保持在一个可控量级。需要进一步扩展时，再叠加标签维度的哈希。</li>
+<li><strong>延伸</strong>：这类「看起来合理、一算就崩」的方案在面试里很常见。养成习惯：<strong>每看到一个容量设计，立刻用题目给的规模数字乘一遍。</strong></li>
+</ul>
+<h3 id="勘误-5influxdb-的性能数字与行业格局都需要更新">勘误 5：InfluxDB 的性能数字与行业格局都需要更新</h3>
+<ul>
+<li><strong>原文说法</strong>：「8 cores and 32gb RAM 下超过每秒 25 万次写入」，并把 InfluxDB 与 Prometheus 并列为「两个最流行的时序数据库」。</li>
+<li><strong>问题</strong>：① 这个数字来自 InfluxDB 官方的<strong>基准测试</strong>，属于理想条件下的最佳表现，不能当作生产环境的预期值——真实场景受标签基数、查询负载、磁盘性能影响很大。② 行业格局变化很快：InfluxDB 已经演进到基于 Rust 重写的 <strong>3.0 版本</strong>（存储引擎完全更换）；AWS 的托管时序产品线也调整过重心（主推 Timestream for InfluxDB）。「最流行的两个」这个说法放在今天需要补上 <strong>VictoriaMetrics、TimescaleDB、Grafana Mimir</strong> 等新选项。</li>
+<li><strong>正确说法</strong>：把厂商基准当作<strong>数量级参考</strong>，不要当作容量规划依据。选型一定要用自己的真实数据和查询模式做压测。</li>
+<li><strong>延伸</strong>：一个更重要的判断是——<strong>Prometheus 严格来说不只是「时序数据库」</strong>，它是一个完整的监控系统（采集 + 存储 + 查询 + 告警规则），而且<strong>单节点、不支持水平扩展</strong>。这一点原文没有点明，却是决定架构的关键。</li>
+</ul>
+<h3 id="补充-1基数爆炸cardinality-explosion">补充 1：基数爆炸（Cardinality Explosion）</h3>
+<p>原文只有一句「保持标签基数低很重要」。这是生产环境里最常见、也最容易由开发者自己制造的事故。完整分析见第 4 节。核心结论：<strong>标签的取值组合是相乘的</strong>，加一个 <code>user_id</code> 标签就能让基数涨一百万倍，直接打爆监控系统的内存。</p>
+<h3 id="补充-2拉模式-vs-推模式的完整取舍以及-pushgateway">补充 2：拉模式 vs 推模式的完整取舍，以及 Pushgateway</h3>
+<p>原文给出了对比表，但「短生命周期任务」这一格是空的，只在脚注里提了一句 Pushgateway。完整内容见第 7 节，包括 <strong>Pushgateway 的三个使用陷阱</strong>（不自动清理、不适合长期服务、无法做健康检查）。</p>
+<h3 id="补充-3promql-与记录规则">补充 3：PromQL 与记录规则</h3>
+<p>原文只展示了 SQL 与 Flux 的对比。现代监控最重要的查询语言是 PromQL，它有自己的几个核心概念（瞬时向量、区间向量、<code>rate()</code>、聚合、<code>histogram_quantile</code>），以及用来做「查询侧降采样」的<strong>记录规则</strong>。详见第 9 节。</p>
+<h3 id="补充-4长期存储方案thanos-mimir-victoriametrics-cortex">补充 4：长期存储方案（Thanos / Mimir / VictoriaMetrics / Cortex）</h3>
+<p>原文只说了「用冷存储」，没说怎么做。<strong>Prometheus 原生不支持长期存储和水平扩展</strong>，生产环境的标准解法是「Prometheus + 远程存储」。四类主流方案的对比见第 10 节。</p>
+<h3 id="补充-5告警风暴告警疲劳抑制与静默">补充 5：告警风暴、告警疲劳、抑制与静默</h3>
+<p>原文描述的是一套阈值告警流水线，解决了「怎么把告警发出去」，但没解决「该不该发这条告警」。完整内容见第 11 节，包括<strong>聚合（Grouping）、抑制（Inhibition）、静默（Silencing）</strong> 三种降噪机制，以及判断告警是否过量的实用指标。</p>
+<h3 id="补充-6基于-slo-与错误预算的告警">补充 6：基于 SLO 与错误预算的告警</h3>
+<p>这是现代 SRE 实践对纯阈值告警的替代方案。SLI / SLO / 错误预算的定义、错误预算的计算、以及<strong>多窗口多燃烧率告警</strong>的设计，详见第 11 节。这是本章最值得掌握的现代实践。</p>
+<h3 id="补充-7red-方法与-use-方法">补充 7：RED 方法与 USE 方法</h3>
+<p>「该监控哪些指标」这个问题有两套现成答案：<strong>RED（Rate / Errors / Duration）</strong> 面向服务，<strong>USE（Utilization / Saturation / Errors）</strong> 面向资源。两者的配合方式见第 11 节。</p>
+<h3 id="补充-8本地怎么动手验证">补充 8：本地怎么动手验证</h3>
+<pre><code class="language-bash"># 用 Docker Compose 起一套 Prometheus + Grafana + node_exporter
+# （三个容器：采集目标、监控系统、可视化）
+
+# 1. 启动
+docker compose up -d
+
+# 2. 打开 Prometheus 自带的查询界面，验证拉模式
+#    http://localhost:9090
+#    在输入框里执行：rate(prometheus_http_requests_total[5m])
+
+# 3. 查看采集目标列表，理解服务发现
+#    http://localhost:9090/targets
+
+# 4. 打开 Grafana，导入一个现成仪表盘
+#    http://localhost:3000  （默认账号密码 admin / admin）
+</code></pre>
+<p>建议做三个实验：<strong>验证拉模式</strong>——把 <code>node_exporter</code> 容器停掉，观察 Prometheus 的 targets 页面立刻变成 <code>DOWN</code>，这就是拉模式在健康检查上的优势；<strong>亲手制造一次基数爆炸</strong>——写一个脚本，用一个每次都变化的字符串（比如时间戳）当标签值往 Pushgateway 推数据，观察 Prometheus 内存曲线；<strong>观察降采样的效果</strong>——在 Prometheus 里对比 <code>rate(x[5m])</code> 与 <code>rate(x[1h])</code> 的曲线平滑程度差异。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>监控指标越多越好</td>
+<td>每条时间序列都要占内存和磁盘，指标数量直接决定成本</td>
+<td>指标要服务于<strong>具体的告警和排查场景</strong>，没有用途的指标应该删掉</td>
+</tr>
+<tr>
+<td>标签随便加，方便排查</td>
+<td>标签取值是<strong>相乘</strong>的，一个高基数标签就能让序列数涨百万倍</td>
+<td>禁止用 <code>user_id</code>、<code>request_id</code> 这类高基数维度做标签，它们属于日志</td>
+</tr>
+<tr>
+<td>用平均值看延迟就够了</td>
+<td>平均值会把慢请求掩盖掉——1% 的请求慢 10 秒，平均值可能只涨几毫秒</td>
+<td>看<strong>分位数</strong>（P95 / P99 / P999），这才是用户体验的真实反映</td>
+</tr>
+<tr>
+<td>Prometheus 可以直接长期存储</td>
+<td>原生 Prometheus 是<strong>单节点</strong>的，保留期有限，且不支持水平扩展</td>
+<td>长期存储需要 Thanos / Mimir / VictoriaMetrics 这类远程存储方案</td>
+</tr>
+<tr>
+<td>告警阈值定得越低越安全</td>
+<td>阈值过低会导致大量误报，工程师开始忽略告警（<strong>告警疲劳</strong>）</td>
+<td>告警应该由 <strong>SLO 燃烧率</strong>驱动，紧急程度对应业务受影响程度</td>
+</tr>
+<tr>
+<td>告警越多，覆盖越全</td>
+<td>一次底层故障会引发上千条上游告警，淹没真正关键的那条（<strong>告警风暴</strong>）</td>
+<td>必须配置<strong>聚合、抑制和静默</strong>，让噪音不进入人的视野</td>
+</tr>
+<tr>
+<td>推模式一定比拉模式好（或反之）</td>
+<td>两者各有胜负：拉模式调试和健康检查强，推模式在短任务和复杂网络下强</td>
+<td>长期服务用 Pull，短生命周期任务用 Pushgateway，大型组织两者都要支持</td>
+</tr>
+<tr>
+<td>采样间隔越短越好</td>
+<td>间隔减半，数据量和成本翻倍，而多数场景并不需要这个精度</td>
+<td>采集间隔应该由<strong>告警的响应速度要求</strong>倒推决定</td>
+</tr>
+<tr>
+<td>降采样后数据就不能再用于告警了</td>
+<td>降采样确实会丢精度，但慢燃烧类的告警本来就看长窗口趋势</td>
+<td>快燃烧告警用原始数据，慢燃烧和容量规划用降采样数据</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：监控告警系统本质上是一条**「采集 → 传输 → 存储 → 告警 → 展示」的时序数据管道**，它的技术核心是「如何低成本地写入海量时间序列」，而它的业务核心是「如何在对的时刻叫对的人」。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>数据模型是「指标名 + 标签 + 时间戳 + 值」</strong>，一条时间序列由前三者唯一标识。标签基数决定了系统的内存成本，必须严格控制。</li>
+<li><strong>采集有拉和推两种模式</strong>。Prometheus 用拉（便于调试和健康检查），CloudWatch / Graphite 用推；短生命周期任务必须用 <strong>Pushgateway</strong> 弥补拉模式的缺陷。</li>
+<li><strong>时序数据库要专门选型</strong>，通用数据库和 NoSQL 都不合适。压缩（delta-of-delta + XOR）和降采样是控制成本的两个主要手段。</li>
+<li><strong>传输管道要解耦</strong>：采集器写入 Kafka，流处理引擎消费后再写库，这样数据库宕机也不会丢数据。</li>
+<li><strong>告警不能只看阈值</strong>，必须配聚合、抑制、静默；成熟团队用 <strong>SLO + 错误预算</strong>驱动告警。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动指出<strong>基数爆炸</strong>是监控系统最常见的自伤事故，并说明为什么 <code>user_id</code> / <code>request_id</code> 不能做标签。</li>
+<li>主动提 <strong>RED 与 USE 两套指标体系</strong>，并说清「RED 发现问题、USE 定位资源」的配合关系。</li>
+<li>主动讲<strong>错误预算</strong>的计算（99.9% SLO → 30 天约 43 分钟预算）和<strong>多窗口多燃烧率告警</strong>。</li>
+<li>主动说明 <strong>Prometheus 原生不支持长期存储</strong>，需要 Thanos / Mimir / VictoriaMetrics。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>「1000 万条时间序列，写入量有多大？」</em> → 按 10 秒采集间隔算，<code>1000 万 ÷ 10 = 每秒 100 万点</code>；一天约 864 亿点；按每点压缩后约 2 字节算约 170 GB/天。这个数字用来倒推存储和分区方案。</li>
+<li><em>「为什么 Prometheus 用拉而不是推？」</em> → 三个理由：<code>/metrics</code> 端点可以随时手工验证（调试友好）；服务不响应即说明它挂了（健康检查天然可用）；采集目标由配置定义，数据来源可信。短任务用 Pushgateway 补齐。</li>
+<li><em>「告警风暴怎么解决？」</em> → 三件套：<strong>聚合</strong>（同一原因的多条告警合并成一条通知）、<strong>抑制</strong>（高优先级告警触发时压制它的下游衍生告警）、<strong>静默</strong>（维护窗口内主动屏蔽，且必须设过期时间）。</li>
+<li><em>「怎么判断告警配得好不好？」</em> → 看「需要人工介入的告警占比」。低于 50% 说明噪音太多。更严格的标准是：每条告警都应该<strong>可行动（Actionable）</strong>——如果收到它之后你无事可做，它就不该存在。</li>
+<li><em>「监控数据要存一年，怎么设计？」</em> → 分层：7 天原始数据（在线，用于实时告警和排查）→ 30 天 1 分钟降采样 → 1 年 1 小时降采样 + 对象存储。用 Thanos / Mimir 之类的远程存储层统一查询。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://prometheus.io/docs/concepts/data_model/" target="_blank" rel="noopener noreferrer">Prometheus 数据模型</a> — 指标名、标签与样本的官方定义</li>
+<li><a href="https://prometheus.io/docs/practices/pushing/" target="_blank" rel="noopener noreferrer">Prometheus：推模式的最佳实践</a> — 官方对 Pushgateway 适用场景与陷阱的说明</li>
+<li><a href="https://prometheus.io/docs/prometheus/latest/querying/basics/" target="_blank" rel="noopener noreferrer">Prometheus 查询基础（PromQL）</a> — 瞬时向量、区间向量与运算符</li>
+<li><a href="https://www.vldb.org/pvldb/vol8/p1816-teller.pdf" target="_blank" rel="noopener noreferrer">Gorilla：Facebook 的内存时序数据库论文</a> — 原笔记提供的链接，delta-of-delta 与 XOR 编码的出处</li>
+<li><a href="https://sre.google/sre-book/service-level-objectives/" target="_blank" rel="noopener noreferrer">Google SRE Book：服务水平目标</a> — SLI / SLO / 错误预算的权威定义</li>
+<li><a href="https://sre.google/workbook/alerting-on-slos/" target="_blank" rel="noopener noreferrer">Google SRE Workbook：基于 SLO 的告警</a> — 多窗口多燃烧率告警的完整设计</li>
+<li><a href="https://www.brendangregg.com/usemethod.html" target="_blank" rel="noopener noreferrer">Brendan Gregg：USE 方法</a> — Utilization / Saturation / Errors 的原始阐述</li>
+<li><a href="https://thanos.io/" target="_blank" rel="noopener noreferrer">Thanos 官方文档</a> — 基于对象存储的 Prometheus 长期存储与全局查询</li>
+<li><a href="https://grafana.com/oss/mimir/" target="_blank" rel="noopener noreferrer">Grafana Mimir</a> — 水平扩展的多租户时序数据库</li>
+<li><a href="https://victoriametrics.com/" target="_blank" rel="noopener noreferrer">VictoriaMetrics</a> — 运维成本较低的 Prometheus 兼容 TSDB</li>
+<li><a href="https://grafana.com/docs/" target="_blank" rel="noopener noreferrer">Grafana 官方文档</a> — 可视化与仪表盘实践</li>
+<li><a href="https://opentelemetry.io/" target="_blank" rel="noopener noreferrer">OpenTelemetry</a> — 指标、日志、追踪统一的采集标准，未来的方向</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../19/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">分布式消息队列</span></a><a class="next" href="../21/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">广告点击聚合</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-监控与告警到底解决什么问题">1. 监控与告警到底解决什么问题</a>
+<a class="lv2" href="#2-需求澄清从-100-万到-1000-万条时间序列">2. 需求澄清：从 100 万到 1000 万条时间序列</a>
+<a class="lv3" href="#规模与假设">规模与假设</a>
+<a class="lv3" href="#非功能需求">非功能需求</a>
+<a class="lv3" href="#明确排除的范围">明确排除的范围</a>
+<a class="lv2" href="#3-五个核心组件与高层架构">3. 五个核心组件与高层架构</a>
+<a class="lv2" href="#4-数据模型时间序列与标签">4. 数据模型：时间序列与标签</a>
+<a class="lv3" href="#原笔记缺失的核心内容基数爆炸">原笔记缺失的核心内容：基数爆炸</a>
+<a class="lv2" href="#5-时序数据库为什么不能用-mysql">5. 时序数据库：为什么不能用 MySQL</a>
+<a class="lv2" href="#6-指标采集一拉模式pull">6. 指标采集（一）：拉模式（Pull）</a>
+<a class="lv3" href="#多个采集器之间怎么协调">多个采集器之间怎么协调</a>
+<a class="lv2" href="#7-指标采集二推模式push与取舍">7. 指标采集（二）：推模式（Push）与取舍</a>
+<a class="lv3" href="#六个维度的对比">六个维度的对比</a>
+<a class="lv2" href="#8-传输管道用消息队列削峰">8. 传输管道：用消息队列削峰</a>
+<a class="lv3" href="#聚合可以发生在哪里">聚合可以发生在哪里</a>
+<a class="lv2" href="#9-查询服务与查询语言">9. 查询服务与查询语言</a>
+<a class="lv3" href="#为什么时序数据库通常不支持-sql">为什么时序数据库通常不支持 SQL</a>
+<a class="lv2" href="#10-存储层编码降采样与长期存储">10. 存储层：编码、降采样与长期存储</a>
+<a class="lv3" href="#数据编码与压缩">数据编码与压缩</a>
+<a class="lv3" href="#降采样downsampling">降采样（Downsampling）</a>
+<a class="lv3" href="#冷存储与长期存储">冷存储与长期存储</a>
+<a class="lv2" href="#11-告警系统">11. 告警系统</a>
+<a class="lv3" href="#原笔记缺失的核心内容告警真正的难点">原笔记缺失的核心内容：告警真正的难点</a>
+<a class="lv2" href="#12-可视化与最终架构">12. 可视化与最终架构</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1行协议的格式写错了而且-prometheus-并不用它">勘误 1：行协议的格式写错了，而且 Prometheus 并不用它</a>
+<a class="lv3" href="#勘误-2降采样表格的算术是错的">勘误 2：降采样表格的算术是错的</a>
+<a class="lv3" href="#勘误-3推模式通常用-udp是不准确的">勘误 3：「推模式通常用 UDP」是不准确的</a>
+<a class="lv3" href="#勘误-4每个指标名一个-kafka-分区在本书的规模下不可行">勘误 4：「每个指标名一个 Kafka 分区」在本书的规模下不可行</a>
+<a class="lv3" href="#勘误-5influxdb-的性能数字与行业格局都需要更新">勘误 5：InfluxDB 的性能数字与行业格局都需要更新</a>
+<a class="lv3" href="#补充-1基数爆炸cardinality-explosion">补充 1：基数爆炸（Cardinality Explosion）</a>
+<a class="lv3" href="#补充-2拉模式-vs-推模式的完整取舍以及-pushgateway">补充 2：拉模式 vs 推模式的完整取舍，以及 Pushgateway</a>
+<a class="lv3" href="#补充-3promql-与记录规则">补充 3：PromQL 与记录规则</a>
+<a class="lv3" href="#补充-4长期存储方案thanos-mimir-victoriametrics-cortex">补充 4：长期存储方案（Thanos / Mimir / VictoriaMetrics / Cortex）</a>
+<a class="lv3" href="#补充-5告警风暴告警疲劳抑制与静默">补充 5：告警风暴、告警疲劳、抑制与静默</a>
+<a class="lv3" href="#补充-6基于-slo-与错误预算的告警">补充 6：基于 SLO 与错误预算的告警</a>
+<a class="lv3" href="#补充-7red-方法与-use-方法">补充 7：RED 方法与 USE 方法</a>
+<a class="lv3" href="#补充-8本地怎么动手验证">补充 8：本地怎么动手验证</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

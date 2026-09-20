@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 23 章：分布式邮件服务 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item active" href="./"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-23-章分布式邮件服务">第 23 章：分布式邮件服务</h1>
+<blockquote>
+<p>原章节：Distributed Email Service · 原项目路径 <code>23. Distributed Email Service/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>邮件协议比 HTTP 还老，为什么系统设计面试里还要专门考它？</p>
+<p>因为邮件是<strong>最苛刻的一类分布式系统练习题</strong>。它同时要求：数据一封都不能丢（用户无法接受收件箱里少了一封合同邮件）、全球可用（发信人可能在任何一个机房）、扛得住 10 亿用户和每年两千 PB 量级的写入，还要<strong>对抗一个永不休息的对手</strong>——垃圾邮件发送者。</p>
+<p>这一章会带你走一遍 Gmail 这个量级的邮件系统是怎么搭起来的。其中最有价值、也最容易被忽略的部分是<strong>邮件送达率（Email Deliverability）</strong>：让服务器&quot;能发信&quot;只要十分钟，让发出去的信&quot;进得了收件箱&quot;可能要花几个月。</p>
+<p>学完这一章，你应该能回答：为什么 Gmail 不用普通关系型数据库存邮件？为什么你自己搭的邮件服务器发出去的信总是进垃圾箱？为什么邮件搜索不能写成 <code>SELECT ... WHERE body LIKE '%关键词%'</code>？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>SMTP / IMAP / POP3 三种协议各自负责什么，为什么 IMAP 取代了 POP3</li>
+<li>MX 记录、附件 base64 编码这些邮件系统特有的基础知识</li>
+<li>传统邮件服务器为什么扛不住规模，分布式邮件服务是怎么拆的</li>
+<li>发信与收信两条完整链路的每一个环节，以及队列积压意味着什么</li>
+<li>邮件元数据该怎么建模、怎么分片，为什么要把&quot;已读/未读&quot;拆成两张表</li>
+<li><strong>邮件送达率</strong>：SPF / DKIM / DMARC 分别解决什么问题，新 IP 为什么会被当成垃圾邮件，硬退信和软退信怎么处理</li>
+<li>反垃圾邮件的常见手段：贝叶斯过滤、发信人信誉、灰名单</li>
+<li>全文搜索为什么要用倒排索引，以及 LSM-Tree 为什么适合写密集场景</li>
+</ul>
+<hr />
+<h2 id="1-邮件系统的基本功发送和接收是两个世界">1. 邮件系统的基本功：发送和接收是两个世界</h2>
+<p>在动手设计之前，必须先分清一件事：<strong>&quot;发邮件&quot;和&quot;收邮件&quot;用的是完全不同的协议，解决的问题也完全不同。</strong></p>
+<h3 id="11-四个协议各管一段">1.1 四个协议，各管一段</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>协议</th>
+<th>全称</th>
+<th>干什么</th>
+<th>谁在用</th>
+<th>默认端口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SMTP</strong></td>
+<td>Simple Mail Transfer Protocol</td>
+<td><strong>发送与中继</strong>邮件</td>
+<td>客户端 → 服务器（提交）、服务器 → 服务器（中继）</td>
+<td>25（中继）、587（提交）、465（隐式 TLS）</td>
+</tr>
+<tr>
+<td><strong>POP3</strong></td>
+<td>Post Office Protocol v3</td>
+<td><strong>收取</strong>邮件，默认下载后从服务器删除</td>
+<td>老式邮件客户端</td>
+<td>110 / 995（TLS）</td>
+</tr>
+<tr>
+<td><strong>IMAP</strong></td>
+<td>Internet Message Access Protocol</td>
+<td><strong>收取</strong>邮件，邮件始终保留在服务器</td>
+<td>现代邮件客户端、手机</td>
+<td>143 / 993（TLS）</td>
+</tr>
+<tr>
+<td><strong>HTTPS</strong></td>
+<td>HyperText Transfer Protocol Secure</td>
+<td>不是邮件协议，但 Web 邮箱用它做 API</td>
+<td>浏览器里的 Gmail、Outlook Web</td>
+<td>443</td>
+</tr>
+</tbody>
+</table></div>
+<p>这里有个初学者最容易搞混的点，务必记牢：</p>
+<blockquote>
+<p><strong>SMTP 只负责&quot;送出去&quot;，它不能&quot;收进来&quot;。</strong>
+你写好一封邮件点&quot;发送&quot;，SMTP 负责把这封信从你的客户端送到你的发信服务器，再由你的发信服务器送到对方的收信服务器。整个过程 SMTP 都在做同一件事：<strong>把邮件从 A 推到 B</strong>。
+但收件人怎么&quot;看到&quot;这封信？那是 IMAP / POP3 / HTTPS 的活儿——客户端主动去服务器<strong>拉取</strong>。</p>
+</blockquote>
+<p>所以完整的邮件生命周期是这样的：</p>
+<pre><code>发件人客户端 ──SMTP──▶ 发件方邮件服务器 ──SMTP──▶ 收件方邮件服务器
+                                                        │
+收件人客户端 ◀──IMAP / POP3 / HTTPS──────────────────────┘
+</code></pre>
+<h3 id="12-为什么-imap-取代了-pop3">1.2 为什么 IMAP 取代了 POP3</h3>
+<p>这是面试里常被追问的一个点，也是理解邮件系统演进的关键。</p>
+<p><strong>POP3 的工作模型是&quot;邮局自取&quot;</strong>：客户端连上服务器，把邮件<strong>下载到本地</strong>，然后（默认）从服务器上删掉。邮件的&quot;状态&quot;——哪些读过、哪些没读、分在哪个文件夹——全部保存在<strong>客户端本地</strong>。</p>
+<p>在只有一台电脑、一个邮件客户端的年代，这没问题。但在今天：</p>
+<ul>
+<li>你在手机上读了邮件，打开笔记本，<strong>它还显示未读</strong>；</li>
+<li>你在笔记本上把邮件归档了，手机上<strong>还在收件箱里</strong>；</li>
+<li>你换了台电脑，<strong>历史邮件和文件夹全都不见了</strong>；</li>
+<li>服务器上根本没有&quot;文件夹&quot;这个概念，只有一堆邮件。</li>
+</ul>
+<p><strong>IMAP 的工作模型是&quot;邮局寄存&quot;</strong>：邮件始终留在服务器上，客户端只是&quot;远程操作&quot;这个邮箱。文件夹、已读/未读标记、星标、删除标记，<strong>全部是服务端的持久状态</strong>。于是：</p>
+<ul>
+<li>任何设备打开，看到的都是<strong>同一份邮箱状态</strong>；</li>
+<li>支持<strong>只拉邮件头</strong>（先在列表里看到标题和发件人，点开才拉正文），省流量，手机上尤其重要；</li>
+<li>支持<strong>服务端搜索</strong>（不用把所有邮件下到本地再搜）；</li>
+<li>支持 <strong>IDLE 推送</strong>（新邮件到达时服务器主动通知客户端，不用轮询）。</li>
+</ul>
+<p>一句话总结：<strong>POP3 把状态放在客户端，IMAP 把状态放在服务端。多设备时代，状态必须放在服务端。</strong></p>
+<blockquote>
+<p><strong>延伸</strong>：IMAP 本身设计于 1980 年代，协议相当复杂（RFC 3501 有 100 多页，且客户端要处理各种服务器实现差异）。业界近年推出了 <strong>JMAP（JSON Meta Application Protocol，RFC 8620/8621）</strong> 作为现代替代品，用 JSON 和批量请求简化了移动端场景，Fastmail 等厂商已经在用。但 IMAP 的存量太大，短期内不会被取代。</p>
+</blockquote>
+<h3 id="13-mx-记录别人怎么找到你的邮件服务器">1.3 MX 记录：别人怎么找到你的邮件服务器</h3>
+<p>域名 <code>gmail.com</code> 对应的 IP 是 Web 服务器的 IP，<strong>但邮件不走这个 IP</strong>。邮件有一套独立的寻址记录，叫 <strong>MX 记录（Mail Exchanger Record）</strong>。</p>
+<p>MX 记录是 DNS 里的一条记录类型，告诉全世界：&quot;发给 <code>gmail.com</code> 的邮件，请投递到这几台服务器，优先级如下。&quot;</p>
+<div align="center"><img src="./images/dns-lookup.png" alt="DNS 查询 MX 记录的过程" width="520" loading="lazy" decoding="async"></div>
+<p>一条 MX 记录长这样：</p>
+<pre><code>gmail.com.   MX   5    gmail-smtp-in.l.google.com.
+gmail.com.   MX   10   alt1.gmail-smtp-in.l.google.com.
+</code></pre>
+<p>数字是<strong>优先级（Preference）</strong>，越小越优先。发信方会先尝试优先级 5 的服务器，连不上再退到 10。这就是邮件系统原生的**故障转移（Failover）**机制。</p>
+<blockquote>
+<p><strong>面试加分点</strong>：SPF、DKIM、DMARC 这些反垃圾邮件机制，本质上也是 DNS 记录（TXT 类型），只是挂在不同的子域名上。所以<strong>邮件系统的&quot;配置面&quot;几乎全在 DNS 里</strong>。理解了这一点，你就理解了为什么邮件送达率问题通常表现为&quot;DNS 配错了&quot;。</p>
+</blockquote>
+<h3 id="14-附件base64-编码和-25-mb-上限">1.4 附件：base64 编码和 25 MB 上限</h3>
+<p>邮件协议诞生于只能传 7 位 ASCII 文本的年代。要传二进制文件（图片、PDF），必须做编码，标准做法是 <strong>base64</strong>。</p>
+<p>base64 用 4 个 ASCII 字符表示 3 个字节，所以<strong>二进制数据编码后体积会膨胀约 33%</strong>。</p>
+<blockquote>
+<p>这也是为什么各大邮箱的&quot;25 MB 附件上限&quot;看起来总是不太够用——这个上限限制的通常是<strong>编码后的报文大小</strong>，而不是你原始文件的大小。</p>
+</blockquote>
+<p>附件大小是可配置的，个人邮箱和企业邮箱的限制往往不同。</p>
+<hr />
+<h2 id="2-传统邮件服务器为什么它扛不住规模">2. 传统邮件服务器：为什么它扛不住规模</h2>
+<p>理解了协议，我们看看&quot;朴素&quot;的邮件服务器是怎么做的。</p>
+<div align="center"><img src="./images/traditional-mail-server.png" alt="传统邮件服务器：Alice 发信给 Bob 的完整流程" width="520" loading="lazy" decoding="async"></div>
+<p>流程很直观：</p>
+<ol>
+<li>Alice 登录 Outlook，写好邮件，点击&quot;发送&quot;。邮件通过 <strong>SMTP</strong> 送到 Outlook 的邮件服务器。</li>
+<li>Outlook 的服务器查询 DNS，找到 <code>gmail.com</code> 的 <strong>MX 记录</strong>，然后通过 <strong>SMTP</strong> 把邮件中继到 Gmail 的服务器。</li>
+<li>Bob 通过 <strong>IMAP 或 POP3</strong> 从 Gmail 服务器上把邮件取下来。</li>
+</ol>
+<h3 id="存储方式一封邮件一个文件">存储方式：一封邮件一个文件</h3>
+<p>传统邮件服务器把邮件存在<strong>本地文件系统</strong>上，每封邮件是<strong>一个独立的文件</strong>。</p>
+<div align="center"><img src="./images/local-dir-storage.png" alt="传统邮件服务器用本地目录存放邮件文件" width="520" loading="lazy" decoding="async"></div>
+<p>在小规模下这套方案完全能用。但它有两个致命问题：</p>
+<p><strong>问题一：磁盘 I/O 成为瓶颈。</strong> 邮件是海量小文件。10 亿用户每天收发几百亿封邮件，意味着每秒几十万次文件创建、打开、读取、删除。机械硬盘的随机寻址能力（IOPS）只有 100～200 次/秒，这个量级根本扛不住。</p>
+<p><strong>问题二：不满足高可用和可靠性要求。</strong> 硬盘会坏，服务器会宕机。而邮件是用户<strong>不允许丢失</strong>的数据——一台机器挂了，上面所有用户的邮件就都没了。本地文件系统天然是单点。</p>
+<blockquote>
+<p><strong>这就是&quot;单机方案&quot;的典型死法</strong>：不是功能做不出来，而是<strong>规模一上来，I/O 和可用性同时崩掉</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="3-高层设计把邮件系统拆成可独立扩展的部件">3. 高层设计：把邮件系统拆成可独立扩展的部件</h2>
+<p>分布式邮件服务器的设计目标是：<strong>继续支持 IMAP / POP3（给原生客户端）和 SMTP（服务器间中继），同时为 Web 邮箱提供一套 RESTful API。</strong></p>
+<p>为什么 Web 邮箱要用 HTTP 而不是 SMTP？原笔记给出的理由是<strong>灵活性和可扩展性</strong>：HTTP 生态成熟（负载均衡、缓存、鉴权、网关、监控都有现成方案），加新功能容易；而 SMTP 是为&quot;传一封信&quot;设计的，不适合做&quot;列出文件夹&quot;&quot;标记已读&quot;这类操作。</p>
+<h3 id="31-api-设计示例">3.1 API 设计示例</h3>
+<pre><code>POST /v1/messages                     # 发送一封邮件给 To、Cc、Bcc 中的收件人
+GET  /v1/folders                      # 返回某个账号的所有文件夹
+GET  /v1/folders/{:folder_id}/messages  # 返回某文件夹下的邮件（分页）
+GET  /v1/messages/{:message_id}       # 获取某封邮件的完整信息
+</code></pre>
+<p><code>GET /v1/folders</code> 的响应大致是：</p>
+<pre><code class="language-json">[{
+  &quot;id&quot;: &quot;string&quot;,       // 文件夹唯一标识
+  &quot;name&quot;: &quot;string&quot;,     // 文件夹名
+  &quot;user_id&quot;: &quot;string&quot;   // 所属账号
+}]
+</code></pre>
+<blockquote>
+<p><strong>关于默认文件夹</strong>：原笔记引用了 <strong>RFC 6154</strong>，指出标准默认文件夹可以取这几个名字：<code>All</code>、<code>Archive</code>、<code>Drafts</code>、<code>Flagged</code>、<code>Junk</code>、<code>Sent</code>、<code>Trash</code>。这个规范的意义是让<strong>不同客户端对同一套服务端文件夹有一致的理解</strong>——你在手机上归档的邮件，在网页版里也应该出现在 Archive 里。</p>
+</blockquote>
+<p><code>GET /v1/messages/{:message_id}</code> 的响应大致是：</p>
+<pre><code class="language-json">{
+  &quot;user_id&quot;: &quot;string&quot;,                       // 所属账号
+  &quot;from&quot;:    {&quot;name&quot;: &quot;string&quot;, &quot;email&quot;: &quot;string&quot;},   // 发件人
+  &quot;to&quot;:      [{&quot;name&quot;: &quot;string&quot;, &quot;email&quot;: &quot;string&quot;}], // 收件人列表
+  &quot;subject&quot;: &quot;string&quot;,                       // 主题
+  &quot;body&quot;:    &quot;string&quot;,                       // 正文
+  &quot;is_read&quot;: true                            // 是否已读
+}
+</code></pre>
+<h3 id="32-组件清单">3.2 组件清单</h3>
+<div align="center"><img src="./images/high-level-architecture.png" alt="分布式邮件服务的高层架构" width="520" loading="lazy" decoding="async"></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>职责</th>
+<th>关键设计考量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Webmail</strong></td>
+<td>用户用浏览器收发邮件</td>
+<td>前端，无状态</td>
+</tr>
+<tr>
+<td><strong>Web 服务器</strong></td>
+<td>对外提供请求/响应服务，处理登录、注册、用户资料等</td>
+<td>无状态，可任意增删</td>
+</tr>
+<tr>
+<td><strong>实时服务器（Real-time Servers）</strong></td>
+<td>把新邮件<strong>实时推送</strong>给在线客户端</td>
+<td>用 WebSocket；老浏览器降级为长轮询</td>
+</tr>
+<tr>
+<td><strong>元数据数据库</strong></td>
+<td>存主题、正文、发件人、收件人等邮件元数据</td>
+<td>有状态，最难扩展的部分</td>
+</tr>
+<tr>
+<td><strong>附件存储</strong></td>
+<td>存大文件（附件）</td>
+<td>用对象存储（如 Amazon S3）</td>
+</tr>
+<tr>
+<td><strong>分布式缓存</strong></td>
+<td>缓存最近邮件，提升体验</td>
+<td>Redis</td>
+</tr>
+<tr>
+<td><strong>搜索存储</strong></td>
+<td>支持全文搜索</td>
+<td>分布式文档存储（如 Elasticsearch）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么要拆出这么多独立存储？</strong> 因为这几类数据的访问模式完全不同：元数据是&quot;小、读多、要强一致&quot;，附件是&quot;大、写一次读多次、要便宜&quot;，搜索索引是&quot;写密集、读稀疏、要能全文匹配&quot;。<strong>把访问模式不同的数据放在一起，只能互相拖累</strong>——这是后面反复出现的核心设计原则。</p>
+<h3 id="33-发信流程">3.3 发信流程</h3>
+<div align="center"><img src="./images/email-sending-flow.png" alt="邮件发送流程：从客户端到目标邮件服务器" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li>用户写好邮件，点&quot;发送&quot;。请求先到<strong>负载均衡器</strong>。</li>
+<li>负载均衡器做<strong>限流</strong>（防止有人狂发邮件），然后把请求路由到某台 Web 服务器。</li>
+<li>Web 服务器做<strong>基础校验</strong>（比如邮件大小）。如果收件人和发件人<strong>同域</strong>，可以直接短路投递到本地邮箱——但<strong>垃圾邮件检查还是要先做</strong>。</li>
+<li>校验通过 → 邮件进入<strong>消息队列</strong>（附件在对象存储里，消息里只放引用）。校验失败 → 进<strong>错误队列</strong>。</li>
+<li><strong>SMTP 出站工作进程（outgoing workers）</strong> 从队列里取消息，做垃圾/病毒检查，然后通过 SMTP 中继到目标邮件服务器。</li>
+<li>邮件同时存入**&quot;已发送&quot;（Sent）文件夹**。</li>
+</ol>
+<h3 id="34-队列积压是一个重要的监控信号">3.4 队列积压是一个重要的监控信号</h3>
+<p>原笔记专门强调了这一点：<strong>要监控出站消息队列的长度</strong>。队列持续增长通常意味着两种情况之一：</p>
+<ul>
+<li><strong>对方邮件服务器不可用</strong>。这时应该<strong>用指数退避（Exponential Backoff）重试</strong>——比如等 1 分钟、5 分钟、30 分钟、2 小时……而不是疯狂重试。疯狂重试只会让对方更不愿意收你的信，也会拖垮你自己的队列。</li>
+<li><strong>消费者不够用</strong>。处理速度跟不上生产速度，需要<strong>扩容消费者</strong>。</li>
+</ul>
+<blockquote>
+<p><strong>为什么指数退避这么重要？</strong> 邮件是&quot;延迟可接受、丢失不可接受&quot;的业务。用户不会介意一封信晚到 5 分钟，但会介意它永远不到。所以重试策略必须<strong>足够持久</strong>：业界惯例是持续重试 24～72 小时，只有超过这个窗口才最终放弃并向发件人发退信通知。</p>
+</blockquote>
+<h3 id="35-收信流程">3.5 收信流程</h3>
+<div align="center"><img src="./images/email-receiving-flkow.png" alt="邮件接收流程：从外部服务器到用户收件箱" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li>外部邮件到达 <strong>SMTP 负载均衡器</strong>，分发到各台 <strong>SMTP 服务器</strong>。</li>
+<li>SMTP 服务器执行<strong>收信策略（mail acceptance policy）</strong>——比如明显非法的邮件直接丢弃。这是<strong>第一道反垃圾防线</strong>，也是成本最低的一道：<strong>在 SMTP 会话阶段就拒收，不要先把垃圾收下来再分析</strong>（收下来要消耗存储和后续算力）。</li>
+<li>如果附件太大，直接放进<strong>对象存储（S3）</strong>，数据库里只存引用。</li>
+<li><strong>邮件处理工作进程</strong>做初步检查，然后把结果分别写入元数据存储、缓存、对象存储，并通知<strong>实时服务器</strong>。</li>
+<li><strong>离线用户</strong>重新上线时，通过 HTTP API 拉取新邮件。</li>
+</ol>
+<blockquote>
+<p><strong>注意收发两条链路的对称性</strong>：都是&quot;负载均衡 → 校验 → 队列/工作进程 → 多路写入&quot;。区别在于发信是自己主动推给别人（要处理对方不可用），收信是别人推给自己（要处理恶意输入）。</p>
+</blockquote>
+<hr />
+<h2 id="4-元数据数据库本章最硬的设计题">4. 元数据数据库：本章最硬的设计题</h2>
+<p>邮件元数据是典型的&quot;看起来简单、做起来极难&quot;。</p>
+<h3 id="41-邮件元数据的五个特征">4.1 邮件元数据的五个特征</h3>
+<p>原笔记总结得很到位，这五条直接决定了后面的所有选型：</p>
+<ol>
+<li><strong>邮件头（headers）通常很小，且访问极其频繁</strong>——列表页要显示发件人、主题、时间。</li>
+<li><strong>正文大小跨度极大，但通常只读一次</strong>——点开看过就不会再看了（少数会被反复搜索）。</li>
+<li><strong>绝大多数操作是&quot;单用户隔离&quot;的</strong>——取邮件、标已读、搜索，都只涉及一个用户的数据，用户之间几乎不交叉。</li>
+<li><strong>数据新鲜度影响使用</strong>——用户几乎只读最近的邮件。</li>
+<li><strong>可靠性要求极高</strong>——数据丢失不可接受。</li>
+</ol>
+<p>第 3 条是最关键的：<strong>因为用户之间不交叉，我们天然可以按 <code>user_id</code> 分片，把同一个用户的所有数据放在同一个分片上。</strong> 这让&quot;跨分片查询&quot;这个分布式系统最大的噩梦，在这里几乎不存在。</p>
+<h3 id="42-数据库选型三个方案都不完美">4.2 数据库选型：三个方案都不完美</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>优点</th>
+<th>致命缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>关系型数据库</strong></td>
+<td>可以为邮件头和正文建索引</td>
+<td>为&quot;小数据块&quot;优化，正文这种大字段会拖垮性能；单机容量有上限</td>
+</tr>
+<tr>
+<td><strong>分布式对象存储</strong></td>
+<td>适合做备份存储</td>
+<td><strong>无法高效支持搜索、&quot;标记已读&quot;这类操作</strong>——它只会&quot;按 key 取整个对象&quot;</td>
+</tr>
+<tr>
+<td><strong>NoSQL（如 Bigtable）</strong></td>
+<td>Gmail 用的就是 Google BigTable</td>
+<td><strong>没有开源版本</strong>，拿不到</td>
+</tr>
+</tbody>
+</table></div>
+<p>结论是：<strong>市面上几乎没有现成方案能完美匹配</strong>。Gmail / Outlook 这个量级，数据库往往是<strong>自研</strong>的，核心目标之一是<strong>降低 IOPS</strong>。</p>
+<blockquote>
+<p><strong>面试技巧</strong>：面试官不会真的让你设计一个分布式数据库。原笔记说得很实在——<strong>&quot;面试中设计一个新分布式数据库是不现实的，但说清楚它应该具备什么特性是加分的。&quot;</strong></p>
+</blockquote>
+<p>原笔记列出的五个特性值得背下来：</p>
+<ul>
+<li>单个列（column）可以到<strong>个位数 MB</strong> 级别（因为邮件正文可能很大）</li>
+<li><strong>强一致性</strong></li>
+<li><strong>为降低磁盘 I/O 而设计</strong></li>
+<li><strong>高可用、容错</strong></li>
+<li><strong>支持方便的增量备份</strong></li>
+</ul>
+<h3 id="43-数据建模主键的两段式设计">4.3 数据建模：主键的两段式设计</h3>
+<p>分片键选 <code>user_id</code>，让一个用户的数据落在同一个分片上。</p>
+<blockquote>
+<p><strong>代价</strong>：这样就没法让<strong>多个人共享同一封邮件</strong>（比如同一封邮件同时属于发件人和收件人的邮箱）。原笔记明确说，这个需求不在本题范围内，可以接受。</p>
+</blockquote>
+<p><strong>主键由两部分组成</strong>：</p>
+<ul>
+<li><strong>分区键（Partition Key）</strong>：决定数据落在哪个分片（数据分布）。</li>
+<li><strong>聚类键（Clustering Key）</strong>：决定同一个分区内数据的排序方式。</li>
+</ul>
+<p>图例说明：</p>
+<div align="center"><img src="./images/legend.png" alt="表结构图例说明：分区键、聚类键等字段标记含义" width="520" loading="lazy" decoding="async"></div>
+<p><strong>folders 表</strong>：</p>
+<div align="center"><img src="./images/folders-table.png" alt="folders 表结构：以 user_id 为分区键" width="520" loading="lazy" decoding="async"></div>
+<p><strong>emails 表</strong>：</p>
+<div align="center"><img src="./images/emails-table.png" alt="emails 表结构：email_id 使用 TIMEUUID" width="520" loading="lazy" decoding="async"></div>
+<p>其中 <code>email_id</code> 是 <strong>TIMEUUID</strong> 类型——一种把时间戳编码进去的 UUID。这样<strong>按 <code>email_id</code> 排序就等于按邮件创建时间排序</strong>，不需要额外的 <code>created_at</code> 字段和二级索引。这是一个很实用的技巧。</p>
+<p><strong>attachments 表</strong>：附件单独建表，用文件名标识。</p>
+<div align="center"><img src="./images/attachments.png" alt="attachments 表结构：附件元数据与邮件分离存储" width="520" loading="lazy" decoding="async"></div>
+<h3 id="44-已读未读一个典型的反范式化取舍">4.4 已读/未读：一个典型的&quot;反范式化&quot;取舍</h3>
+<p>在关系型数据库里，&quot;查所有未读邮件&quot;是一句 <code>WHERE is_read = false</code> 就搞定的事。但在 Cassandra 这类宽列数据库里<strong>做不到</strong>——它<strong>禁止在非分区键、非聚类键的列上做过滤</strong>。</p>
+<blockquote>
+<p>这背后是 Cassandra 的设计哲学：<strong>查询必须&quot;顺着数据的物理存储顺序走&quot;</strong>，不允许全表扫描。好处是每次查询都极快、可预测；代价是<strong>你必须为每一种查询模式预先设计一张表</strong>。</p>
+</blockquote>
+<p>原笔记提到的&quot;workaround&quot;是&quot;把一个文件夹的所有邮件取出来在内存里过滤&quot;——<strong>这在规模稍大的应用里完全不可行</strong>：一个用户可能有几十万封邮件，每次都全量拉出来过滤，内存和网络都会被吃光。</p>
+<p>正确做法是<strong>反范式化（De-normalization）</strong>：把 emails 表按&quot;已读/未读&quot;拆成两张表。</p>
+<div align="center"><img src="./images/read-unread-emails.png" alt="把 emails 表拆成已读与未读两张表" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>这就是 NoSQL 世界的基本功</strong>：<strong>用存储冗余换查询性能</strong>。同一封邮件的信息存了两份，标记已读时要从一张表删掉、往另一张表插入（或者更新状态字段）。听起来浪费，但换来的是&quot;取未读邮件&quot;变成一次分区内顺序扫描，快得毫无悬念。
+关系型数据库用 JOIN 和索引解决这类问题；NoSQL 用&quot;多写一份&quot;解决。<strong>没有免费的午餐，只是把成本从&quot;查询时&quot;挪到了&quot;写入时&quot;。</strong></p>
+</blockquote>
+<h3 id="45-会话线索conversation-threads">4.5 会话线索（Conversation Threads）</h3>
+<p>Gmail 的&quot;会话视图&quot;（把一来一回的邮件折叠成一条线）靠的是邮件头里的三个字段：</p>
+<pre><code class="language-json">{
+  &quot;headers&quot;: {
+    &quot;Message-Id&quot;:  &quot;&lt;7BA04B2A-430C-4D12-8B57-862103C34501@gmail.com&gt;&quot;,
+    &quot;In-Reply-To&quot;: &quot;&lt;CAEWTXuPfN=LzECjDJtgY9Vu03kgFvJnJUSHTt6TW@gmail.com&gt;&quot;,
+    &quot;References&quot;:  [&quot;&lt;7BA04B2A-430C-4D12-8B57-862103C34501@gmail.com&gt;&quot;]
+  }
+}
+</code></pre>
+<ul>
+<li><code>Message-Id</code>：这封邮件自己的唯一标识。</li>
+<li><code>In-Reply-To</code>：这封邮件回复的是哪一封。</li>
+<li><code>References</code>：整条会话的祖先链。</li>
+</ul>
+<p><strong>服务端只负责原样保存这些头</strong>，由<strong>邮件客户端</strong>去解释它们、重建出会话树。这样服务端逻辑简单，客户端也灵活（不同客户端可以有不同的折叠策略）。</p>
+<h3 id="46-一致性取舍宁可短暂不可用">4.6 一致性取舍：宁可短暂不可用</h3>
+<p>原笔记在这里做了一个明确的选择：<strong>&quot;trade availability for consistency&quot;</strong>——为了强一致，牺牲可用性。</p>
+<p>理由是邮件元数据（尤其是&quot;已读/未读&quot;&quot;已发送&quot;这类状态）<strong>不一致的代价很高</strong>：用户刚发的邮件如果&quot;已发送&quot;文件夹里看不到，会以为发送失败，然后重发一遍。</p>
+<p>所以当发生<strong>故障转移（Failover）或网络分区（Network Partition）<strong>时，受影响用户的操作会</strong>短暂不可用</strong>，而不是返回可能过期的数据。</p>
+<blockquote>
+<p><strong>用 CAP 的语言说</strong>：这是一个 <strong>CP 系统</strong>。对比一下第 21 章（类似 Google 搜索）和第 20 章（监控告警），你会发现<strong>同一个架构模式在不同业务约束下会做出完全相反的选择</strong>——这就是系统设计的核心：<strong>没有最优解，只有最合适的取舍</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="5-邮件送达率本章最实用的一节">5. 邮件送达率：本章最实用的一节</h2>
+<p>这是原笔记写得最浅、但<strong>工程价值最高</strong>的部分。它只用了半页列了六条建议，我们就着这六条，把背后的机制讲透。</p>
+<h3 id="51-发送成功不等于送到了">5.1 &quot;发送成功&quot;不等于&quot;送到了&quot;</h3>
+<p>先建立一个关键认知：<strong>SMTP 返回 <code>250 OK</code>，只表示对方服务器&quot;收下了&quot;这封信，不表示用户能在收件箱里看到它。</strong></p>
+<p>对方的邮件服务器可以在三个位置做拦截：</p>
+<ol>
+<li><strong>SMTP 会话阶段</strong>：直接回 <code>4xx</code>（临时拒绝，你稍后重试）或 <code>5xx</code>（永久拒绝，别再试了）。</li>
+<li><strong>收下之后、投递之前</strong>：扔进垃圾箱（Junk）或&quot;推广&quot;标签页。</li>
+<li><strong>静默丢弃（Blackhole）</strong>：收下了，什么都不回，也不投递。这是最恶劣的情况——你<strong>根本不知道自己被拦了</strong>。</li>
+</ol>
+<p>所以&quot;送达率&quot;是一个<strong>观测难题</strong>：你只能通过退信率、投诉率、以及各家邮箱提供的<strong>发件人信誉面板</strong>（如 Google Postmaster Tools）来间接判断。</p>
+<h3 id="52-三层身份验证spfdkimdmarc">5.2 三层身份验证：SPF、DKIM、DMARC</h3>
+<p>这三个词是送达率的核心，也是初学者最容易混成一团的地方。先用一个类比建立直觉：</p>
+<blockquote>
+<ul>
+<li><strong>SPF</strong> 是<strong>门卫核对车牌</strong>：这辆车（IP）是不是登记在册、允许代表这个小区送快递？</li>
+<li><strong>DKIM</strong> 是<strong>包裹上的防拆封条</strong>：包裹在运输途中有没有被打开过？封条上的签名是不是寄件人的？</li>
+<li><strong>DMARC</strong> 是<strong>你留给门卫的处理规则</strong>：车牌和封条都对不上时，你是要门卫直接拒收、先扣下来检查，还是照收但写份报告给你？</li>
+</ul>
+</blockquote>
+<h4 id="spfsender-policy-framework发件人策略框架">SPF（Sender Policy Framework，发件人策略框架）</h4>
+<p>你的域名在 DNS 里发布一条 TXT 记录，声明<strong>哪些 IP 有资格代表这个域名发信</strong>：</p>
+<pre><code>example.com.  TXT  &quot;v=spf1 ip4:203.0.113.0/24 include:_spf.google.com -all&quot;
+</code></pre>
+<p>接收方收到邮件时，检查<strong>发起 SMTP 连接的来源 IP</strong> 是否在列表里：</p>
+<ul>
+<li><code>ip4:203.0.113.0/24</code>：授权这个 IP 段。</li>
+<li><code>include:_spf.google.com</code>：把 Google 的 SPF 记录整个包含进来（用第三方代发邮件时必须写）。</li>
+<li><code>-all</code>：<strong>不在列表里的一律拒绝</strong>（<code>~all</code> 是&quot;软失败&quot;，只标记不拒绝；<code>-all</code> 是硬失败，强烈建议用这个）。</li>
+</ul>
+<p><strong>SPF 的局限</strong>：</p>
+<ul>
+<li>它校验的是<strong>信封发件人（Envelope From / Return-Path）</strong>，不是用户在邮件客户端里看到的 <code>From:</code> 头。两者可以不一致——这正是伪造邮件的空间。</li>
+<li><strong>邮件被转发后会失效</strong>。你发给 A，A 自动转发给 B，此时发信 IP 变成了 A 的服务器，不在你的 SPF 里，校验必然失败。</li>
+</ul>
+<h4 id="dkimdomainkeys-identified-mail域名密钥识别邮件">DKIM（DomainKeys Identified Mail，域名密钥识别邮件）</h4>
+<p>发送方用<strong>私钥</strong>对<strong>选定的邮件头 + 正文</strong>做签名，把签名附在邮件头里；<strong>公钥</strong>发布在 DNS 上：</p>
+<pre><code>selector1._domainkey.example.com.  TXT  &quot;v=DKIM1; k=rsa; p=MIGfMA0GCS...&quot;
+</code></pre>
+<p>接收方拿到邮件后，用 DNS 里的公钥<strong>验签</strong>。</p>
+<p><strong>DKIM 证明两件事</strong>：</p>
+<ol>
+<li>这封邮件确实是由<strong>持有该域名私钥</strong>的一方发出的；</li>
+<li>被签名的部分（指定的头 + 正文）在传输过程中<strong>没有被篡改</strong>。</li>
+</ol>
+<p><strong>DKIM 的关键优势</strong>：签名<strong>跟着邮件走</strong>。邮件被转发时，只要被签名的部分没被修改，验签依然通过——这正好补上了 SPF 的短板。</p>
+<h4 id="dmarcdomain-based-message-authentication-reporting-conformance">DMARC（Domain-based Message Authentication, Reporting &amp; Conformance）</h4>
+<p>DMARC 记录发布在 <code>_dmarc.&lt;你的域名&gt;</code>，它做三件事：</p>
+<p><strong>第一，对齐检查（Alignment）。</strong> 这是 DMARC 最核心的价值。它要求<strong>用户在邮件客户端里看到的 <code>From:</code> 域名</strong>，必须与 SPF 或 DKIM 通过验证的域名<strong>一致</strong>。</p>
+<blockquote>
+<p>为什么需要对齐？因为攻击者可以这样做：用<strong>自己的域名</strong>（<code>evil.com</code>）发信，SPF 和 DKIM 全都合法通过，但把 <code>From:</code> 头写成 <code>yourbank.com</code>。没有 DMARC 的话，接收方看到 SPF/DKIM 都通过了，就可能放行——用户看到的是&quot;来自 <a href="http://yourbank.com" target="_blank" rel="noopener noreferrer">yourbank.com</a>&quot;，实际却是 <code>evil.com</code> 发的。<strong>DMARC 的对齐检查专门堵这个漏洞。</strong></p>
+</blockquote>
+<p><strong>第二，失败处理策略。</strong> 通过 <code>p=</code> 参数告诉接收方，验证失败时怎么办：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>含义</th>
+<th>适用阶段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>p=none</code></td>
+<td>只观察，不做处置（但会发报告给你）</td>
+<td>上线初期，先摸底</td>
+</tr>
+<tr>
+<td><code>p=quarantine</code></td>
+<td>扔进垃圾箱</td>
+<td>观察一段时间、确认无正常邮件被误伤后</td>
+</tr>
+<tr>
+<td><code>p=reject</code></td>
+<td>直接拒收</td>
+<td>最终目标状态</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>第三，报告机制。</strong> 接收方会定期把验证结果回传给你：</p>
+<ul>
+<li><strong>聚合报告（Aggregate Report, RUA）</strong>：每天一份 XML，汇总&quot;有多少封邮件通过了 SPF/DKIM、来源 IP 是哪些&quot;。这是<strong>排查&quot;谁在用我的域名发信&quot;的唯一手段</strong>。</li>
+<li><strong>取证报告（Forensic Report, RUF）</strong>：单封邮件的详细信息，但涉及隐私，很多 ISP 不提供。</li>
+</ul>
+<p><strong>三者的关系一句话总结</strong>：</p>
+<blockquote>
+<p><strong>SPF 管 IP，DKIM 管内容，DMARC 管决策和报告。</strong></p>
+</blockquote>
+<p>只有 SPF + DKIM 而没有 DMARC，攻击者依然能伪造你的显示名；只有 DMARC 而没有前两者，DMARC 就没有可判定的依据。<strong>三个必须一起上。</strong></p>
+<blockquote>
+<p><strong>2024 年的行业硬性要求（重要更新）</strong></p>
+<p>从 <strong>2024 年 2 月</strong>起，Google 和 Yahoo 对<strong>批量发信人</strong>（每天向 Gmail 发送 5000 封以上）提出了强制要求：</p>
+<ol>
+<li>必须配置 <strong>SPF 和 DKIM</strong>；</li>
+<li>必须有 <strong>DMARC 记录</strong>（最低 <code>p=none</code>）；</li>
+<li>必须支持<strong>一键退订（One-Click Unsubscribe，RFC 8058）</strong>；</li>
+<li><strong>垃圾邮件投诉率必须控制在 0.3% 以下</strong>（Google 给出的建议目标是 0.1% 以下）。</li>
+</ol>
+<p>这意味着 SPF/DKIM/DMARC 已经从&quot;最佳实践&quot;变成了&quot;不做就进垃圾箱&quot;的准入门槛。<strong>这是原笔记写作时（2021 年前后）还不存在的行业变化</strong>，见文末勘误。</p>
+</blockquote>
+<h3 id="53-邮件为什么会进垃圾箱">5.3 邮件为什么会进垃圾箱</h3>
+<p>身份验证只是入场券。通过 SPF/DKIM/DMARC 之后，接收方还会用一整套信号来判断你是不是垃圾邮件发送者：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>信号类别</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>IP 信誉</strong></td>
+<td>你这个发信 IP 的历史表现。用共享 IP 时，<strong>同一个 IP 上其他发信人的劣迹会算到你头上</strong></td>
+</tr>
+<tr>
+<td><strong>域名信誉</strong></td>
+<td>域名注册多久了、历史投诉率如何。新注册的域名天然低分</td>
+</tr>
+<tr>
+<td><strong>内容特征</strong></td>
+<td>垃圾邮件常见词、过多的链接、纯图片无文字、畸形的 HTML、可疑的短链接</td>
+</tr>
+<tr>
+<td><strong>用户互动</strong></td>
+<td>收件人是否打开、是否回复、是否移动邮件。<strong>&quot;用户从不打开&quot;本身就是负面信号</strong></td>
+</tr>
+<tr>
+<td><strong>投诉率</strong></td>
+<td>用户点&quot;举报垃圾邮件&quot;的比例。这是<strong>最重的负面信号</strong></td>
+</tr>
+<tr>
+<td><strong>退信率</strong></td>
+<td>无效地址比例过高，说明你在群发未验证的名单</td>
+</tr>
+<tr>
+<td><strong>垃圾陷阱（Spam Trap）</strong></td>
+<td>ISP 故意放出的&quot;废弃地址&quot;。<strong>正常用户永远不会给这些地址发信</strong>——你发了，就说明你在买名单或者从不清理列表</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个反直觉的结论</strong>：<strong>&quot;发送量&quot;本身不是问题，&quot;发送量突然暴增&quot;才是问题。</strong> 一个每天稳定发 100 万封、投诉率 0.02% 的域名信誉会很好；一个昨天发 0 封、今天发 50 万封的新域名，几乎必进垃圾箱。接收方看的是<strong>行为模式的一致性</strong>。</p>
+</blockquote>
+<h3 id="54-ip-预热ip-warming">5.4 IP 预热（IP Warming）</h3>
+<p>这是原笔记提到但没解释的一条，非常关键。</p>
+<p><strong>问题</strong>：一个全新的 IP 地址<strong>没有任何历史记录</strong>。如果你拿到新 IP 的第一天就群发 100 万封，接收方的风控模型会看到&quot;一个完全陌生的 IP，突然产生巨量投递&quot;——这正是垃圾邮件发送者换 IP 后的典型行为。<strong>结果就是直接进垃圾箱，甚至被拉黑。</strong></p>
+<p><strong>解法：IP 预热。</strong> 逐步增加从这个 IP 发出的邮件量，让它慢慢积累正面信誉：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>每天发送量（示意）</th>
+<th>发给谁</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第 1 周</td>
+<td>几百 ~ 几千</td>
+<td><strong>最活跃、最可能打开邮件的那批用户</strong></td>
+</tr>
+<tr>
+<td>第 2～3 周</td>
+<td>几万</td>
+<td>逐步扩大到较活跃用户</td>
+</tr>
+<tr>
+<td>第 4～6 周</td>
+<td>几十万 → 全量</td>
+<td>全部用户</td>
+</tr>
+</tbody>
+</table></div>
+<p>原笔记给的&quot;<strong>2 到 6 周</strong>&quot;就是这个过程的典型时长。</p>
+<p><strong>预热的两个要点</strong>：</p>
+<ol>
+<li><strong>优先发给高互动用户</strong>。因为他们大概率会打开、点击，这些正面互动会被记入 IP 信誉。</li>
+<li><strong>预热期不要中断</strong>。连续几天不发信，会让刚积累的信誉&quot;凉掉&quot;。</li>
+</ol>
+<h3 id="55-退信处理硬退信必须自动清理">5.5 退信处理：硬退信必须自动清理</h3>
+<p>原笔记完全没提这一节，但它是<strong>最容易把域名信誉搞死的地方</strong>。</p>
+<p>退信（Bounce）分两类，处理方式完全不同：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>英文</th>
+<th>含义</th>
+<th>典型 SMTP 状态码</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>硬退信</strong></td>
+<td>Hard Bounce</td>
+<td><strong>永久性失败</strong>：地址不存在、域名不存在、收件人已注销</td>
+<td><code>550 5.1.1</code>（用户不存在）、<code>550 5.1.2</code>（域名不存在）</td>
+<td><strong>立即从名单中永久移除</strong></td>
+</tr>
+<tr>
+<td><strong>软退信</strong></td>
+<td>Soft Bounce</td>
+<td><strong>临时性失败</strong>：邮箱已满、对方服务器过载、邮件太大、被限流</td>
+<td><code>452 4.2.2</code>（邮箱满）、<code>421 4.7.0</code>（临时限流）</td>
+<td><strong>指数退避重试</strong>；连续失败 N 次后转为硬退信处理</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>状态码的通用规则</strong>：<strong><code>4xx</code> 开头 = 临时失败（软），<code>5xx</code> 开头 = 永久失败（硬）。</strong> 这个规则在所有 SMTP 实现里通用，记住它能省很多事。</p>
+<p><strong>为什么必须自动清理硬退信地址？</strong></p>
+<p>因为<strong>持续向不存在的地址发信，是垃圾邮件发送者的典型特征</strong>。正规的发信方会维护干净的名单，垃圾邮件发送者不会（他们的名单是买来的、过期的）。所以：</p>
+<blockquote>
+<p>如果同一个地址连续硬退信，而你还在继续发——接收方会认定你在群发未验证名单，<strong>你的域名信誉会快速下滑，最终所有邮件都进垃圾箱</strong>。</p>
+</blockquote>
+<p>工程上的做法是：把退信处理做成一个<strong>自动化的反馈闭环</strong>——收到 DSN（Delivery Status Notification，投递状态通知）退信邮件后，解析状态码，<code>5xx</code> 直接加入抑制名单（Suppression List），<code>4xx</code> 进入重试计数，超过阈值后也加入抑制名单。</p>
+<p><strong>还有一个配套机制：反馈环（Feedback Loop, FBL）。</strong> 当用户点&quot;举报垃圾邮件&quot;时，部分 ISP 会通过 <strong>ARF（Abuse Reporting Format）</strong> 把投诉回传给你。收到投诉后应当<strong>立即停止向该用户发信</strong>——继续发只会让投诉率上升。</p>
+<h3 id="56-原笔记六条建议的逐条解读">5.6 原笔记六条建议的逐条解读</h3>
+<p>现在回头看原笔记列出的六条，每一条都能对上上面的原理：</p>
+<ol>
+<li><strong>使用专用 IP（Dedicated IPs）</strong>——共享 IP 的信誉不受你控制，别人的劣迹会连累你。（但有例外，见勘误 3）</li>
+<li><strong>对邮件分类发送（Classify emails）</strong>——<strong>不要把营销邮件和事务性邮件（密码重置、订单确认）混在同一个 IP 上发</strong>。营销邮件的投诉率天然更高，会拖累事务性邮件的送达率。业界标准做法是按**邮件流（Mail Stream）**拆分 IP。</li>
+<li><strong>缓慢预热 IP（Warm up your IP address）</strong>——见 5.4 节，需要 2～6 周。</li>
+<li><strong>快速封禁垃圾邮件发送者（Ban spammers quickly）</strong>——如果你的平台上有人用你的服务群发垃圾邮件，<strong>你的域名信誉会被他们拖垮</strong>。必须快速识别并封禁。</li>
+<li><strong>处理反馈（Feedback processing）</strong>——与 ISP 建立反馈环，跟踪投诉率，及时处理。</li>
+<li><strong>邮件身份验证（Email authentication）</strong>——也就是 SPF / DKIM / DMARC。</li>
+</ol>
+<p>原笔记最后那句&quot;你不需要记住所有细节，只要知道搭建一个好邮件服务器需要大量领域知识&quot;，说得非常实在。<strong>这就是为什么绝大多数公司选择用第三方邮件服务（SendGrid、SES、Postmark 等）而不是自建——难点不在技术，在信誉运营。</strong></p>
+<hr />
+<h2 id="6-反垃圾邮件接收方的视角">6. 反垃圾邮件：接收方的视角</h2>
+<p>上一节讲的是&quot;怎么让自己的邮件不被当成垃圾&quot;，这一节反过来讲&quot;<strong>怎么判断别人的邮件是不是垃圾</strong>&quot;。原笔记几乎没写这部分，但对设计邮件系统来说是必须的。</p>
+<h3 id="61-分层拦截">6.1 分层拦截</h3>
+<p>工业界的反垃圾邮件是<strong>分层</strong>的，越靠前成本越低：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>层次</th>
+<th>手段</th>
+<th>成本</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>连接层</strong></td>
+<td>IP 黑名单（DNSBL）、SPF 校验、连接频率限制</td>
+<td>极低</td>
+<td>拦住大量低级垃圾</td>
+</tr>
+<tr>
+<td><strong>协议层</strong></td>
+<td>灰名单（Greylisting）、DKIM 验签、DMARC 策略</td>
+<td>低</td>
+<td>拦住自动化群发</td>
+</tr>
+<tr>
+<td><strong>内容层</strong></td>
+<td>贝叶斯过滤、规则评分、URL 黑名单、附件扫描</td>
+<td>中</td>
+<td>拦住内容型垃圾</td>
+</tr>
+<tr>
+<td><strong>信誉层</strong></td>
+<td>发信人/域名/IP 历史信誉打分</td>
+<td>中</td>
+<td>长期有效性最好</td>
+</tr>
+<tr>
+<td><strong>用户层</strong></td>
+<td>用户主动举报、手动加入黑名单</td>
+<td>高（需人工）</td>
+<td>最准确，用于训练上层模型</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>关键原则：能在连接层拦住的，绝不留到内容层。</strong> 因为内容分析要消耗 CPU、要存储，还要面对无穷无尽的变形。</p>
+<h3 id="62-贝叶斯过滤bayesian-filtering">6.2 贝叶斯过滤（Bayesian Filtering）</h3>
+<p>这是内容层最经典的算法，也是初学者最该理解的一个。</p>
+<p><strong>核心思想</strong>：把邮件看成&quot;词（token）的集合&quot;，用<strong>朴素贝叶斯</strong>判断它属于垃圾邮件的概率。</p>
+<p>训练阶段：统计每个词在垃圾邮件和正常邮件里出现的频率。</p>
+<pre><code>P(垃圾 | 词) = P(词 | 垃圾) × P(垃圾) / P(词)
+</code></pre>
+<p>举例：如果&quot;中奖&quot;这个词在垃圾邮件里出现的概率是 80%，在正常邮件里是 0.1%，那么一封包含&quot;中奖&quot;的邮件是垃圾的概率就很高。把邮件里所有词的判定结果按朴素贝叶斯的独立性假设组合起来，就得到整封邮件的垃圾概率。</p>
+<p><strong>为什么它有效？</strong> 因为它是<strong>自适应</strong>的——每个用户的正常邮件和垃圾邮件特征都不同（你收的&quot;正常邮件&quot;和别人收的不一样），贝叶斯过滤可以为<strong>每个用户单独训练模型</strong>。</p>
+<p><strong>实践中的三个关键点</strong>：</p>
+<ol>
+<li><strong>需要训练数据</strong>。用户点&quot;举报垃圾&quot;就是最好的训练样本；点&quot;这不是垃圾&quot;是反向样本。所以<strong>用户反馈本身就是反垃圾系统的一部分</strong>。</li>
+<li><strong>要处理&quot;词的概率极端值&quot;</strong>。如果某个词只在垃圾邮件里出现过（比如一次），概率会是 100%，这不可靠。工程上会给每个词一个<strong>最小样本数阈值</strong>和<strong>概率上下限</strong>（比如限制在 0.01～0.99 之间）。</li>
+<li><strong>它会被&quot;贝叶斯投毒&quot;攻击</strong>。垃圾邮件发送者会故意在垃圾邮件里塞大量正常词汇（比如从新闻网站抓的段落），污染训练数据。所以现代系统<strong>不会只用贝叶斯</strong>，而是把它作为多信号中的一个。</li>
+</ol>
+<blockquote>
+<p><strong>历史背景</strong>：贝叶斯过滤在 2002 年由 Paul Graham 的《A Plan for Spam》一文推广开来，随后被 SpamAssassin、SpamBayes 等开源项目采用，一度把垃圾邮件拦截率从 80% 提升到 99% 以上。这是反垃圾邮件史上最重要的技术转折之一。</p>
+</blockquote>
+<h3 id="63-发信人信誉sender-reputation">6.3 发信人信誉（Sender Reputation）</h3>
+<p>贝叶斯过滤的是&quot;内容&quot;，信誉系统过滤的是&quot;发信人&quot;。</p>
+<p><strong>核心思想</strong>：<strong>一个长期发送正常邮件的 IP / 域名，比一个陌生 IP 更可信。</strong> 这和第 5.4 节的 IP 预热是同一套逻辑的两面。</p>
+<p>信誉分的输入信号包括：</p>
+<ul>
+<li>历史投诉率、退信率</li>
+<li>是否通过 SPF/DKIM/DMARC</li>
+<li>邮件量随时间的变化曲线（突然暴增 = 可疑）</li>
+<li>是否出现在**垃圾陷阱（Spam Trap）**的收件记录里</li>
+<li>域名年龄（新域名 = 低分）</li>
+<li>是否被**实时黑名单（DNSBL，如 Spamhaus）**收录</li>
+</ul>
+<blockquote>
+<p><strong>注意一个容易被忽略的事实</strong>：<strong>域名信誉比 IP 信誉更难&quot;洗白&quot;。</strong> 换一个 IP 相对便宜，但域名一旦被标记为垃圾来源，往往需要几个月甚至永久无法恢复。所以正规发信方宁愿多花钱做预热，也不愿冒险把域名搞脏。</p>
+</blockquote>
+<h3 id="64-灰名单greylisting">6.4 灰名单（Greylisting）</h3>
+<p>这是最简单、最&quot;优雅&quot;的一个反垃圾技巧，原理一句话就能说清：</p>
+<blockquote>
+<p><strong>对来自陌生发信人的邮件，先临时拒绝，让它过几分钟再试一次。</strong></p>
+</blockquote>
+<p>具体流程：</p>
+<ol>
+<li>收到一封来自陌生三元组 <strong>（发信 IP、发信地址、收信地址）</strong> 的邮件；</li>
+<li>返回 <code>4xx</code> 临时错误（比如 <code>450 4.7.1 Please try again later</code>）；</li>
+<li>记下这个三元组，允许它在<strong>几分钟后</strong>重新投递；</li>
+<li>如果它真的重试了，就放行并把它加入白名单，以后不再拦截。</li>
+</ol>
+<p><strong>为什么有效？</strong> 因为<strong>正规的邮件服务器（MTA）严格遵守 SMTP 规范，收到 <code>4xx</code> 会按退避策略自动重试</strong>（通常几分钟到几小时）；而<strong>绝大多数垃圾邮件发送机器人为了效率，收到拒绝就直接放弃了</strong>，不会重试。</p>
+<p><strong>代价</strong>：邮件会<strong>延迟几分钟到几十分钟</strong>。所以灰名单适合用在&quot;反垃圾优先、延迟可接受&quot;的场景，很多企业邮箱网关会默认开启。</p>
+<blockquote>
+<p><strong>为什么这条对初学者特别有价值？</strong> 因为它体现了系统设计里一个常见思路：<strong>利用&quot;正规系统会遵守协议、攻击者不会&quot;这个不对称性来区分两者。</strong> 类似的思路还有：要求客户端执行一个计算量很小的挑战（防爬虫）、要求 TCP 三次握手完整（防 SYN Flood）。<strong>攻击者的成本优势，往往来自&quot;省掉正常流程&quot;——那就把正常流程变成必答题。</strong></p>
+</blockquote>
+<h3 id="65-一个完整的反垃圾判断流程">6.5 一个完整的反垃圾判断流程</h3>
+<p>把上面这些串起来，一封外部邮件的处理大致是：</p>
+<pre><code>建立 SMTP 连接
+  ├─ IP 在 DNSBL 黑名单里？        → 直接拒收（5xx）
+  ├─ 该 IP 连接频率异常？           → 限流或拒收
+  ├─ 陌生三元组？                   → 灰名单临时拒绝（4xx）
+  └─ 通过 ↓
+SMTP 会话
+  ├─ SPF 校验失败？                 → 标记 / 拒收
+  ├─ DKIM 验签失败？                → 标记
+  └─ DMARC 策略 = reject 且验证失败？ → 拒收（5xx）
+  └─ 通过 ↓
+收下邮件
+  ├─ 查发信人信誉分                 → 低分则提高后续阈值
+  ├─ 贝叶斯内容分析                 → 垃圾概率
+  ├─ 规则评分（SpamAssassin 类）    → 累加得分
+  ├─ URL / 附件扫描                 → 恶意链接、病毒
+  └─ 综合评分
+       ├─ 高分 → 投进垃圾箱
+       └─ 低分 → 投进收件箱
+用户行为
+  └─ 举报 / 标记非垃圾 → 反哺训练模型与信誉系统
+</code></pre>
+<hr />
+<h2 id="7-搜索为什么不能用-like-关键词">7. 搜索：为什么不能用 <code>LIKE '%关键词%'</code></h2>
+<p>邮件搜索要支持<strong>全文搜索</strong>（在正文里找词），以及<strong>结构化过滤</strong>（按发件人、收件人、主题、未读状态筛）。</p>
+<h3 id="71-邮件搜索和网页搜索有什么不同">7.1 邮件搜索和网页搜索有什么不同</h3>
+<p>原笔记的这张对比表很精辟：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>范围</th>
+<th>排序方式</th>
+<th>准确性要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Google 搜索</strong></td>
+<td>整个互联网</td>
+<td>按<strong>相关度</strong>排序</td>
+<td>索引需要时间，结果不必即时</td>
+</tr>
+<tr>
+<td><strong>邮件搜索</strong></td>
+<td>用户自己的邮箱</td>
+<td>按<strong>属性</strong>排序（时间、日期等）</td>
+<td>索引要快，结果要准确</td>
+</tr>
+</tbody>
+</table></div>
+<p>差异的根源在于<strong>数据规模和用户预期</strong>：</p>
+<ul>
+<li>网页搜索面对的是&quot;无数个可能的答案&quot;，所以<strong>相关度排序</strong>是核心；用户能接受&quot;结果里没有我要的&quot;。</li>
+<li>邮件搜索面对的是&quot;<strong>我自己的、确定存在的那封信</strong>&quot;，所以<strong>召回率必须高</strong>——用户知道那封邮件就在那儿，搜不到就是你的问题。同时<strong>排序主要靠时间</strong>（最近的最可能有用），相关度反而是次要的。</li>
+</ul>
+<blockquote>
+<p>原笔记还提到一个容易被忽略的特征：<strong>邮件搜索的索引写入量远大于查询量</strong>。因为每收一封新邮件、每标记一次已读，索引都要更新；而用户真正点开搜索框的次数很少。<strong>这是一个典型的写密集、读稀疏场景</strong>——这个特征直接决定了后面索引结构的选择。</p>
+</blockquote>
+<h3 id="72-为什么关系型数据库的-like-不行">7.2 为什么关系型数据库的 <code>LIKE</code> 不行</h3>
+<p>初学者最容易想到的方案是：</p>
+<pre><code class="language-sql">SELECT * FROM emails
+WHERE user_id = '123'
+  AND body LIKE '%合同%';
+</code></pre>
+<p><strong>这在生产环境是不可接受的</strong>，原因有四个：</p>
+<ol>
+<li><strong>前导通配符会让索引完全失效。</strong> B+ 树索引是按<strong>前缀</strong>有序排列的。<code>LIKE '合同%'</code>（前缀固定）还能用索引；<code>LIKE '%合同%'</code>（前缀未知）只能<strong>全表扫描</strong>——把每一行都读出来做字符串匹配。</li>
+<li><strong>复杂度是 O(N)。</strong> 一个用户有 10 万封邮件，每封平均 50 KB 正文，一次搜索要扫描 5 GB 数据。用户等不了，数据库也扛不住。而且这是<strong>每个用户各自</strong>的开销，10 亿用户意味着随时可能有几万次全表扫描同时在跑。</li>
+<li><strong>无法排序、无法打分。</strong> 全文搜索需要&quot;哪封邮件最相关&quot;的概念（词频、字段权重、位置邻近度），<code>LIKE</code> 只会返回&quot;匹配 / 不匹配&quot;。</li>
+<li><strong>无法处理语言的复杂性。</strong> 中文需要分词（&quot;北京大学&quot;要能切成&quot;北京/大学&quot;），英文需要词干还原（&quot;running&quot; 和 &quot;run&quot; 应该匹配），还有同义词、拼写纠错。<code>LIKE</code> 对这些一无所知。</li>
+</ol>
+<h3 id="73-正确方案倒排索引inverted-index">7.3 正确方案：倒排索引（Inverted Index）</h3>
+<p><strong>正排索引</strong>是&quot;文档 → 包含哪些词&quot;，<strong>倒排索引</strong>反过来：&quot;词 → 出现在哪些文档里&quot;。</p>
+<pre><code>正排：doc1 → [合同, 甲方, 乙方, 签署]
+      doc2 → [合同, 到期, 续签]
+
+倒排：合同 → [doc1, doc2]
+      签署 → [doc1]
+      续签 → [doc2]
+</code></pre>
+<p>搜索&quot;合同&quot;时，只需要查一次词典拿到 posting list <code>[doc1, doc2]</code>，复杂度接近 <strong>O(1)</strong>，而不是 O(N) 全表扫描。</p>
+<p><strong>索引的构建流程</strong>：</p>
+<pre><code>原始邮件
+  ↓ ① 分词（Tokenization）      中文用分词器，英文按空格和标点切
+  ↓ ② 归一化（Normalization）   转小写、词干还原（running → run）、去停用词（the、的）
+  ↓ ③ 构建词典 + posting list   记录词出现在哪些文档、哪个位置、出现几次
+  ↓ ④ 落盘                      分段存储 + 压缩（增量编码、跳表）
+</code></pre>
+<p><strong>查询时</strong>：</p>
+<pre><code>查询词 → 分词 → 归一化 → 查词典 → 取 posting list → 求交集 → 打分排序 → 返回
+</code></pre>
+<p>位置信息（词在文档中的偏移）让<strong>短语查询</strong>（&quot;系统 设计&quot;必须相邻）成为可能，词频信息让<strong>相关度打分</strong>（TF-IDF / BM25）成为可能。</p>
+<h3 id="74-增量索引怎么让新邮件立刻可搜">7.4 增量索引：怎么让新邮件立刻可搜</h3>
+<p><strong>问题</strong>：全量重建索引在邮件场景不可行（用户刚收到的邮件必须马上能搜到），所以需要<strong>增量索引</strong>。</p>
+<p>原笔记给出的方案是：</p>
+<div align="center"><img src="./images/elasticsearch.png" alt="用 Elasticsearch 集群做邮件搜索，按 user_id 分区" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li>用 <strong>Elasticsearch 集群</strong>做搜索存储，<strong>用 <code>user_id</code> 作为分区键</strong>，让同一个用户的数据落在同一个节点上（这样查询天然局部化，不需要跨节点聚合）。</li>
+<li><strong>写操作（索引更新）通过 Kafka 异步进行</strong>，把业务服务和重建索引流程<strong>解耦</strong>。</li>
+<li><strong>查询是同步的</strong>——用户点了搜索，必须立刻拿到结果。</li>
+</ul>
+<blockquote>
+<p><strong>为什么写入要用 Kafka 异步？</strong> 因为索引写入比查询慢得多，而且是&quot;可延迟&quot;的。如果同步做，用户点&quot;发送&quot;要等索引写完才能返回，体验会很差；更糟的是，如果搜索服务挂了，<strong>发邮件这个核心功能也会跟着挂</strong>。用消息队列解耦后，搜索服务故障只会导致&quot;暂时搜不到新邮件&quot;，不会影响收发。
+这个模式在整本书里反复出现：<strong>把&quot;必须成功&quot;的核心链路和&quot;可以延迟&quot;的辅助链路分开。</strong></p>
+</blockquote>
+<p><strong>异步索引的代价：准实时（Near-Real-Time）。</strong> 新邮件到达后到能被搜到，中间有几秒的窗口期（Elasticsearch 默认 <code>refresh_interval</code> 是 1 秒，加上 Kafka 消费延迟）。<strong>这是可以接受的</strong>——用户不会在发出邮件后的 1 秒内就去搜索它。</p>
+<h3 id="75-elasticsearch-还是自研">7.5 Elasticsearch 还是自研？</h3>
+<p>原笔记做了这个对比，值得保留：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Elasticsearch</th>
+<th>自研搜索引擎</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>扩展性</strong></td>
+<td>能扩展到相当规模</td>
+<td>可以针对邮件场景深度优化，理论上限更高</td>
+</tr>
+<tr>
+<td><strong>运维成本</strong></td>
+<td>是<strong>独立于元数据库之外的另一个服务</strong>，要单独维护</td>
+<td>可以和数据存储<strong>合二为一</strong>，少维护一套系统</td>
+</tr>
+<tr>
+<td><strong>开发成本</strong></td>
+<td>开箱即用</td>
+<td><strong>需要大量工程投入</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>结论</strong>：绝大多数团队应该选 Elasticsearch。自研只在&quot;规模大到 ES 撑不住、且团队有足够搜索工程能力&quot;时才值得考虑（Gmail 这个量级）。</p>
+<blockquote>
+<p><strong>一个需要限定的说法</strong>：原笔记说&quot;Elasticsearch scales to some extent（只能扩展到一定程度）&quot;——这个表述<strong>容易误导</strong>。Elasticsearch 在生产环境里可以支撑<strong>几十到上百节点的集群、PB 级数据</strong>，很多大型企业就是这么用的。真正的取舍不是&quot;ES 撑不大&quot;，而是：<strong>ES 是一个独立的有状态服务，你要为它付出额外的运维成本（集群管理、分片规划、rebalance、版本升级），并且它的资源开销不小。</strong> 详见文末勘误。</p>
+</blockquote>
+<h3 id="76-自研方案的核心挑战lsm-tree">7.6 自研方案的核心挑战：LSM-Tree</h3>
+<p>如果真要自研，原笔记指出了一个<strong>核心挑战：为写密集（write-heavy）负载做优化</strong>。</p>
+<p><strong>为什么写密集是难点？</strong> 因为传统的 B+ 树索引<strong>是&quot;原地更新&quot;的</strong>——更新一条记录要在磁盘的随机位置改写一个页。机械硬盘的随机写只有 100～200 IOPS，这是硬瓶颈。</p>
+<p><strong>解法是 LSM-Tree（Log-Structured Merge-Tree，日志结构合并树）</strong>，核心思想一句话：</p>
+<blockquote>
+<p><strong>所有写入都变成顺序追加，绝不做原地修改。</strong></p>
+</blockquote>
+<p>工作流程：</p>
+<ol>
+<li>写入先进入内存中的有序结构（<strong>MemTable</strong>），同时追加写 <strong>WAL（预写日志）</strong> 保证崩溃不丢。</li>
+<li>MemTable 达到阈值后，<strong>整体顺序刷盘</strong>，生成一个不可变的 <strong>SSTable（Sorted String Table）</strong>。</li>
+<li>后台<strong>合并（Compaction）</strong> 把多个 SSTable 归并成更大的有序文件，顺带清理已删除和过期的数据。</li>
+<li>读取时依次查 MemTable → 最近的 SSTable → 更老的 SSTable，用<strong>布隆过滤器</strong>快速跳过&quot;肯定不含目标 key&quot;的文件。</li>
+</ol>
+<div align="center"><img src="./images/lsm-tree.png" alt="LSM-Tree 的层级结构与写入路径" width="520" loading="lazy" decoding="async"></div>
+<p><strong>为什么 LSM-Tree 适合邮件索引？</strong></p>
+<ul>
+<li><strong>写入全是顺序 I/O</strong>，吞吐量比随机写高一个数量级；</li>
+<li><strong>天然适配&quot;追加 + 批量合并&quot;的索引更新模式</strong>；</li>
+<li><strong>写入放大可以通过分层合并控制</strong>。</li>
+</ul>
+<p><strong>代价</strong>：</p>
+<ul>
+<li><strong>读会变慢</strong>（可能要查多个层级，用布隆过滤器缓解）；</li>
+<li><strong>写放大</strong>（同一份数据会被反复合并重写）；</li>
+<li><strong>合并过程会占用磁盘 I/O</strong>，需要精细调参。</li>
+</ul>
+<p><strong>工业实现</strong>：<strong>Cassandra、Bigtable、HBase、RocksDB、LevelDB</strong> 全都基于 LSM-Tree。这也解释了为什么邮件元数据存储（Cassandra）和搜索索引可以用同一套底层技术——<strong>它们的写入模式是相似的</strong>。</p>
+<hr />
+<h2 id="8-可扩展性与可用性">8. 可扩展性与可用性</h2>
+<h3 id="81-为什么邮件系统容易水平扩展">8.1 为什么邮件系统&quot;容易&quot;水平扩展</h3>
+<p>原笔记在这里点出了一个关键性质：<strong>因为单个用户的操作不会和其他用户冲突，绝大部分组件都可以独立扩展。</strong></p>
+<ul>
+<li>用户 A 收邮件，和用户 B 发邮件，<strong>互不影响</strong>；</li>
+<li>数据按 <code>user_id</code> 分片后，<strong>每个分片的负载天然均衡</strong>（用户之间没有热点交叉）；</li>
+<li>Web 服务器、SMTP 服务器、工作进程都是<strong>无状态</strong>的，加机器就行。</li>
+</ul>
+<blockquote>
+<p>这是&quot;用户隔离型系统&quot;的共同优势。对比一下第 21 章（类似 Google 搜索）——那里所有用户查的是<strong>同一份全网索引</strong>，天然有热点；而邮件系统里，<strong>每个用户就是一个独立的小世界</strong>。这就是为什么邮件系统在分片问题上比社交系统简单得多。</p>
+</blockquote>
+<h3 id="82-多数据中心与故障转移">8.2 多数据中心与故障转移</h3>
+<p>为了高可用，需要<strong>多数据中心（Multi-DC）<strong>部署，并支持</strong>主从故障转移（Leader-Follower Failover）</strong>。</p>
+<div align="center"><img src="./images/multi-dc-example.png" alt="多数据中心部署与故障转移示例" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>术语说明</strong>：原笔记用的是 &quot;leader-follower&quot;，这正是我们推荐的现代术语（详见第 1 章勘误）。邮件系统里的每个用户数据只在一个 DC 有主副本，其他 DC 是跟随副本；主副本所在 DC 故障时，提升另一个 DC 的副本。</p>
+</blockquote>
+<hr />
+<h2 id="9-收尾还有哪些值得聊的话题">9. 收尾：还有哪些值得聊的话题</h2>
+<p>原笔记在 Step 4 列了几个可以继续展开的方向，这些也是面试里很好的&quot;主动加分点&quot;：</p>
+<ul>
+<li><strong>容错（Fault Tolerance）</strong>：系统里很多部件都可能故障。<strong>主动讨论&quot;某个节点挂了会怎样&quot;</strong>，比只讲正常流程更能体现深度。</li>
+<li><strong>合规（Compliance）</strong>：邮件内容包含大量<strong>个人身份信息（PII）</strong>。在欧洲 <strong>GDPR</strong> 下，PII 的存储、访问、删除都有法律要求（比如&quot;被遗忘权&quot;意味着用户注销后必须真正删除数据）。<strong>这是邮件系统绕不开的现实约束。</strong></li>
+<li><strong>安全（Security）</strong>：邮件加密（传输用 STARTTLS / MTA-STS，静态用服务端加密）、钓鱼防护、安全浏览（扫描邮件里的链接）。</li>
+<li><strong>优化（Optimizations）</strong>：比如<strong>防止同一份附件被不同用户重复存储</strong>。</li>
+</ul>
+<h3 id="附件去重一个很实在的优化">附件去重：一个很实在的优化</h3>
+<p>原笔记提到的&quot;防止重复附件&quot;值得展开，因为它在真实系统里收益巨大。</p>
+<p><strong>问题</strong>：公司内部传的那份 PDF 手册、那个 50 MB 的产品演示视频，可能被几百个员工互相转发了几十次。如果每次都完整存一份，存储成本会爆炸式增长。</p>
+<p><strong>解法</strong>：<strong>内容寻址（Content-Addressable Storage）</strong>。</p>
+<pre><code>① 计算附件内容的哈希（如 SHA-256）
+② 用哈希作为对象存储的 key 去查：已经存在了吗？
+③ 存在 → 只增加一个引用计数，不写新数据
+④ 不存在 → 上传，引用计数 = 1
+⑤ 删除邮件时引用计数减 1，减到 0 才真正删除物理文件
+</code></pre>
+<p><strong>收益</strong>：同一份内容在物理存储里<strong>只占一份</strong>。在&quot;大量转发&quot;的场景下（企业邮件、群发通知），去重率可以非常高。</p>
+<p><strong>代价</strong>：需要维护<strong>引用计数</strong>，且删除变成&quot;延迟删除&quot;（引用计数归零才删）。这正好是第 24 章<strong>垃圾回收</strong>那一节要讲的问题——<strong>你会发现这两章的设计思想是相通的</strong>。</p>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>本章原笔记整体结构清晰、结论可靠，估算部分经复算全部正确。以下逐条指出表述含糊、内容缺失或需要限定的地方。</p>
+</blockquote>
+<h3 id="勘误-1pop3取走即删除是默认配置不是协议强制">勘误 1：POP3&quot;取走即删除&quot;是默认配置，不是协议强制</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>POP - standard protocol for receiving and downloading emails from a remote mail server to a local client. Once retrieved, emails are deleted from remote server.</code></li>
+<li><strong>问题</strong>：这句话把&quot;默认行为&quot;说成了&quot;协议行为&quot;。POP3 确实默认在 <code>RETR</code>（取信）后删除，但客户端可以选择<strong>保留副本</strong>（&quot;Leave a copy of messages on the server&quot; 是几乎所有邮件客户端都提供的选项）。更重要的是，<strong>POP3 真正的淘汰原因不是&quot;删除&quot;，而是&quot;状态在客户端&quot;</strong>——它不支持服务端文件夹、服务端已读标记、服务端搜索，所以在多设备场景下必然出问题。</li>
+<li><strong>正确说法</strong>：POP3 的模型是&quot;下载到本地、状态存在本地&quot;，删除只是这个模型的一个可配置选项；IMAP 的模型是&quot;邮件和状态都留在服务端，客户端远程操作&quot;。<strong>多设备时代，状态必须放服务端，所以 IMAP 取代了 POP3。</strong></li>
+<li><strong>延伸</strong>：IMAP 也不是终点。它协议复杂、为移动网络优化不足，业界已推出 <strong>JMAP（RFC 8620/8621）</strong> 作为现代替代（Fastmail 等在用）。</li>
+</ul>
+<h3 id="勘误-2送达率部分漏掉了-dmarc且未涵盖-2024-年的行业强制要求">勘误 2：送达率部分漏掉了 DMARC，且未涵盖 2024 年的行业强制要求</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Email authentication - use common techniques to combat phishing such as Sender Policy Framework, DomainKeys Identified Mail, etc.</code></li>
+<li><strong>问题</strong>：<strong>只提了 SPF 和 DKIM，完全没有提 DMARC。</strong> 而 DMARC 恰恰是三者中最关键的一环——<strong>没有 DMARC，SPF 和 DKIM 无法阻止攻击者伪造你的显示名（<code>From:</code> 头）</strong>，因为 SPF 校验的是信封发件人、DKIM 只证明&quot;某个域名签了名&quot;，两者都不检查&quot;用户看到的那个域名&quot;。</li>
+<li><strong>正确说法</strong>：完整的邮件身份验证是 <strong>SPF + DKIM + DMARC 三位一体</strong>。SPF 验证发信 IP 是否被授权，DKIM 用签名证明内容未被篡改，DMARC 负责<strong>对齐检查</strong>（可见 <code>From:</code> 域名必须与通过验证的域名一致）、<strong>失败处置策略</strong>（<code>none</code> / <code>quarantine</code> / <code>reject</code>）和<strong>报告回传</strong>（RUA/RUF）。</li>
+<li><strong>延伸（重要更新）</strong>：从 <strong>2024 年 2 月</strong>起，Google 和 Yahoo 对批量发信人（每天向 Gmail 发送 5000 封以上）<strong>强制要求</strong> SPF + DKIM + DMARC，并要求支持一键退订（RFC 8058），投诉率控制在 0.3% 以下（建议 0.1% 以下）。<strong>这是原笔记写作时还不存在的行业门槛</strong>，现在做邮件系统必须知道。</li>
+</ul>
+<h3 id="勘误-3使用专用-ip并非对所有发信方都更好">勘误 3：&quot;使用专用 IP&quot;并非对所有发信方都更好</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Dedicated IPs - use dedicated IPs for sending emails, otherwise, recipient servers will not trust you.</code></li>
+<li><strong>问题</strong>：<strong>结论过于绝对。</strong> 专用 IP 的价值来自&quot;你能通过它积累属于自己的信誉&quot;——但<strong>前提是你的发信量足够大</strong>。如果一个月只发几千封邮件，专用 IP 永远积累不起信誉，<strong>一个&quot;冷&quot;的专用 IP 的送达率往往还不如一个信誉良好的共享 IP</strong>。这就是为什么 SendGrid、Mailgun 等厂商对小客户默认用共享 IP，只有发信量上去了才推荐专用 IP。</li>
+<li><strong>正确说法</strong>：<strong>发信量大（能持续稳定产生互动信号）→ 用专用 IP；发信量小 → 用信誉良好的共享 IP。</strong> 原笔记第二条&quot;分类发送&quot;其实已经暗含了这个逻辑（按邮件流拆 IP），但和第一条放在一起容易让人以为&quot;专用 IP 永远更好&quot;。</li>
+</ul>
+<h3 id="勘误-4elasticsearch-只能扩展到一定程度需要限定">勘误 4：&quot;Elasticsearch 只能扩展到一定程度&quot;需要限定</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Elasticsearch scales to some extent, whereas a custom search engine can be fine-tuned for the email use-case, allowing it to scale further.</code></li>
+<li><strong>问题</strong>：<strong>这个表述容易让人低估 Elasticsearch。</strong> 生产环境中的 ES 集群可以做到几十到上百节点、PB 级数据，很多大型企业（包括做邮件搜索的场景）都在用。真实情况不是&quot;ES 撑不大&quot;。</li>
+<li><strong>正确说法</strong>：选择自研而非 ES 的真实理由是<strong>运维成本和资源开销</strong>——ES 是一个<strong>独立的有状态服务</strong>，需要单独的集群管理、分片规划、rebalance 和版本升级；它的 JVM 堆内存和磁盘开销也不小。<strong>自研的优势在于&quot;可以和数据存储合二为一&quot;以及&quot;针对邮件场景深度调优&quot;，而不是&quot;ES 扩展性不够&quot;。</strong></li>
+</ul>
+<h3 id="补充-1反垃圾邮件的完整机制">补充 1：反垃圾邮件的完整机制</h3>
+<p>原笔记只在收信流程里提了一句&quot;mail acceptance policy&quot;，没有展开。详见第 6 节，覆盖了分层拦截、贝叶斯过滤、发信人信誉、灰名单的完整原理。<strong>这是设计邮件系统必须掌握的部分。</strong></p>
+<h3 id="补充-2退信处理硬退信-软退信">补充 2：退信处理（硬退信 / 软退信）</h3>
+<p>原笔记完全没提。详见 5.5 节：<code>4xx</code> 是软退信（重试）、<code>5xx</code> 是硬退信（永久移除），<strong>不清理硬退信地址会直接摧毁域名信誉</strong>。这是&quot;邮件运营&quot;里最容易踩的坑。</p>
+<h3 id="补充-3邮件搜索的底层结构">补充 3：邮件搜索的底层结构</h3>
+<p>原笔记只说了&quot;用 Elasticsearch 或自研&quot;，没有解释<strong>倒排索引、分词、增量索引</strong>这些核心概念，也没有回答&quot;为什么不能用 <code>LIKE '%x%'</code>&quot;。详见第 7 节。</p>
+<h3 id="补充-4附件与正文分离存储的设计理由">补充 4：附件与正文分离存储的设计理由</h3>
+<p>原笔记提到附件存在对象存储，但没有解释<strong>为什么</strong>。核心理由是访问模式不同：元数据是&quot;小、读多、要强一致&quot;，附件是&quot;大、写一次读多次、要便宜&quot;。<strong>把访问模式不同的数据混在一起只能互相拖累。</strong> 详见 3.2 节，另见第 9 节的附件去重（内容寻址 + 引用计数）。</p>
+<h3 id="补充-5cassandra-的一致性是可调的">补充 5：Cassandra 的一致性是可调的</h3>
+<p>原笔记在元数据库里要求&quot;强一致性&quot;，又暗示使用 Cassandra（在讨论 <code>is_read</code> 过滤时提到），但没有说明这两者如何统一。<strong>Cassandra 的一致性级别是可调的</strong>：通过设置读写法定人数满足 <code>R + W &gt; N</code>（例如 3 副本下用 QUORUM 读 + QUORUM 写），就能获得强一致性，代价是可用性下降（这正是原笔记说的 &quot;trade availability for consistency&quot;）。<strong>这个机制叫 Quorum（法定人数）</strong>，在第 5、6 章有详细展开。</p>
+<h3 id="补充-6邮件传输安全">补充 6：邮件传输安全</h3>
+<p>原笔记在收尾提到&quot;email encryption&quot;，但没说具体是什么。工程上有三层：</p>
+<ul>
+<li><strong>STARTTLS</strong>：在明文 SMTP 端口（25/587）上协商升级为 TLS。问题是它<strong>可被降级攻击</strong>（中间人把 STARTTLS 支持声明删掉）。</li>
+<li><strong>MTA-STS（RFC 8461）</strong>：通过 DNS + HTTPS 发布策略，强制要求对端必须用 TLS，防止降级。</li>
+<li><strong>TLS-RPT（RFC 8460）</strong>：让对端把 TLS 连接失败的统计报告发给你，便于排查。</li>
+</ul>
+<p><strong>注意</strong>：这些只保护<strong>传输中</strong>的邮件。端到端加密（S/MIME、PGP）是另一回事，而且因为密钥管理复杂，在企业外几乎没有普及。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SMTP 负责收发邮件</td>
+<td>SMTP 只负责<strong>发送和中继</strong>，它没有&quot;收信&quot;的能力</td>
+<td>发信用 SMTP，收信用 IMAP / POP3 / HTTPS。<strong>两套协议、两个方向</strong></td>
+</tr>
+<tr>
+<td>POP3 和 IMAP 只是&quot;删不删邮件&quot;的区别</td>
+<td>真正的区别是<strong>状态存在哪里</strong></td>
+<td>POP3 把状态放在客户端（多设备必然不一致），IMAP 把状态放在服务端</td>
+</tr>
+<tr>
+<td>配了 SPF 和 DKIM 就不会被伪造了</td>
+<td>两者都不校验用户在客户端看到的 <code>From:</code> 头</td>
+<td>必须加 <strong>DMARC</strong> 做对齐检查，否则显示名照样能被伪造</td>
+</tr>
+<tr>
+<td>邮件发送成功 = 用户能收到</td>
+<td><code>250 OK</code> 只表示对方<strong>收下了</strong>，之后可能被扔进垃圾箱甚至静默丢弃</td>
+<td>送达率要靠退信率、投诉率、发信人信誉面板来<strong>间接观测</strong></td>
+</tr>
+<tr>
+<td>新 IP 直接群发就行，反正内容没问题</td>
+<td>新 IP 没有信誉，突然的巨量投递是垃圾邮件的典型特征</td>
+<td>必须做 <strong>IP 预热</strong>（2～6 周），且优先发给高互动用户</td>
+</tr>
+<tr>
+<td>退信地址留着无所谓，反正失败了</td>
+<td>持续向不存在的地址发信 = 群发未验证名单的典型特征</td>
+<td>硬退信（<code>5xx</code>）<strong>必须自动永久移除</strong>；软退信（<code>4xx</code>）指数退避重试</td>
+</tr>
+<tr>
+<td>用 <code>LIKE '%关键词%'</code> 就能做邮件搜索</td>
+<td>前导通配符让索引失效，退化为全表扫描，O(N) 且无法排序打分</td>
+<td>必须用<strong>倒排索引</strong>（Elasticsearch 或 Lucene 系）</td>
+</tr>
+<tr>
+<td>搜索索引和邮件数据应该同步写入</td>
+<td>搜索挂了会导致发信也挂了；同步等待索引还会拖慢发信</td>
+<td>索引更新走 <strong>Kafka 异步</strong>（准实时），核心收发链路与搜索解耦</td>
+</tr>
+<tr>
+<td>附件和邮件正文存一起就行</td>
+<td>两者访问模式完全不同（小/大、读多/写一次）</td>
+<td>附件放<strong>对象存储</strong>，元数据库只存引用；再做<strong>内容寻址去重</strong></td>
+</tr>
+<tr>
+<td>用户隔离的系统也有热点问题</td>
+<td>用户之间数据不交叉，按 <code>user_id</code> 分片天然均衡</td>
+<td>邮件系统比社交/搜索系统<strong>容易水平扩展得多</strong>，这是它的结构性优势</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：邮件系统是一个&quot;用户隔离、写多读少、可靠性要求极高、还要对抗恶意输入&quot;的分布式系统，核心难点在<strong>元数据建模</strong>和<strong>送达率运营</strong>。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>协议分工</strong>：SMTP 发送/中继，IMAP/POP3 收取；Web 邮箱用 HTTP API 是为了灵活性和可扩展性。</li>
+<li><strong>数据按 <code>user_id</code> 分片</strong>，让一个用户的数据落在同一分片，从根上避开跨分片查询。</li>
+<li><strong>附件与元数据分离</strong>：元数据进数据库，附件进对象存储，因为访问模式不同。</li>
+<li><strong>搜索用倒排索引 + Kafka 异步增量索引</strong>，绝不能对正文做 <code>LIKE '%x%'</code> 全表扫描。</li>
+<li><strong>送达率三件套 SPF + DKIM + DMARC</strong>，加上 IP 预热和硬退信自动清理。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动说出 <strong>DMARC 的&quot;对齐检查&quot;</strong> 解决了什么问题（SPF/DKIM 都防不住显示名伪造）。</li>
+<li>主动指出 <strong>&quot;新 IP 直接群发必进垃圾箱&quot;</strong>，并说明 IP 预热要 2～6 周、优先发给高互动用户。</li>
+<li>主动区分<strong>硬退信（<code>5xx</code>，永久）和软退信（<code>4xx</code>，重试）</strong>，并强调硬退信必须自动清理。</li>
+<li>主动提到 <strong>LSM-Tree</strong> 为什么适合写密集的索引场景（顺序写 + 后台合并）。</li>
+<li>主动讨论<strong>附件内容寻址去重 + 引用计数</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;为什么不用关系型数据库存邮件？&quot;</em>
+→ 关系库为小数据块优化，正文这种大字段会拖垮它；单机容量有上限；而且这个量级下数据库往往要自研以降低 IOPS。真正需要的是&quot;强一致 + 低磁盘 I/O + 高可用 + 易增量备份&quot;。</li>
+<li><em>&quot;邮件为什么会被判为垃圾邮件？&quot;</em>
+→ 分三层看：<strong>身份</strong>（SPF/DKIM/DMARC 是否通过）、<strong>信誉</strong>（IP/域名历史表现、投诉率、退信率、垃圾陷阱命中）、<strong>内容与行为</strong>（垃圾特征词、互动率低、发信量突变）。<strong>&quot;发送量突然暴增&quot;本身就是最强的负面信号。</strong></li>
+<li><em>&quot;搜索索引和邮件数据怎么保持一致？&quot;</em>
+→ 发信/收信是<strong>核心链路，必须同步成功</strong>；索引更新走 Kafka <strong>异步</strong>，允许几秒的准实时延迟。这样搜索服务故障只影响&quot;搜不到新邮件&quot;，不会影响收发。</li>
+<li><em>&quot;这个系统怎么水平扩展？&quot;</em>
+→ 关键性质是<strong>用户操作互不冲突</strong>：Web/SMTP/工作进程都是无状态可任意增删；元数据按 <code>user_id</code> 分片后负载天然均衡；搜索按 <code>user_id</code> 分区。跨 DC 用主从故障转移。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc5321" target="_blank" rel="noopener noreferrer">RFC 5321：SMTP 规范</a> — 发送与中继的权威定义</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc3501" target="_blank" rel="noopener noreferrer">RFC 3501：IMAP4rev1</a> — 服务端状态模型</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener noreferrer">RFC 7208：SPF</a> / <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener noreferrer">RFC 6376：DKIM</a> / <a href="https://datatracker.ietf.org/doc/html/rfc7489" target="_blank" rel="noopener noreferrer">RFC 7489：DMARC</a> — 送达率三件套</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc8058" target="_blank" rel="noopener noreferrer">RFC 8058：一键退订</a> — 2024 年批量发信人的强制要求之一</li>
+<li><a href="https://support.google.com/mail/answer/81126" target="_blank" rel="noopener noreferrer">Google 邮件发件人指南</a> — 批量发信人的硬性门槛（2024 年 2 月起生效）</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc6154" target="_blank" rel="noopener noreferrer">RFC 6154：IMAP 特殊用途邮箱</a> — 默认文件夹命名规范</li>
+<li><a href="https://cassandra.apache.org/doc/latest/" target="_blank" rel="noopener noreferrer">Apache Cassandra 文档</a> — 宽列存储与可调一致性</li>
+<li><a href="https://www.elastic.co/guide/index.html" target="_blank" rel="noopener noreferrer">Elasticsearch 官方文档</a> — 倒排索引与准实时搜索</li>
+<li><a href="https://paulgraham.com/spam.html" target="_blank" rel="noopener noreferrer">Paul Graham：A Plan for Spam</a> — 贝叶斯过滤的经典文献</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../22/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">酒店预订系统</span></a><a class="next" href="../24/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">类 S3 对象存储</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-邮件系统的基本功发送和接收是两个世界">1. 邮件系统的基本功：发送和接收是两个世界</a>
+<a class="lv3" href="#11-四个协议各管一段">1.1 四个协议，各管一段</a>
+<a class="lv3" href="#12-为什么-imap-取代了-pop3">1.2 为什么 IMAP 取代了 POP3</a>
+<a class="lv3" href="#13-mx-记录别人怎么找到你的邮件服务器">1.3 MX 记录：别人怎么找到你的邮件服务器</a>
+<a class="lv3" href="#14-附件base64-编码和-25-mb-上限">1.4 附件：base64 编码和 25 MB 上限</a>
+<a class="lv2" href="#2-传统邮件服务器为什么它扛不住规模">2. 传统邮件服务器：为什么它扛不住规模</a>
+<a class="lv3" href="#存储方式一封邮件一个文件">存储方式：一封邮件一个文件</a>
+<a class="lv2" href="#3-高层设计把邮件系统拆成可独立扩展的部件">3. 高层设计：把邮件系统拆成可独立扩展的部件</a>
+<a class="lv3" href="#31-api-设计示例">3.1 API 设计示例</a>
+<a class="lv3" href="#32-组件清单">3.2 组件清单</a>
+<a class="lv3" href="#33-发信流程">3.3 发信流程</a>
+<a class="lv3" href="#34-队列积压是一个重要的监控信号">3.4 队列积压是一个重要的监控信号</a>
+<a class="lv3" href="#35-收信流程">3.5 收信流程</a>
+<a class="lv2" href="#4-元数据数据库本章最硬的设计题">4. 元数据数据库：本章最硬的设计题</a>
+<a class="lv3" href="#41-邮件元数据的五个特征">4.1 邮件元数据的五个特征</a>
+<a class="lv3" href="#42-数据库选型三个方案都不完美">4.2 数据库选型：三个方案都不完美</a>
+<a class="lv3" href="#43-数据建模主键的两段式设计">4.3 数据建模：主键的两段式设计</a>
+<a class="lv3" href="#44-已读未读一个典型的反范式化取舍">4.4 已读/未读：一个典型的&quot;反范式化&quot;取舍</a>
+<a class="lv3" href="#45-会话线索conversation-threads">4.5 会话线索（Conversation Threads）</a>
+<a class="lv3" href="#46-一致性取舍宁可短暂不可用">4.6 一致性取舍：宁可短暂不可用</a>
+<a class="lv2" href="#5-邮件送达率本章最实用的一节">5. 邮件送达率：本章最实用的一节</a>
+<a class="lv3" href="#51-发送成功不等于送到了">5.1 &quot;发送成功&quot;不等于&quot;送到了&quot;</a>
+<a class="lv3" href="#52-三层身份验证spfdkimdmarc">5.2 三层身份验证：SPF、DKIM、DMARC</a>
+<a class="lv3" href="#53-邮件为什么会进垃圾箱">5.3 邮件为什么会进垃圾箱</a>
+<a class="lv3" href="#54-ip-预热ip-warming">5.4 IP 预热（IP Warming）</a>
+<a class="lv3" href="#55-退信处理硬退信必须自动清理">5.5 退信处理：硬退信必须自动清理</a>
+<a class="lv3" href="#56-原笔记六条建议的逐条解读">5.6 原笔记六条建议的逐条解读</a>
+<a class="lv2" href="#6-反垃圾邮件接收方的视角">6. 反垃圾邮件：接收方的视角</a>
+<a class="lv3" href="#61-分层拦截">6.1 分层拦截</a>
+<a class="lv3" href="#62-贝叶斯过滤bayesian-filtering">6.2 贝叶斯过滤（Bayesian Filtering）</a>
+<a class="lv3" href="#63-发信人信誉sender-reputation">6.3 发信人信誉（Sender Reputation）</a>
+<a class="lv3" href="#64-灰名单greylisting">6.4 灰名单（Greylisting）</a>
+<a class="lv3" href="#65-一个完整的反垃圾判断流程">6.5 一个完整的反垃圾判断流程</a>
+<a class="lv2" href="#7-搜索为什么不能用-like-关键词">7. 搜索：为什么不能用 LIKE &#x27;%关键词%&#x27;</a>
+<a class="lv3" href="#71-邮件搜索和网页搜索有什么不同">7.1 邮件搜索和网页搜索有什么不同</a>
+<a class="lv3" href="#72-为什么关系型数据库的-like-不行">7.2 为什么关系型数据库的 LIKE 不行</a>
+<a class="lv3" href="#73-正确方案倒排索引inverted-index">7.3 正确方案：倒排索引（Inverted Index）</a>
+<a class="lv3" href="#74-增量索引怎么让新邮件立刻可搜">7.4 增量索引：怎么让新邮件立刻可搜</a>
+<a class="lv3" href="#75-elasticsearch-还是自研">7.5 Elasticsearch 还是自研？</a>
+<a class="lv3" href="#76-自研方案的核心挑战lsm-tree">7.6 自研方案的核心挑战：LSM-Tree</a>
+<a class="lv2" href="#8-可扩展性与可用性">8. 可扩展性与可用性</a>
+<a class="lv3" href="#81-为什么邮件系统容易水平扩展">8.1 为什么邮件系统&quot;容易&quot;水平扩展</a>
+<a class="lv3" href="#82-多数据中心与故障转移">8.2 多数据中心与故障转移</a>
+<a class="lv2" href="#9-收尾还有哪些值得聊的话题">9. 收尾：还有哪些值得聊的话题</a>
+<a class="lv3" href="#附件去重一个很实在的优化">附件去重：一个很实在的优化</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1pop3取走即删除是默认配置不是协议强制">勘误 1：POP3&quot;取走即删除&quot;是默认配置，不是协议强制</a>
+<a class="lv3" href="#勘误-2送达率部分漏掉了-dmarc且未涵盖-2024-年的行业强制要求">勘误 2：送达率部分漏掉了 DMARC，且未涵盖 2024 年的行业强制要求</a>
+<a class="lv3" href="#勘误-3使用专用-ip并非对所有发信方都更好">勘误 3：&quot;使用专用 IP&quot;并非对所有发信方都更好</a>
+<a class="lv3" href="#勘误-4elasticsearch-只能扩展到一定程度需要限定">勘误 4：&quot;Elasticsearch 只能扩展到一定程度&quot;需要限定</a>
+<a class="lv3" href="#补充-1反垃圾邮件的完整机制">补充 1：反垃圾邮件的完整机制</a>
+<a class="lv3" href="#补充-2退信处理硬退信-软退信">补充 2：退信处理（硬退信 / 软退信）</a>
+<a class="lv3" href="#补充-3邮件搜索的底层结构">补充 3：邮件搜索的底层结构</a>
+<a class="lv3" href="#补充-4附件与正文分离存储的设计理由">补充 4：附件与正文分离存储的设计理由</a>
+<a class="lv3" href="#补充-5cassandra-的一致性是可调的">补充 5：Cassandra 的一致性是可调的</a>
+<a class="lv3" href="#补充-6邮件传输安全">补充 6：邮件传输安全</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

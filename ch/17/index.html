@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 17 章：附近的朋友 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item active" href="./"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-17-章附近的朋友">第 17 章：附近的朋友</h1>
+<blockquote>
+<p>原章节：Nearby Friends · 原项目路径 <code>17. Nearby Friends/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>你有没有想过，「附近的朋友」这个小功能，可能是整本书里<strong>实时性要求最高、扇出成本最吓人</strong>的一道题？</p>
+<p>微信、Facebook、Snapchat 都有这个功能：打开地图，看到几个好友的小头像在附近移动，每个头像旁边写着「距离你 1.2 公里，30 秒前更新」。看起来简单得像个 UI 问题。但把它的数字摊开看：一亿个用户同时在用，每 30 秒上报一次位置，每次上报还要广播给几十个在线好友——<strong>系统每秒要处理上千万条消息</strong>，而且这些消息必须在几百毫秒内送达。</p>
+<p>这一章要解决的核心问题是：<strong>如何用一条「广播总线」把一个人的位置变化，实时推给成千上万个关心他的人，同时不把系统烧穿？</strong></p>
+<p>学完这一章，你应该能回答：为什么这里必须用 WebSocket 而不是 HTTP？Redis Pub/Sub 到底丢不丢消息？为什么「每次 GPS 变化都上报」是个错误设计？以及一个更少被讨论但同样重要的问题——<strong>谁能看到我在哪？</strong></p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>「附近」这个需求如何被拆解成可量化的工程约束（5 英里、30 秒、400 个好友）</li>
+<li>为什么移动端长连接不能用点对点（P2P），必须走共享后端做扇出</li>
+<li>扇出爆炸的真实量级：从 33 万次上报，放大到 1300 万条推送</li>
+<li><strong>Redis Pub/Sub 是即发即忘的</strong>——这个语义缺陷在什么场景下会咬人，以及 Redis Streams / Kafka 的取舍</li>
+<li>位置上报的节流策略：距离阈值、时间阈值，以及它们带来的「位置不精确」代价</li>
+<li>位置隐私：精确定位 vs 模糊定位，以及如何防住「多次查询三角定位」</li>
+<li>有状态服务（WebSocket 服务器）的优雅下线为什么是必修课</li>
+</ul>
+<hr />
+<h2 id="1-问题定义把附近说清楚">1. 问题定义：把「附近」说清楚</h2>
+<p>面试里最忌讳的就是听到题目就开始画架构图。第一件事永远是<strong>问清楚边界</strong>。</p>
+<p>原笔记给出了一组很好的示范问答，我们逐条看它为什么重要：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>回答</th>
+<th>为什么关键</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>多近算「附近」？</td>
+<td>5 英里（约 8 公里），且这个值要可配置</td>
+<td>决定了推送过滤半径，直接影响扇出量</td>
+</tr>
+<tr>
+<td>距离是直线距离，还是要考虑中间有河？</td>
+<td>直线距离</td>
+<td>直线距离只需要一次球面距离计算，不需要路网寻路——这是数量级的差别</td>
+</tr>
+<tr>
+<td>有多少用户？</td>
+<td>10 亿用户，其中 10% 用这个功能</td>
+<td>决定了整章的量级估算</td>
+</tr>
+<tr>
+<td>需要存位置历史吗？</td>
+<td>需要，对机器学习有价值</td>
+<td>决定了要额外引入一个写密集的存储</td>
+</tr>
+<tr>
+<td>好友 10 分钟不活跃就消失？</td>
+<td>是</td>
+<td>给了 TTL 一个具体的值</td>
+</tr>
+<tr>
+<td>要考虑 GDPR 之类的隐私法规吗？</td>
+<td>不用，为了简化</td>
+<td><strong>面试中可以这样简化，真实产品绝对不行</strong>，见第 14 节</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="功能需求">功能需求</h3>
+<ol>
+<li>用户能在手机上看到附近的好友，每个好友带<strong>距离</strong>和<strong>位置更新时间戳</strong>。</li>
+<li>附近好友列表<strong>每隔几秒</strong>刷新一次。</li>
+</ol>
+<h3 id="非功能需求">非功能需求</h3>
+<ul>
+<li><strong>低延迟（Low Latency）</strong>：位置更新要尽快送达，用户能容忍的延迟是「几秒」级别，不是「几分钟」。</li>
+<li><strong>可靠性（Reliability）</strong>：<strong>偶尔丢一个位置数据点是可以接受的</strong>，但系统整体必须高可用。这一条是整章设计的钥匙——正是它让「即发即忘」的方案变得可接受。</li>
+<li><strong>最终一致性（Eventual Consistency）</strong>：位置数据不需要强一致。不同副本之间差几秒是可以接受的。</li>
+</ul>
+<blockquote>
+<p><strong>注意第二条和第三条</strong>
+很多初学者看到「可以丢数据」就觉得这个系统很好做。恰恰相反：<strong>它把难题从「不丢」转移到了「规模」上</strong>。如果不允许丢，你得给每条消息做确认、重传、去重，系统复杂度会翻几倍；允许丢之后，你省下了这些复杂度，但必须扛住每秒上千万条的吞吐。这两条需求合起来，才推导出了后面「Pub/Sub + 拉取兜底」的组合方案。</p>
+</blockquote>
+<h3 id="和附近的人proximity-service的区别">和「附近的人」（Proximity Service）的区别</h3>
+<p>本书前面讲过「附近的人」这类服务（比如 Yelp、大众点评：找附近的餐厅）。两者最大的区别是：</p>
+<ul>
+<li><strong>附近的人</strong>：位置是<strong>静态的</strong>。一家餐厅不会一秒钟搬一次家。所以数据可以离线预处理、建空间索引、慢慢查。</li>
+<li><strong>附近的朋友</strong>：位置<strong>每秒都在变</strong>。数据是<strong>流（Stream）</strong>，不是<strong>快照（Snapshot）</strong>。</li>
+</ul>
+<p>这个区别决定了整个架构形态：前者是「查询密集型」，后者是「写入 + 扇出密集型」。<strong>同一个「附近」二字，背后是完全不同的两个系统。</strong></p>
+<hr />
+<h2 id="2-量级估算33-万次上报1300-万条推送">2. 量级估算：33 万次上报，1300 万条推送</h2>
+<p>这是本章最重要的一次计算，请务必跟着算一遍。</p>
+<h3 id="基础参数">基础参数</h3>
+<ul>
+<li>使用该功能的日活用户：10 亿 × 10% = <strong>1 亿</strong></li>
+<li>同时在线比例：10% → <strong>1000 万并发用户</strong></li>
+<li>位置刷新间隔：<strong>30 秒</strong>（人走路很慢，不需要更高频率）</li>
+<li>平均好友数：<strong>400 个</strong>，且假设他们都用这个功能</li>
+<li>单页显示：20 个附近好友</li>
+</ul>
+<h3 id="第一层位置上报量">第一层：位置上报量</h3>
+<p>$$
+\text{上报 QPS} = \frac{10{,}000{,}000}{30} \approx 333{,}333 \approx 33 \text{ 万次/秒}
+$$</p>
+<h3 id="第二层扇出量这里是真正的杀手">第二层：扇出量（这里是真正的杀手）</h3>
+<p>关键在<strong>在线比例</strong>。你有 400 个好友，但不是所有人此刻都在用 App。假设同时在线比例也是 10%：</p>
+<p>$$
+\text{每条更新要推给的人数} = 400 \times 10% = 40
+$$</p>
+<p>$$
+\text{推送消息总量} = 333{,}333 \times 40 \approx 1{,}333 \text{ 万条/秒}
+$$</p>
+<p>原笔记写的「~14mil location updates per second」（每秒约 1400 万次位置更新）就是这个数——<strong>但它把「扇出后的推送消息数」叫成了「位置更新数」，这个措辞会误导容量规划</strong>，详见【勘误与补充】。</p>
+<p><strong>一次上报，放大 40 倍。</strong> 这就是「扇出（Fan-out）」的威力。</p>
+<h3 id="第三层极端场景如果好友数不是-400而是-1000">第三层：极端场景——如果好友数不是 400，而是 1000</h3>
+<p>现在做一次压力测试。假设有 <strong>100 万在线用户</strong>，每人有 <strong>1000 个好友</strong>，且这些好友都在线：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>上报间隔</th>
+<th>每秒上报次数</th>
+<th>每秒扇出消息数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 秒（不做任何节流）</td>
+<td>1,000,000</td>
+<td><strong>10 亿条/秒</strong></td>
+</tr>
+<tr>
+<td>5 秒</td>
+<td>200,000</td>
+<td><strong>2 亿条/秒</strong></td>
+</tr>
+<tr>
+<td>30 秒</td>
+<td>33,333</td>
+<td><strong>3333 万条/秒</strong></td>
+</tr>
+<tr>
+<td>60 秒</td>
+<td>16,667</td>
+<td><strong>1667 万条/秒</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>再换成带宽看看。一条位置更新消息（<code>user_id</code> + 经度 + 纬度 + 时间戳 + 协议头）大约 100 字节：</p>
+<ul>
+<li><strong>10 亿条/秒 × 100 字节 = 100 GB/s ≈ 800 Gbps</strong> —— 这个量级已经超过任何单一集群的出口带宽，物理上不可能。</li>
+<li>3333 万条/秒 × 100 字节 ≈ 3.3 GB/s ≈ 27 Gbps —— 仍然很大，但至少在可建设的范围内。</li>
+</ul>
+<h3 id="从这次计算里能得出三个结论">从这次计算里能得出三个结论</h3>
+<p><strong>结论一：降低上报频率只能线性地降低总量，救不了你。</strong>
+从 1 秒改成 30 秒，消息量从 10 亿降到 3333 万——降了 30 倍，但仍然是几千万。<strong>因为乘数是「好友数」，不是「频率」。</strong></p>
+<p><strong>结论二：真正的大头是「一个用户有 N 个好友」这件事本身。</strong>
+这就是为什么后面要引入<strong>距离阈值过滤</strong>（不在 5 英里内的人根本不推）和<strong>推送合并</strong>（把 40 条零散消息合成 1 条批量消息）。这两招改变的是「每条更新乘以几」，而不是「每秒多少次更新」。</p>
+<p><strong>结论三：必须在客户端节流。</strong>
+如果每个客户端都按「GPS 一有变化就上报」来做，那么 1 秒 1 次是常态，系统直接崩。第 7 节专门讲怎么节流。</p>
+<hr />
+<h2 id="3-通信协议为什么必须是-websocket">3. 通信协议：为什么必须是 WebSocket</h2>
+<p>在画架构图之前，得先定通信方式。因为「附近的朋友」用的通信模型，和本书前面所有章节都不一样——<strong>它不是请求-响应（Request-Response），而是服务端主动推送（Server Push）</strong>。</p>
+<h3 id="为什么不用-p2p">为什么不用 P2P</h3>
+<p>最直觉的想法是：让手机和手机直接通信，不走服务器。</p>
+<p>这在桌面端（比如 BitTorrent）可行，在移动端完全不可行，原因有三：</p>
+<ol>
+<li><strong>NAT 穿透（NAT Traversal）</strong>：手机大多在运营商 NAT 后面，没有公网 IP，两台手机根本连不上，需要 STUN/TURN 打洞，而移动网络的 NAT 行为多变，打洞成功率低。</li>
+<li><strong>连接不稳定</strong>：地铁、电梯、切换基站，移动网络会频繁断连重连。</li>
+<li><strong>耗电</strong>：维持 P2P 长连接需要频繁心跳，而手机的电池预算极其紧张。</li>
+</ol>
+<p>还有第四个更根本的问题：<strong>P2P 要求双方同时在线</strong>。但「附近的朋友」里，我上线时你可能刚下线，我需要的是「你最后已知的位置」，而不是「此刻和你建立连接」。</p>
+<h3 id="四种方案的对比">四种方案的对比</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>方向</th>
+<th>服务端开销</th>
+<th>是否适合本场景</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>短轮询（Polling）</strong></td>
+<td>客户端 → 服务端</td>
+<td>低</td>
+<td>不适合</td>
+<td>要「几秒内」感知变化，轮询间隔就得压到秒级，1000 万客户端每秒一次请求 = 1000 万 QPS 的空请求</td>
+</tr>
+<tr>
+<td><strong>长轮询（Long Polling）</strong></td>
+<td>客户端 → 服务端（挂起）</td>
+<td>中</td>
+<td>勉强可用</td>
+<td>每条消息都要重新建立一次 HTTP 请求，连接开销大；服务端要为每个挂起的请求保留一个连接上下文</td>
+</tr>
+<tr>
+<td><strong>SSE（Server-Sent Events）</strong></td>
+<td>服务端 → 客户端（单向）</td>
+<td>低</td>
+<td>半适合</td>
+<td>原生支持断线重连、走标准 HTTP；但<strong>只能服务端推</strong>，客户端上报位置还得另开一条通道</td>
+</tr>
+<tr>
+<td><strong>WebSocket</strong></td>
+<td>双向</td>
+<td>低</td>
+<td><strong>最适合</strong></td>
+<td>一次 TCP 握手后全双工，单条消息开销只有几字节；上行下行共用一条连接</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>结论</strong>：用 WebSocket。因为它同时满足两个需求——<strong>服务端主动推好友位置</strong>（下行）+ <strong>客户端持续上报自己的位置</strong>（上行），而 SSE 只能解决一半，长轮询要付出双倍连接成本。</p>
+<blockquote>
+<p><strong>这里有一个关键的架构后果</strong>
+WebSocket 服务器是**有状态（Stateful）**的。它必须记住「哪个用户连在我这台机器上」。</p>
+<p>这和本书第 1 章反复强调的「Web 层要无状态」是矛盾的。所以本章的设计里，<strong>无状态的 REST API 服务器和有状态的 WebSocket 服务器是分开的两组服务</strong>——前者管好友关系、用户资料这些常规业务，后者专门管实时位置。第 10 节会讲有状态服务怎么扩容和下线。</p>
+</blockquote>
+<hr />
+<h2 id="4-高层设计一个共享后端做扇出">4. 高层设计：一个共享后端做扇出</h2>
+<p>既然不能用 P2P，那就让<strong>服务端充当扇出（Fan-out）机制</strong>：所有人的位置都上报到服务端，服务端负责找到「谁该收到这条更新」，然后转发出去。</p>
+<div align="center"><img src="./images/fan-out-backend.png" alt="共享后端作为扇出机制：接收位置更新并转发给好友" width="520" loading="lazy" decoding="async"></div>
+<p>后端具体做三件事：</p>
+<ol>
+<li><strong>接收</strong>所有活跃用户的位置更新。</li>
+<li>对每一条更新，<strong>找出所有应该收到它的活跃用户</strong>，并转发。</li>
+<li><strong>如果两个好友之间的距离超过配置阈值（5 英里），就不转发</strong>——这一步是扇出的第一道过滤器。</li>
+</ol>
+<p>听起来很简单。难点在于<strong>规模</strong>：第 2 节算出来的每秒上千万条消息，任何单机组件都扛不住。</p>
+<h3 id="先给一个简单版本">先给一个简单版本</h3>
+<div align="center"><img src="./images/simple-high-level-design.png" alt="附近的朋友：简单版高层设计" width="520" loading="lazy" decoding="async"></div>
+<p>逐个组件看它们各自负责什么：</p>
+<ul>
+<li><strong>负载均衡器（Load Balancer）</strong>：把流量分发给 REST API 服务器和双向的 WebSocket 服务器。</li>
+<li><strong>REST API 服务器</strong>：处理辅助任务——管理好友关系、更新用户资料等。这些是常规的请求-响应业务，可以无状态水平扩展。</li>
+<li><strong>WebSocket 服务器</strong>：<strong>有状态</strong>服务器。它把位置更新转发给对应的客户端，同时负责客户端首次连接时「播种（Seeding）」附近好友的位置数据。</li>
+<li><strong>Redis 位置缓存（Location Cache）</strong>：存每个活跃用户的<strong>最新位置</strong>。每条记录都带 <strong>TTL（生存时间）</strong>。TTL 过期就说明这个用户不再活跃，数据自动清除。</li>
+<li><strong>用户数据库（User Database）</strong>：存用户和好友关系。关系型或 NoSQL 都可以。</li>
+<li><strong>位置历史数据库（Location History Database）</strong>：存用户位置的历史轨迹。<strong>它不直接服务于「附近的朋友」功能</strong>，而是给离线分析（比如机器学习）用。</li>
+<li><strong>Redis Pub/Sub</strong>：轻量级消息总线。<strong>为每个用户开一个频道（Channel）</strong>，位置更新通过这个频道广播出去。</li>
+</ul>
+<div align="center"><img src="./images/redis-pubsub-usage.png" alt="Redis Pub/Sub：每个用户一个频道，WebSocket 服务器订阅好友的频道" width="520" loading="lazy" decoding="async"></div>
+<p>上图是这个设计的核心机制：<strong>WebSocket 服务器订阅（Subscribe）所有连在自己身上的用户的好友频道</strong>，一旦收到消息，就转发给对应的客户端。</p>
+<hr />
+<h2 id="5-redis-pubsub广播总线怎么工作以及它什么时候会骗你">5. Redis Pub/Sub：广播总线怎么工作，以及它什么时候会骗你</h2>
+<p>这是全章最需要讲透的部分。</p>
+<h3 id="51-它解决什么问题">5.1 它解决什么问题</h3>
+<p>先想一个朴素方案：<strong>不用 Pub/Sub，每台 WebSocket 服务器自己判断</strong>。</p>
+<p>问题立刻出现：用户 A 连在服务器 1 上，他的好友 B 连在服务器 2 上。B 的位置更新被服务器 2 收到——但服务器 2 <strong>根本不知道 A 的存在</strong>。它没法把 B 的位置推给 A。</p>
+<p>那让服务器 2 把「B 的新位置」广播给所有 WebSocket 服务器？这就是<strong>全量广播</strong>：140 台服务器互相发消息，其中 99% 的接收者手上根本没有关心 B 的人。纯浪费。</p>
+<p><strong>Pub/Sub 的价值就在于此</strong>：它提供了一个「按兴趣订阅」的中转层。服务器 2 只管把 B 的位置发到 <code>channel:B</code>，<strong>谁关心 B，谁就订阅了 <code>channel:B</code></strong>。服务器 2 完全不需要知道订阅者是谁、有几台机器、在哪。</p>
+<p>这就是<strong>解耦（Decoupling）</strong>——生产者和消费者互相不感知。它让「加一台 WebSocket 服务器」变成一件不需要通知任何人的事。</p>
+<h3 id="52-但是redis-pubsub-是即发即忘的">5.2 但是：Redis Pub/Sub 是即发即忘的</h3>
+<p><strong>这是原笔记完全没有讲清楚、而初学者最容易踩坑的地方。</strong></p>
+<p>Redis Pub/Sub 的投递语义是 <strong>至多一次（At-Most-One）</strong>：</p>
+<ul>
+<li>消息<strong>不落盘</strong>。Redis 只是把消息复制到「当前这一刻」在 <code>server.clients</code> 里注册了该频道的连接的发包缓冲区，然后立刻返回。</li>
+<li>消息<strong>没有确认（Ack）</strong>。发布者不知道有没有人收到、收到几个。</li>
+<li>消息<strong>没有重放（Replay）</strong>。历史消息不存在，你不可能「从某个位置重新消费」。</li>
+<li>消息<strong>没有消费者组（Consumer Group）</strong>。每个订阅者都收到全量消息，无法做「同一个消息只被一台机器处理」的负载均衡。</li>
+</ul>
+<p>说白了：<strong>Pub/Sub 像广播电台，不像邮局。</strong> 你打开收音机之前播出的内容，永远听不到了；而邮局会把信留在信箱里等你回来取。</p>
+<h3 id="53-这在什么情况下会咬人">5.3 这在什么情况下会咬人</h3>
+<p>本章的非功能需求说了「偶尔丢数据点可以接受」，所以基础场景确实没问题。但下面四种情况，丢失是不可接受的：</p>
+<p><strong>情况一：客户端首次连接（冷启动）。</strong>
+用户 A 刚打开 App。他不能靠订阅 Pub/Sub 拿到好友位置——因为<strong>过去的位置更新早就被丢弃了</strong>。他必须先<strong>回源查询 Redis 位置缓存</strong>，做一次快照拉取。这就是原笔记说的「seeding」。<strong>这说明：Pub/Sub 永远不能作为唯一的数据源，必须有一个「当前状态存储」兜底。</strong></p>
+<p><strong>情况二：WebSocket 服务器扩容 / 缩容 / 重启。</strong>
+服务器下线时，连在它上面的用户要重连到新服务器。新服务器需要重新 <code>SUBSCRIBE</code> 那批好友频道。<strong>在这个重订阅的窗口期（几百毫秒到几秒），所有经过这些频道的更新全部丢失。</strong> 结果是：用户的地图上，某个好友的位置「卡住」了，直到下一次更新（最长 30 秒）才恢复。</p>
+<p><strong>情况三：网络抖动导致的订阅断连。</strong>
+Redis 客户端与 Redis 服务器之间的连接也会断。重连期间同样是黑洞。</p>
+<p><strong>情况四：任何需要「事件流」语义的功能。</strong>
+如果产品经理后来说「我要做『小明 5 分钟前路过你公司附近』的提醒」，Pub/Sub 直接不成立——你需要的是历史事件流。</p>
+<h3 id="54-补救手段推送-拉取兜底">5.4 补救手段：推送 + 拉取兜底</h3>
+<p>在讨论「换掉 Pub/Sub」之前，先记住一个更便宜、更通用的解法：</p>
+<blockquote>
+<p><strong>给每条位置更新带上单调递增的版本号（或时间戳），客户端记录每个好友的「最后看到的版本」。一旦发现版本号跳变（出现断档），就主动发起一次快照拉取，从 Redis 位置缓存补齐当前状态。</strong></p>
+</blockquote>
+<p>这个模式叫<strong>推送 + 拉取兜底（Push with Pull Fallback）</strong>，它把「保证不丢」这个难题，转化成了「丢了之后能自愈」。对于「只关心最新值」的状态型数据，这是最优解——因为你<strong>本来就不需要那些中间态消息</strong>。</p>
+<h3 id="55-如果要换掉它streams-vs-kafka">5.5 如果要换掉它：Streams vs Kafka</h3>
+<p>原笔记给的替代方案是 Erlang（见第 15 节），但 Erlang 解决的不是这个问题。<strong>真正语义上的替代品是 Redis Streams 和 Kafka。</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>投递语义</th>
+<th>持久化</th>
+<th>重放</th>
+<th>消费者组</th>
+<th>典型延迟</th>
+<th>适合什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis Pub/Sub</strong></td>
+<td>至多一次</td>
+<td>无</td>
+<td>无</td>
+<td>无</td>
+<td>亚毫秒</td>
+<td>允许丢的实时广播；只关心最新值</td>
+</tr>
+<tr>
+<td><strong>Redis Streams</strong></td>
+<td>至少一次</td>
+<td>有（受内存限制，可配 AOF/RDB）</td>
+<td>有</td>
+<td>有</td>
+<td>毫秒级</td>
+<td>中等规模、需要重放与消费位点</td>
+</tr>
+<tr>
+<td><strong>Kafka</strong></td>
+<td>至少一次（可配精确一次）</td>
+<td>有（磁盘 + 多副本）</td>
+<td>有（按 offset）</td>
+<td>有</td>
+<td>几毫秒到几十毫秒</td>
+<td>大规模、需要持久化、重放、多消费者</td>
+</tr>
+<tr>
+<td><strong>NATS</strong></td>
+<td>至多一次（Core）/ 至少一次（JetStream）</td>
+<td>JetStream 有</td>
+<td>JetStream 有</td>
+<td>有</td>
+<td>亚毫秒</td>
+<td>轻量高吞吐的实时消息</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么本场景不直接用 Kafka 做广播？</strong></p>
+<p>三条理由：</p>
+<ol>
+<li><strong>延迟</strong>。Kafka 的端到端延迟通常是几毫秒到几十毫秒，而 Pub/Sub 是亚毫秒。对于「几秒内送达」的需求，Kafka 其实够用——但代价在后面两条。</li>
+<li><strong>成本与复杂度</strong>。每秒上千万条消息全部落盘、多副本复制，存储和网络成本极高。而<strong>位置更新的绝大多数中间态消息是垃圾</strong>——30 秒前的位置对用户毫无价值，消费者收到后只会丢掉。</li>
+<li><strong>语义错配</strong>。位置数据是**「最新值覆盖」（Last-Write-Wins）<strong>的状态，不是</strong>事件流**。对一个状态型数据做「持久化事件日志」，是在用错误的工具。</li>
+</ol>
+<p><strong>正确的组合是：把两条链路分开。</strong></p>
+<pre><code class="language-text">实时广播链路（快、允许丢）：  WebSocket 服务器 → Redis Pub/Sub → 订阅的 WebSocket 服务器
+历史分析链路（慢、不能丢）：  位置更新 → Kafka → Cassandra（位置历史）→ 离线分析 / 路况建模
+</code></pre>
+<p>这也正好对应原笔记里的设计——它同时有「Redis Pub/Sub」和「位置历史数据库 + Kafka 用于分析」。<strong>两条链路各自用对了工具，只是原文没有把这个「为什么」讲出来。</strong></p>
+<blockquote>
+<p><strong>Redis 7.0 的一个补充</strong>
+Redis 7.0 引入了<strong>分片 Pub/Sub（Sharded Pub/Sub）</strong>，用 <code>SSUBSCRIBE</code> / <code>SPUBLISH</code> 命令。在 Redis Cluster 模式下，普通 Pub/Sub 的消息必须通过集群总线（Cluster Bus）广播到<strong>所有</strong>节点，这在大集群里是巨大的浪费；分片 Pub/Sub 让消息只在持有该频道的分片内传播，显著降低集群内部流量。如果你要在大规模集群里用 Pub/Sub，这是必知的一个特性。</p>
+</blockquote>
+<hr />
+<h2 id="6-位置更新的完整流程">6. 位置更新的完整流程</h2>
+<p>现在把上面的零件串成一条完整链路。</p>
+<div align="center"><img src="./images/periodic-location-update.png" alt="周期性位置更新的完整流程" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li>手机客户端把位置更新发给负载均衡器。</li>
+<li>负载均衡器把它转发到该客户端<strong>那条持久连接所在的 WebSocket 服务器</strong>。</li>
+<li>WebSocket 服务器把位置写入<strong>位置历史数据库</strong>（用于离线分析）。</li>
+<li>位置数据写入 <strong>Redis 位置缓存</strong>。同时，WebSocket 服务器把位置<strong>缓存在自己的内存里</strong>，用于后续的距离计算（避免每次都去查 Redis）。</li>
+<li>WebSocket 服务器把位置<strong>发布（Publish）到该用户自己的频道</strong>。</li>
+<li>Redis Pub/Sub 把这条更新<strong>广播给该频道的所有订阅者</strong>——也就是那些「手上连着这个用户的好友」的 WebSocket 服务器。</li>
+<li>订阅的 WebSocket 服务器收到更新，<strong>计算这条更新该发给哪些用户</strong>（距离是否在阈值内），然后发送。</li>
+</ol>
+<p>下面是同一流程的更详细版本：</p>
+<div align="center"><img src="./images/detailed-periodic-location-update.png" alt="位置更新的详细流程：包含距离过滤与扇出" width="520" loading="lazy" decoding="async"></div>
+<h3 id="关于40-条这个数字">关于「40 条」这个数字</h3>
+<p>原笔记有一句话容易被忽略，但它其实是整个容量模型的关键：</p>
+<blockquote>
+<p>「平均而言，每次要转发 40 条位置更新，因为一个用户平均有 400 个好友，其中 10% 在线。」</p>
+</blockquote>
+<p>这句话解释了第 2 节里那个 40 倍的放大系数从哪来。它也提示了一个优化方向：<strong>如果把 40 条消息合并成 1 条批量消息发给同一个接收者，扇出量能降低近 40 倍。</strong></p>
+<p>具体算一下：1000 万在线用户，每人平均从 40 个在线好友那里收更新，好友每 30 秒更新一次：</p>
+<ul>
+<li><strong>不合并</strong>：10,000,000 × (40 / 30) ≈ <strong>1333 万条/秒</strong></li>
+<li><strong>按 5 秒窗口合并</strong>：10,000,000 × (1 / 5) = <strong>200 万条/秒</strong></li>
+</ul>
+<p><strong>降了 6.7 倍</strong>，代价是消息最多延迟 5 秒。对于「几秒内送达」的需求，这笔交易非常划算。</p>
+<h3 id="距离阈值需要一个滞回hysteresis">距离阈值需要一个「滞回（Hysteresis）」</h3>
+<p>原文说「距离超过阈值就不转发」。听起来没问题，但实现时会遇到<strong>抖动</strong>：</p>
+<p>假设阈值是 5 英里。一个好友正好在 5.0 英里处走动，一会 4.99、一会 5.01。系统就会疯狂地在「推送」和「不推送」之间切换，客户端上的头像反复出现消失。</p>
+<p><strong>解法</strong>：用两个不同的半径——</p>
+<ul>
+<li><strong>显示半径</strong>：5 英里（决定「谁出现在列表里」）</li>
+<li><strong>推送半径</strong>：6 英里（决定「谁收到更新」）</li>
+</ul>
+<p>只有当好友移动到 6 英里以外才停止推送，回到 5 英里以内才重新出现在列表里。中间这 1 英里的缓冲区，就是滞回带。这是<strong>控制理论里的经典手法</strong>，在系统设计里同样适用（类似 TCP 的慢启动阈值、缓存的高低位水位线）。</p>
+<hr />
+<h2 id="7-位置上报的节流策略不是每次-gps-变化都上报">7. 位置上报的节流策略：不是每次 GPS 变化都上报</h2>
+<p>原文只说了「位置刷新间隔是 30 秒」，但<strong>没有说这个 30 秒是怎么来的、客户端应该怎么实现</strong>。这是初级开发者最容易做错的地方。</p>
+<h3 id="为什么不能gps-一变就上报">为什么不能「GPS 一变就上报」</h3>
+<p>手机 GPS 芯片每秒都会输出一个新坐标，即使你坐着不动，坐标也会在几米范围内漂移。如果按这个频率上报：</p>
+<ul>
+<li>上报量从每秒 33 万次变成每秒 <strong>1000 万次</strong>（第 2 节算过，扇出后是 10 亿条/秒）。</li>
+<li>手机电量会以肉眼可见的速度下降（GPS 是高耗电模块）。</li>
+<li>移动流量消耗巨大。</li>
+<li><strong>而且毫无价值</strong>：我坐在椅子上，坐标从 (39.9042, 116.4074) 变成 (39.9043, 116.4075)，对好友来说没有任何意义。</li>
+</ul>
+<h3 id="双阈值-心跳一个可用的节流规则">双阈值 + 心跳：一个可用的节流规则</h3>
+<p>工程上常用的规则是三个参数组合：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>建议值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>距离阈值 D</strong></td>
+<td>移动超过 D 米才触发上报</td>
+<td>100 米</td>
+</tr>
+<tr>
+<td><strong>最小间隔 T_min</strong></td>
+<td>两次上报之间至少间隔多久</td>
+<td>15 秒</td>
+</tr>
+<tr>
+<td><strong>最大间隔 T_max</strong></td>
+<td>即使完全没动，也要定期上报一次（心跳）</td>
+<td>120 秒</td>
+</tr>
+</tbody>
+</table></div>
+<p>上报条件写成伪代码：</p>
+<pre><code class="language-python">if (distance_since_last_report &gt; 100 or now - last_report &gt; 120) \
+   and (now - last_report &gt; 15):
+    send_location_update()
+</code></pre>
+<ul>
+<li>第一个条件：<strong>移动够远</strong>（位置有意义的变化），<strong>或者</strong>太久没报（证明「我还活着」）。</li>
+<li>第二个条件：<strong>频率上限</strong>（防止高速移动时上报过密）。</li>
+</ul>
+<h3 id="距离阈值换算成实际频率">距离阈值换算成实际频率</h3>
+<p>100 米的距离阈值，在不同速度下对应的上报频率差别很大：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>出行方式</th>
+<th>典型速度</th>
+<th>移动 100 米耗时</th>
+<th>有效上报频率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>步行</td>
+<td>1.4 m/s（5 km/h）</td>
+<td>约 71 秒</td>
+<td>很稀疏</td>
+</tr>
+<tr>
+<td>骑行</td>
+<td>4.2 m/s（15 km/h）</td>
+<td>约 24 秒</td>
+<td>接近 30 秒基线</td>
+</tr>
+<tr>
+<td>城市驾车</td>
+<td>8.3 m/s（30 km/h）</td>
+<td>约 12 秒</td>
+<td>是基线的 2.5 倍</td>
+</tr>
+<tr>
+<td>高速公路</td>
+<td>27.8 m/s（100 km/h）</td>
+<td>约 3.6 秒</td>
+<td>是基线的 8 倍</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>注意最后一行的含义</strong>：如果只用距离阈值、不加 <code>T_min</code> 上限，高速行驶的用户会把上报频率推到 3.6 秒一次——比 30 秒基线高 8 倍。这就是为什么 <code>T_min</code> 是必需的。</p>
+<h3 id="代价位置是不精确的">代价：位置是不精确的</h3>
+<p>节流不是免费的，你必须诚实地接受三个后果：</p>
+<ol>
+<li><strong>地图上的位置是「上一次上报时的位置」</strong>。一个高速行驶的好友，地图上显示的位置最多可能偏差 <code>27.8 m/s × 15 s ≈ 417 米</code>。所以 UI 上必须显示「<strong>30 秒前更新</strong>」这个时间戳——这正是功能需求里明确要求带上时间戳的原因。</li>
+<li><strong>「到达」类事件会漏判</strong>。如果产品要做「好友到达你附近 500 米时通知你」，靠 100 米的采样粒度可能会「跳过去」（从 600 米直接跳到 400 米之外再跳到 350 米），需要在服务端做插值或降低该场景的阈值。</li>
+<li><strong>静止的用户会一直显示同一个位置</strong>。靠 <code>T_max</code> 心跳来区分「静止」和「App 被杀掉」——如果不发心跳，服务端无法判断该用户是站着不动还是已经退出。</li>
+</ol>
+<blockquote>
+<p><strong>一个真实的取舍</strong>
+节流本质上是<strong>用位置精度换系统容量和电池续航</strong>。这个取舍点应该做成<strong>可配置的</strong>（原笔记也提到 5 英里应该可配置）。步行导航场景需要更高的精度，而「看看朋友在哪个城市」只需要城市级精度——<strong>同一个系统应该支持多种精度档位</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="8-api-设计">8. API 设计</h2>
+<h3 id="websocket-例程">WebSocket 例程</h3>
+<p>需要支持五类消息：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>例程</th>
+<th>方向</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>周期性位置更新</strong></td>
+<td>客户端 → 服务端</td>
+<td>用户把自己的位置发给 WebSocket 服务器</td>
+</tr>
+<tr>
+<td><strong>接收位置更新</strong></td>
+<td>服务端 → 客户端</td>
+<td>服务器推送好友的位置和时间戳</td>
+</tr>
+<tr>
+<td><strong>WebSocket 客户端初始化</strong></td>
+<td>双向</td>
+<td>客户端发送自己的位置，服务器返回附近好友的位置快照（seeding）</td>
+</tr>
+<tr>
+<td><strong>订阅新好友</strong></td>
+<td>服务端 → 客户端</td>
+<td>服务器告知客户端「你应该开始追踪这个好友了」，比如好友刚上线</td>
+</tr>
+<tr>
+<td><strong>取消订阅好友</strong></td>
+<td>服务端 → 客户端</td>
+<td>服务器告知客户端「这个好友你可以不用追踪了」，比如好友下线</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>注意最后两条为什么是服务端主动发起的</strong>
+这是一个容易被忽略的设计细节：<strong>客户端不应该自己去维护「该追踪哪些好友」这份列表</strong>。因为「谁在线」这件事只有服务端知道。如果让客户端自己轮询好友列表，就会产生大量无效请求。让服务端通过 WebSocket 主动下发「订阅/退订」指令，客户端只做执行者——这是一个<strong>职责划分</strong>的经典例子：<strong>把判断逻辑放在拥有数据的那一侧。</strong></p>
+</blockquote>
+<h3 id="http-api">HTTP API</h3>
+<p>用于辅助职责的传统请求-响应接口，比如：</p>
+<ul>
+<li>添加 / 删除好友</li>
+<li>更新用户资料</li>
+<li>查询好友列表</li>
+</ul>
+<p>这些接口可以完全无状态，走常规的 REST 服务器。</p>
+<hr />
+<h2 id="9-数据模型">9. 数据模型</h2>
+<h3 id="位置缓存">位置缓存</h3>
+<pre><code class="language-text">user_id  →  (latitude, longitude, timestamp)
+</code></pre>
+<p><strong>为什么选 Redis？</strong></p>
+<ol>
+<li>我们<strong>只关心当前位置</strong>，不需要历史——这是典型的 KV 场景。</li>
+<li>Redis 原生支持 <strong>TTL 过期淘汰（TTL Eviction）</strong>，正好用来实现「用户不活跃就自动移除」。</li>
+<li>读写都是内存操作，延迟在亚毫秒级，能扛住每秒几十万次的写入。</li>
+</ol>
+<p>TTL 的取值和需求对齐：功能需求说「好友 10 分钟不活跃就从功能中消失」，所以 TTL 设为 10 分钟。用户每 30 秒上报一次，只要还活着就会不断刷新 TTL；一旦停止上报（关掉 App、卸载、断网），10 分钟后记录自动消失。</p>
+<h3 id="位置历史表">位置历史表</h3>
+<p>同样的四个字段，但存在关系型/宽列数据库里。原笔记推荐 <strong>Cassandra</strong>，理由是<strong>它针对写密集负载做了优化</strong>。</p>
+<p>这个选择是对的，理由值得展开：</p>
+<ul>
+<li>位置历史是**纯追加（Append-Only）**的写入模式，没有更新、没有复杂查询。</li>
+<li>数据量极大：1000 万并发用户 × 每 30 秒一条 = <strong>每天约 288 亿条记录</strong>。这个量级下，任何需要「随机写 + 二级索引」的数据库都会被压垮。</li>
+<li>Cassandra 的 <strong>LSM-Tree（Log-Structured Merge Tree）</strong> 存储引擎把随机写转成顺序写，天然适合这种场景。</li>
+</ul>
+<blockquote>
+<p><strong>补充：为什么位置历史不能和位置缓存用同一个存储？</strong>
+因为两者的<strong>访问模式完全相反</strong>：缓存是「高频写 + 高频按主键读 + 数据会过期」，历史是「高频写 + 几乎不读 + 数据永久保留」。把它们放在同一个存储里，任何一边的优化都会伤害另一边。<strong>按访问模式拆分存储，而不是按业务概念拆分</strong>——这是数据建模的核心原则之一。</p>
+</blockquote>
+<hr />
+<h2 id="10-扩展性深挖每个组件怎么长大">10. 扩展性深挖：每个组件怎么长大</h2>
+<p>逐个组件过一遍。</p>
+<h3 id="rest-api-服务器">REST API 服务器</h3>
+<p>最简单：通过自动伸缩组（Auto-scaling Group）复制实例即可。它们是无状态的。</p>
+<h3 id="websocket-服务器">WebSocket 服务器</h3>
+<p>可以水平扩展，但有一个<strong>必须处理的细节：优雅下线（Graceful Shutdown）</strong>。</p>
+<p>WebSocket 服务器是<strong>有状态</strong>的——它记住了「哪些用户连在我这里」。你不能直接把它杀掉，否则：</p>
+<ul>
+<li>上面所有用户的连接被硬断开，客户端要经历一次完整的重连（TCP 握手 + WebSocket 升级 + 快照拉取）。</li>
+<li>重连风暴可能在几秒内把所有其他服务器压垮。</li>
+</ul>
+<p><strong>正确做法</strong>：在负载均衡器里把这个节点标记为 <strong>draining（排水）</strong>，<strong>停止向它分配新连接</strong>，然后：</p>
+<ol>
+<li>给现有客户端发送「请重连到其他服务器」的指令（或者等客户端自然重连）。</li>
+<li>等待连接数降到 0，或者等待一个超时（比如 60 秒）。</li>
+<li>确认连接已排空后，再从服务器池中移除。</li>
+</ol>
+<blockquote>
+<p><strong>这就是「有状态服务」和「无状态服务」在运维上的根本差别</strong>：无状态服务可以随时 <code>kill -9</code>，有状态服务必须先「排空」。第 1 章讲的自动伸缩，在有状态服务上做不到。</p>
+</blockquote>
+<h3 id="客户端初始化">客户端初始化</h3>
+<p>客户端第一次连上某台服务器时，服务器需要做四件事：</p>
+<ol>
+<li>拉取该用户的好友列表（查用户数据库）。</li>
+<li>在 Redis Pub/Sub 上<strong>订阅这些好友的频道</strong>。</li>
+<li>从 Redis 位置缓存里<strong>读取这些好友的当前位置</strong>。</li>
+<li>把这份位置快照<strong>下发给客户端</strong>。</li>
+</ol>
+<p>注意第 2 步和第 3 步的分工——<strong>这正是第 5.3 节讲的「Pub/Sub 不能作为唯一数据源」的直接体现</strong>：订阅负责「未来的更新」，快照负责「此刻的状态」。两者缺一不可。</p>
+<h3 id="用户数据库">用户数据库</h3>
+<p>按 <code>user_id</code> <strong>分片（Shard）</strong>。</p>
+<p>原笔记还给了一个组织上的建议：<strong>把用户/好友数据通过一个专门的服务和 API 暴露出去，由专门的团队维护</strong>。这是<strong>微服务边界</strong>的划分思路——好友关系是多个功能（附近的朋友、动态、私信）都要用的公共能力，把它做成独立服务，避免每个功能各自去查同一张表。</p>
+<h3 id="位置缓存-1">位置缓存</h3>
+<p>可以通过增加 Redis 节点来分片。</p>
+<p>原笔记提到一个很聪明的点：<strong>TTL 本身就限制了内存占用上限</strong>。因为只有「活跃用户」的数据才在缓存里，不活跃的会自动过期。所以内存用量不是「历史总用户数」的函数，而是「<strong>同时在线用户数</strong>」的函数——这是一个常数级的上限，不会随时间无限增长。</p>
+<p>即便如此，<strong>写入负载仍然很大</strong>，需要靠分片来分担。</p>
+<h3 id="redis-pubsub-服务器">Redis Pub/Sub 服务器</h3>
+<p>原笔记在这里说：</p>
+<blockquote>
+<p>「我们利用这样一个事实：如果频道被创建但没有在使用，是不消耗内存的。因此我们可以为所有使用该功能的用户<strong>预分配（Pre-allocate）频道</strong>，避免处理『用户上线时创建一个新频道并通知活跃 WebSocket 服务器』这种情况。」</p>
+</blockquote>
+<p><strong>这段推理有问题</strong>，见【勘误与补充】。简单说：Redis Pub/Sub 的频道是<strong>隐式存在</strong>的——<code>SUBSCRIBE</code> 一个不存在的频道会自动创建它，最后一个订阅者离开后它自动销毁。所以「预分配频道」在 Redis Pub/Sub 里没有对应的操作。</p>
+<p>真正需要预分配的，是**「频道 → Redis 节点」的归属映射**（也就是哈希环上的分布）。预先算好这份映射并缓存在每台 WebSocket 服务器内存里，新用户上线时就能<strong>直接算出该去哪个节点订阅</strong>，而不需要一次分布式协调。</p>
+<hr />
+<h2 id="11-深挖redis-集群的容量规划">11. 深挖：Redis 集群的容量规划</h2>
+<p>这一节是原笔记最有价值的量化分析，我们完整跟一遍。</p>
+<h3 id="内存需求">内存需求</h3>
+<blockquote>
+<p>「我们需要大约 <strong>200 GB 内存</strong>来维护所有的 Pub/Sub 频道。可以用 <strong>2 台各 100 GB 的 Redis 服务器</strong>实现。」</p>
+</blockquote>
+<p>推算一下这个数字的来源：使用该功能的用户总数是 <strong>1 亿</strong>（10 亿 × 10%）。200 GB ÷ 1 亿 = <strong>每个频道约 2 KB</strong>。</p>
+<blockquote>
+<p><strong>这里要诚实说明</strong>：原笔记没有解释 200 GB 是怎么来的。上面这个「2 KB/频道」是我们按它给的数字反推的。更合理的解释是——<strong>内存主要消耗在「订阅关系」上，而不是「频道名」上</strong>：
+1000 万并发用户 × 400 个好友 = <strong>40 亿条订阅关系</strong>。200 GB ÷ 40 亿 ≈ <strong>50 字节/条</strong>，这个量级对「一个订阅项（客户端指针 + 频道引用）」是合理的。
+但请注意，<strong>这是我们的事后推算，不是原文给出的推导过程</strong>。面试时如果你要引用这个数字，建议自己把推导讲出来，而不是直接甩「200 GB」这个结论。</p>
+</blockquote>
+<h3 id="cpu-需求真正的瓶颈">CPU 需求（真正的瓶颈）</h3>
+<blockquote>
+<p>「考虑到我们需要每秒推送约 1400 万条位置更新，假设单台服务器能处理约 <strong>10 万次推送/秒</strong>，我们至少需要 <strong>140 台 Redis 服务器</strong>。」</p>
+</blockquote>
+<p>验算：14,000,000 ÷ 100,000 = <strong>140</strong>。✓</p>
+<blockquote>
+<p><strong>关于「10 万次/秒」这个假设</strong>
+这是一个<strong>保守的容量规划值</strong>。真实的 Redis Pub/Sub 单机吞吐和三个因素强相关：<strong>消息大小</strong>、<strong>每个频道的订阅者数量</strong>、<strong>网络带宽</strong>。消息越大、订阅者越多，吞吐越低。
+工程上的正确做法是：<strong>在自己的硬件上用真实消息做压测</strong>，而不是照搬任何一个数字。原笔记给 10 万是合理的起点，但不是定律。</p>
+</blockquote>
+<h3 id="结论需要分布式-redis-集群">结论：需要分布式 Redis 集群</h3>
+<p>单机 100 GB 内存 + 10 万次/秒，两个维度都撑不住，所以必须上集群。这就需要**服务发现（Service Discovery）**组件（ZooKeeper 或 etcd）来跟踪哪些节点是活的。</p>
+<p>需要在服务发现里编码的数据是**「频道 → 节点」的分布信息**：</p>
+<div align="center"><img src="./images/channel-distribution-data.png" alt="频道分布数据：编码在服务发现组件中的哈希环信息" width="520" loading="lazy" decoding="async"></div>
+<p>WebSocket 服务器从 ZooKeeper 拉取这份数据，用来判断「某个频道在哪台 Redis 上」。<strong>为了效率，哈希环数据可以缓存在每台 WebSocket 服务器的内存里</strong>，避免每次订阅都去查 ZooKeeper。</p>
+<h3 id="集群的弹性伸缩">集群的弹性伸缩</h3>
+<ul>
+<li><strong>按需扩缩容</strong>：可以起一个每日定时任务，根据历史流量数据调整集群规模。</li>
+<li><strong>超量配置（Over-provision）</strong>：也可以故意多配一些容量来应对突发流量。这是<strong>成本换稳定性</strong>的交易。</li>
+</ul>
+<h3 id="为什么-redis-集群要当有状态存储对待">为什么 Redis 集群要当「有状态存储」对待</h3>
+<p>原笔记这一点讲得很好：Redis 集群在这里<strong>不能当作无状态组件随意增删</strong>，原因有两个：</p>
+<ol>
+<li><strong>它持有状态</strong>——频道和订阅关系都在节点内存里。</li>
+<li><strong>它需要和订阅者协调</strong>——节点增减时，频道要迁移，订阅者必须**交接（Hand-off）**到新节点。</li>
+</ol>
+<h3 id="伸缩时的三个风险">伸缩时的三个风险</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>风险</th>
+<th>后果</th>
+<th>缓解手段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>大量重订阅请求</strong></td>
+<td>频道迁移导致 WebSocket 服务器集中重订阅，可能压垮 ZooKeeper 和 Redis</td>
+<td>分批迁移；限制并发重订阅速率</td>
+</tr>
+<tr>
+<td><strong>位置更新丢失</strong></td>
+<td>迁移窗口内的更新丢失（本章可接受，但应尽量减少）</td>
+<td><strong>把操作安排在一天中流量最低的时段</strong></td>
+</tr>
+<tr>
+<td><strong>迁移数据量过大</strong></td>
+<td>全量重哈希会导致几乎所有频道搬家</td>
+<td><strong>用一致性哈希（Consistent Hashing）</strong>，把迁移量从「几乎全部」降到约 1/N</td>
+</tr>
+</tbody>
+</table></div>
+<div align="center"><img src="./images/consistent-hashing.png" alt="一致性哈希：节点增减时只迁移约 1/N 的频道" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>一致性哈希在这里解决什么、不解决什么</strong>（和第 1 章的呼应）</p>
+<ul>
+<li><strong>解决</strong>：节点增减时的<strong>迁移量</strong>。从「重新哈希，几乎全部频道搬家」降到「只有相邻节点的 1/N 搬家」。</li>
+<li><strong>不解决</strong>：<strong>热点</strong>。如果某个超级明星用户的位置更新极其频繁，他所在的频道所在节点依然会过载。对策是<strong>给热点频道单独分配节点</strong>，或者<strong>本地缓存 + 限流</strong>。</li>
+<li><strong>也不解决</strong>：<strong>迁移本身</strong>。一致性哈希只决定「谁该持有哪个频道」，具体怎么把订阅关系搬过去、怎么让订阅者交接，还得自己实现。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="12-深挖好友增删与鲸鱼用户">12. 深挖：好友增删与「鲸鱼」用户</h2>
+<h3 id="添加-删除好友">添加 / 删除好友</h3>
+<p>只要好友关系发生变化，<strong>负责该用户的 WebSocket 服务器就必须订阅 / 取消订阅</strong>对方的位置频道。</p>
+<p>实现方式：因为「附近的朋友」是一个更大 App 的一部分，可以假设客户端注册了一个<strong>回调（Callback）</strong>——当好友关系变化的事件发生时，客户端会向 WebSocket 服务器发一条消息，触发相应的订阅 / 退订动作。</p>
+<blockquote>
+<p><strong>这里有一个原笔记没有展开的坑：时序问题。</strong>
+假设 A 和 B 刚成为好友。客户端回调触发订阅，但<strong>订阅生效之前的这段时间</strong>，B 的位置更新 A 是收不到的。如果此时 A 打开地图，会看到 B 的位置是<strong>从缓存快照里读出来的旧值</strong>（可能是几十秒前的）。
+正确做法是：<strong>订阅成功之后再拉一次快照</strong>，保证「订阅生效点」和「快照时间点」之间的空窗最小。这是分布式系统里反复出现的模式——<strong>「建立监听」和「读取当前值」之间永远存在窗口，必须显式处理。</strong></p>
+</blockquote>
+<h3 id="好友特别多的用户鲸鱼用户">好友特别多的用户（「鲸鱼」用户）</h3>
+<p>原笔记给的方案很直接：<strong>给好友总数设上限</strong>，比如 Facebook 就是 <strong>5000 个好友</strong>上限。</p>
+<p>为什么需要这个上限？回到第 2 节的扇出公式：</p>
+<p>$$
+\text{扇出量} = \text{上报频率} \times \text{好友数} \times \text{在线比例}
+$$</p>
+<p><strong>好友数是一个直接乘数。</strong> 如果没有上限，一个加了 10 万好友的账号每次移动，就要产生 10 万条推送。这就是**热点问题（Hot Key / Celebrity Problem）**的一个变体。</p>
+<p>原笔记说：「处理『鲸鱼』用户的 WebSocket 服务器负载会更高，但只要有足够多的 WebSocket 服务器，就没问题。」</p>
+<p><strong>这个说法只对了一半</strong>：</p>
+<ul>
+<li>对的部分：<strong>扇出是分散的</strong>。10 万条推送会被分发到「手上连着这 10 万好友」的多台服务器上，不是单机承担。这一点原笔记说对了。</li>
+<li>不对的部分：<strong>「发布」这一侧是集中的</strong>。该用户的 WebSocket 服务器要一次性把消息 Publish 到一个被 10 万订阅者订阅的频道上，<strong>这台 Redis 节点</strong>和<strong>这条发布路径</strong>会成为瓶颈。加更多 WebSocket 服务器解决不了这个单点。</li>
+</ul>
+<p><strong>更完整的对策</strong>（按有效性排序）：</p>
+<ol>
+<li><strong>好友数上限</strong>（最直接，也最容易被产品接受）。</li>
+<li><strong>对高频用户降采样</strong>：对好友数超过阈值的账号，降低其位置更新频率。</li>
+<li><strong>分级推送</strong>：只推送给「距离在阈值内」的好友——这一步在原设计里已经有了，它天然地把 10 万好友削减到几百个。</li>
+<li><strong>热点频道独立分片</strong>：把鲸鱼用户的频道放到专用 Redis 节点上。</li>
+</ol>
+<hr />
+<h2 id="13-深挖附近随机陌生人">13. 深挖：附近随机陌生人</h2>
+<p>面试官可能会追问：「如果产品要加一个功能——偶尔在地图上看到一个<strong>随机的陌生人</strong>，怎么改设计？」</p>
+<p>这改变了问题的性质：原来我们只需要在<strong>好友图（Friend Graph）<strong>上做扇出，现在需要在整个</strong>地理空间</strong>上做扇出。</p>
+<p>原笔记给的方案是：<strong>基于 geohash 定义一组 Pub/Sub 频道池</strong>。</p>
+<div align="center"><img src="./images/geohash-pubsub.png" alt="基于 geohash 的 Pub/Sub 频道池" width="520" loading="lazy" decoding="async"></div>
+<p>机制：</p>
+<ul>
+<li>把世界按 geohash 切成网格，<strong>每个 geohash 单元对应一个 Pub/Sub 频道</strong>。</li>
+<li>任何处在这个 geohash 单元里的用户，都订阅该频道的消息，从而收到<strong>同一单元内其他随机用户</strong>的位置更新。</li>
+</ul>
+<div align="center"><img src="./images/location-updates-geohash.png" alt="geohash 频道上的位置更新流向" width="520" loading="lazy" decoding="async"></div>
+<h3 id="边界问题">边界问题</h3>
+<p>geohash 有一个经典缺陷：<strong>两个人在现实中离得很近，但恰好被一条格线分开，属于不同的 geohash 单元</strong>。如果只订阅自己所在的那个单元，就会漏掉隔壁单元里那个「其实就在你旁边」的人。</p>
+<p>解法：<strong>同时订阅相邻的 geohash 单元</strong>（通常是周围 8 个，加上自己共 9 个）。</p>
+<div align="center"><img src="./images/geohash-borders.png" alt="geohash 边界问题：订阅相邻单元以覆盖跨格线的邻近用户" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>代价提醒</strong>
+订阅 9 个单元意味着<strong>接收量变成 9 倍</strong>。这是一个典型的**「召回率 vs 成本」取舍**：</p>
+<ul>
+<li>只订阅 1 个单元 → 便宜，但会漏人。</li>
+<li>订阅 9 个单元 → 不漏人，但流量 ×9。</li>
+<li>折中方案：<strong>根据 geohash 单元的实际大小动态决定</strong>。geohash 前缀越短，单元越大（一个 4 字符的 geohash 单元约 39 km × 20 km），此时订阅 9 个单元意味着覆盖极大区域，流量不可接受；反之，前缀越长单元越小（7 字符约 153 m × 153 m），订阅 9 个单元的代价可以忽略。
+<strong>所以「订阅几个相邻单元」应该和 geohash 精度一起调参</strong>，而不是固定 9 个。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="14-位置隐私谁能看到我">14. 位置隐私：谁能看到我</h2>
+<p>原笔记在需求澄清阶段就明确说了「不用考虑 GDPR，为了简化」。<strong>这是面试场景的合理简化，但在真实产品里，位置数据是最敏感的数据类别之一。</strong></p>
+<p>这一节补齐这块内容。</p>
+<h3 id="141-谁能看到我">14.1 谁能看到我</h3>
+<p>「附近的朋友」的访问控制模型看似简单：<strong>只有我的好友能看到我</strong>。但实际要回答的问题远不止这一个：</p>
+<ul>
+<li>我能不能对<strong>特定好友</strong>隐藏位置？（比如「对某人隐身」）</li>
+<li>我能不能设置<strong>时间段</strong>？（比如「只在工作日 9-18 点可见」）</li>
+<li>好友的好友能不能看到我？（转发的边界在哪）</li>
+<li>我退出 App 后，我的位置还会保留多久？</li>
+<li>我能不能看到<strong>谁看过我的位置</strong>？</li>
+</ul>
+<p><strong>设计上的关键点</strong>：访问控制必须在<strong>服务端</strong>执行，而且必须在<strong>扇出的最早环节</strong>执行。如果在 WebSocket 服务器转发时才过滤，位置数据已经在内部网络里流转过了，日志、抓包、内部人员都能看到。<strong>越早过滤越安全。</strong></p>
+<h3 id="142-精确定位-vs-模糊定位">14.2 精确定位 vs 模糊定位</h3>
+<p>不是所有场景都需要米级精度。常见的精度分级：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>精度档位</th>
+<th>展示形式</th>
+<th>典型 geohash 前缀长度</th>
+<th>单元尺寸</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>精确</strong></td>
+<td>真实坐标 + 距离</td>
+<td>7~9 位</td>
+<td>153 m ~ 5 m</td>
+</tr>
+<tr>
+<td><strong>街区级</strong></td>
+<td>取网格中心</td>
+<td>6 位</td>
+<td>约 1.2 km × 0.6 km</td>
+</tr>
+<tr>
+<td><strong>区域级</strong></td>
+<td>取网格中心</td>
+<td>5 位</td>
+<td>约 4.9 km × 4.9 km</td>
+</tr>
+<tr>
+<td><strong>城市级</strong></td>
+<td>只显示城市名</td>
+<td>4 位</td>
+<td>约 39 km × 20 km</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>geohash 精度对照表</strong>（这是空间索引的基本功，建议记住 5~8 位这几档）</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>长度</th>
+<th>单元尺寸（宽 × 高）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>5009 km × 4993 km</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1252 km × 624 km</td>
+</tr>
+<tr>
+<td>3</td>
+<td>156 km × 156 km</td>
+</tr>
+<tr>
+<td>4</td>
+<td>39.1 km × 19.5 km</td>
+</tr>
+<tr>
+<td>5</td>
+<td>4.9 km × 4.9 km</td>
+</tr>
+<tr>
+<td>6</td>
+<td>1.22 km × 0.61 km</td>
+</tr>
+<tr>
+<td>7</td>
+<td>153 m × 153 m</td>
+</tr>
+<tr>
+<td>8</td>
+<td>38.2 m × 19.1 m</td>
+</tr>
+<tr>
+<td>9</td>
+<td>4.77 m × 4.77 m</td>
+</tr>
+</tbody>
+</table></div>
+<p>注意<strong>单元宽度和高度的比例</strong>：奇数位时宽是高的 2 倍，偶数位时是正方形。这是因为 geohash 交错编码经度和纬度，每多一位就只把一个方向再对半分。</p>
+</blockquote>
+<p><strong>关键工程约束：模糊化必须在服务端做。</strong></p>
+<blockquote>
+<p><strong>这是一个初学者常犯的错误</strong>：为了「保护隐私」，把精确坐标下发给客户端，让客户端自己取整显示。
+<strong>这完全没有保护作用。</strong> 任何人抓包、或者反编译 App、或者用中间人代理，都能直接拿到精确坐标。<strong>隐私处理必须在数据离开你控制的边界之前完成。</strong></p>
+</blockquote>
+<h3 id="143-防多次查询三角定位">14.3 防「多次查询三角定位」</h3>
+<p>这是最容易被忽略、也最危险的攻击方式。</p>
+<p><strong>攻击原理</strong>：假设系统只返回「用户在 geohash 网格 A 内」这种模糊信息。攻击者一个人看不出来什么。但是——</p>
+<ol>
+<li>攻击者用<strong>多个账号</strong>（或者收买多个好友）在不同时间点查询目标用户的位置。</li>
+<li>每次得到一个网格或一个带噪声的坐标。</li>
+<li><strong>取多次观测的交集</strong>，或者<strong>对带噪声的坐标求平均</strong>，就能把真实位置逼近到很高精度。</li>
+</ol>
+<p>如果系统每次返回的都是<strong>同一个网格中心点</strong>，攻击者只要两次观测到不同网格，就能推断出目标在网格边界附近。如果系统每次返回的是<strong>独立随机噪声</strong>，攻击者多查几次做平均，噪声就被消掉了。</p>
+<p><strong>防护手段</strong>（必须组合使用）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>手段</th>
+<th>原理</th>
+<th>注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>时间窗内噪声一致</strong></td>
+<td>同一个时间窗（比如 5 分钟）内，对同一目标返回<strong>同一个</strong>模糊坐标；窗口切换时才换新噪声</td>
+<td>单纯加独立随机噪声会被平均掉，必须「窗口内一致」</td>
+</tr>
+<tr>
+<td><strong>按查询者加盐</strong></td>
+<td>噪声的随机种子取决于「查询者 ID + 时间窗」，不同查询者看到不同的偏移</td>
+<td>防止多个账号合谋求平均</td>
+</tr>
+<tr>
+<td><strong>限制查询频率</strong></td>
+<td>对「查询同一目标」的请求做限流</td>
+<td>直接抬高攻击成本</td>
+</tr>
+<tr>
+<td><strong>异常模式检测</strong></td>
+<td>检测「同一账号短时间内查询同一目标多次」「多个新注册账号查询同一目标」</td>
+<td>需要风控系统配合</td>
+</tr>
+<tr>
+<td><strong>返回模糊网格而非噪声坐标</strong></td>
+<td>网格是离散的，多次观测只能定位到网格</td>
+<td>但网格本身可被求交，仍需配合频率限制</td>
+</tr>
+<tr>
+<td><strong>历史数据降精度</strong></td>
+<td>位置历史只保留聚合后的结果，不保留原始轨迹</td>
+<td>历史轨迹是「时序三角定位」的最佳素材</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个更根本的原则</strong>
+<strong>不要在系统里长期保存精确的原始位置数据，除非有明确的业务理由。</strong> 位置历史是「时序三角定位」的完美素材——攻击者只要拿到一个人的完整轨迹，就能推断出他的住址、工作地点、就医记录、宗教活动场所。所以：</p>
+<ul>
+<li>原始位置数据设置<strong>短保留期</strong>（比如 30 天），之后降精度或聚合。</li>
+<li>用于分析的轨迹数据做<strong>匿名化 + 加噪</strong>，并且与用户身份<strong>解耦存储</strong>。</li>
+<li>明确区分「实时位置」（需要精确、短保留）和「历史轨迹」（需要模糊、长保留）。</li>
+</ul>
+</blockquote>
+<h3 id="144-合规视角">14.4 合规视角</h3>
+<ul>
+<li><strong>GDPR</strong> 把位置数据纳入个人数据范围，并且欧盟数据保护机构的观点是：<strong>位置可以间接暴露健康、宗教、性取向等特殊类别信息</strong>（比如「每周三晚上出现在某诊所」），因此适用更严格的保护要求。</li>
+<li>核心义务包括：<strong>目的限制</strong>（收集位置只能用于声明的目的）、<strong>数据最小化</strong>（能模糊就不要精确）、<strong>存储限制</strong>（不能无限期保存）、<strong>用户可删除</strong>（被遗忘权）。</li>
+<li>对中国开发者：个人信息保护法同样把行踪轨迹列为<strong>敏感个人信息</strong>，需要单独同意。</li>
+</ul>
+<p><strong>所以在真实项目里，「不用考虑 GDPR」这个面试简化，恰恰是不能照搬到生产环境的部分。</strong></p>
+<hr />
+<h2 id="15-替代方案redis-pubsubstreamskafka-与-erlang">15. 替代方案：Redis Pub/Sub、Streams、Kafka 与 Erlang</h2>
+<p>第 5.5 节已经对比过 Pub/Sub / Streams / Kafka 的语义差异。这里专门讨论原笔记提到的 Erlang。</p>
+<h3 id="原笔记的说法">原笔记的说法</h3>
+<blockquote>
+<p>「Redis Pub/Sub 的一个替代方案是利用 <strong>Erlang</strong>——一门为分布式计算应用优化的通用编程语言。用它我们可以启动数百万个小的 Erlang 进程，让它们互相通信。我们可以在同一个分布式 Erlang 应用里<strong>同时处理 WebSocket 连接和 Pub/Sub 频道</strong>。不过挑战在于：Erlang 是一门小众语言，很难招到优秀的 Erlang 开发者。」</p>
+</blockquote>
+<h3 id="这个说法哪里不准确">这个说法哪里不准确</h3>
+<p><strong>Erlang 解决的不是「Pub/Sub 的语义缺陷」问题。</strong></p>
+<p>原笔记把 Erlang 放在「Alternative to Redis pub/sub」这一节，会让人以为「换成 Erlang 就不会丢消息了」。<strong>这是错的</strong>：</p>
+<ul>
+<li>Erlang/OTP 的进程间消息传递同样是<strong>内存中的、即发即忘的</strong>。进程 A 给进程 B 发消息，如果 B 此刻不存在（已经退出），消息就丢了——这和 Redis Pub/Sub 的语义<strong>完全一样</strong>。</li>
+<li>Erlang 的 <code>pg</code>（Process Group）模块做的广播，同样不持久化。</li>
+</ul>
+<p><strong>Erlang 真正解决的问题是另一个</strong>：<strong>用一套统一的并发模型，同时承载「百万级长连接」和「进程间消息路由」</strong>。</p>
+<p>它的优势在于：</p>
+<ol>
+<li><strong>极轻量的进程</strong>：Erlang 进程不是操作系统线程，一个进程初始只占几百字节，单机跑百万个是常规操作。所以「一个 WebSocket 连接 = 一个 Erlang 进程」在 Erlang 里是自然的设计，在其他语言里是灾难。</li>
+<li><strong>隔离与容错</strong>：进程之间完全隔离，一个崩溃不影响其他。配合 <strong>Supervisor 树（监督树）</strong>，崩溃的进程会被自动重启。这正是「偶尔丢消息、但系统整体必须可用」这条非功能需求的完美映射。</li>
+<li><strong>热代码升级（Hot Code Swap）</strong>：可以在不停机的情况下更新代码。对于一个连接数千万的长连接服务，这是巨大的运维优势。</li>
+<li><strong>分布式透明</strong>：<code>!</code>（发送消息）操作符在本地进程和远程进程上写法一样，节点间通信对开发者透明。</li>
+</ol>
+<p><strong>工业界的例证</strong>：WhatsApp 曾公开分享过用 Erlang 在单台服务器上维持<strong>百万级并发长连接</strong>的工程经验（2012 年前后的 Erlang Factory 演讲），这在当时是相当惊人的密度。这是 Erlang 在这个问题域里最有说服力的实战证据。</p>
+<h3 id="所以正确的表述应该是">所以正确的表述应该是</h3>
+<blockquote>
+<p><strong>Erlang 是「换掉整个 WebSocket + 消息总线的实现技术栈」的选项，不是「修复 Pub/Sub 语义」的选项。</strong></p>
+<ul>
+<li>想修<strong>语义</strong>（不丢、可重放）→ 用 <strong>Redis Streams</strong> 或 <strong>Kafka</strong>。</li>
+<li>想修<strong>连接密度和容错模型</strong> → 考虑 <strong>Erlang/OTP</strong>（或它的现代继承者 Elixir）。</li>
+<li>两者可以<strong>叠加</strong>：用 Erlang 承载连接，用 Kafka 做持久化的事件流。</li>
+</ul>
+</blockquote>
+<p><strong>代价</strong>也很真实：Erlang 生态相对小众，招聘难度高，与主流 Java/Go 技术栈的集成成本不低。<strong>技术选型永远要考虑团队能力，而不只是技术优越性。</strong></p>
+<hr />
+<h2 id="16-收尾本章设计回顾">16. 收尾：本章设计回顾</h2>
+<h3 id="核心组件">核心组件</h3>
+<ul>
+<li><strong>WebSocket 服务器</strong>：客户端与服务端之间的实时双向通信。有状态，需要优雅下线。</li>
+<li><strong>Redis</strong>：两个角色——<strong>位置缓存</strong>（快速读写最新位置 + TTL 自动过期）和 <strong>Pub/Sub 频道</strong>（实时广播总线）。</li>
+<li><strong>位置历史存储（Cassandra）</strong>：写密集，服务于离线分析。</li>
+<li><strong>Kafka</strong>：把位置更新流式送往其他分析服务。</li>
+</ul>
+<h3 id="我们解决的问题清单">我们解决的问题清单</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>解法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>客户端如何实时收到好友位置？</td>
+<td>WebSocket 长连接</td>
+</tr>
+<tr>
+<td>一台服务器怎么知道另一台服务器上的好友？</td>
+<td>Redis Pub/Sub 按频道订阅</td>
+</tr>
+<tr>
+<td>每次更新要推给多少人？</td>
+<td>距离阈值过滤 + 好友数上限</td>
+</tr>
+<tr>
+<td>每秒上千万条消息怎么扛？</td>
+<td>Redis 集群分片 + 一致性哈希 + 合并推送</td>
+</tr>
+<tr>
+<td>用户不活跃怎么自动清理？</td>
+<td>Redis TTL</td>
+</tr>
+<tr>
+<td>好友关系变化怎么同步？</td>
+<td>客户端回调触发订阅/退订</td>
+</tr>
+<tr>
+<td>随机陌生人怎么做？</td>
+<td>基于 geohash 的频道池 + 订阅相邻单元</td>
+</tr>
+<tr>
+<td>Pub/Sub 丢消息怎么办？</td>
+<td>推送 + 拉取兜底（版本号检测断档）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="一句话总结这个系统的设计哲学">一句话总结这个系统的设计哲学</h3>
+<p><strong>「用可接受的丢消息，换取极低的延迟和极高的吞吐；用状态快照兜底，弥补丢消息带来的缺口。」</strong></p>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>本节逐条指出原笔记中不准确、过时或缺失的地方。</p>
+</blockquote>
+<h3 id="勘误-1redis-pubsub-的即发即忘语义完全没有被说明">勘误 1：Redis Pub/Sub 的「即发即忘」语义完全没有被说明</h3>
+<ul>
+<li><strong>原文说法</strong>：原笔记把 Redis Pub/Sub 描述为「轻量级消息总线」，并在「Alternative to Redis pub/sub」一节里把 Erlang 列为替代方案，但<strong>从未说明 Pub/Sub 的投递语义</strong>。</li>
+<li><strong>问题</strong>：这是本章最关键的一个技术语义缺失。Redis Pub/Sub 是**至多一次（At-Most-One）**投递：消息不落盘、没有确认、没有重放、没有消费者组。<strong>订阅者当时不在线，消息就永久丢失。</strong> 读者如果不了解这一点，会误以为这是一个「消息队列」，从而在需要可靠投递的场景里用错工具。</li>
+<li><strong>正确说法</strong>：Pub/Sub 是<strong>广播总线（Broadcast Bus）</strong>，不是消息队列。它的语义是「把消息交给此刻在场的订阅者」，仅此而已。在本章的场景下，因为非功能需求明确说了「偶尔丢数据点可接受」，所以它<strong>是合适的</strong>；但这不意味着可以把它当成可靠的传输层。系统的正确性依赖<strong>另一个组件</strong>——Redis 位置缓存（作为状态快照）——来兜底。</li>
+<li><strong>延伸</strong>：判断一个消息系统能不能用的第一件事，是问它的<strong>投递语义（At-Most-Once / At-Least-Once / Exactly-Once）<strong>和</strong>是否持久化</strong>。这两个问题回答不了，其他都是空谈。见第 5.5 节的对比表。</li>
+</ul>
+<h3 id="勘误-2每秒-1400-万次位置更新是概念混淆">勘误 2：「每秒 1400 万次位置更新」是概念混淆</h3>
+<ul>
+<li><strong>原文说法</strong>：「Given that we need to push ~14mil location updates per second, we will however need at least 140 redis servers...」（考虑到我们需要每秒推送约 1400 万次位置更新……）</li>
+<li><strong>问题</strong>：同一章前面算出来的<strong>位置更新 QPS 是 33.4 万</strong>（1000 万并发 ÷ 30 秒）。这里的 1400 万不是「位置更新数」，而是<strong>扇出后的推送消息数</strong>（33.4 万 × 40 个在线好友 ≈ 1333 万，四舍五入为 1400 万）。把两者都叫「location updates」，会让读者误以为「位置上报量是 1400 万/秒」，从而在容量规划时算错一个数量级。</li>
+<li><strong>正确说法</strong>：严格区分三个量——
+<ul>
+<li><strong>位置上报量（Update Ingest QPS）</strong>：33.4 万/秒（由客户端节流策略决定）</li>
+<li><strong>扇出推送量（Fan-out Push QPS）</strong>：约 1333 万/秒（由好友数和在线率决定）</li>
+<li><strong>订阅关系总数（Subscription Count）</strong>：约 40 亿（由并发用户数 × 好友数决定）
+这三个数字对应完全不同的资源：上报量决定入口带宽和写入能力，推送量决定 Redis 集群规模，订阅关系总数决定内存。</li>
+</ul>
+</li>
+<li><strong>延伸</strong>：<strong>面试时把这三个量分开说，是加分项</strong>。面试官会立刻知道你做过真实的容量规划，而不是背数字。</li>
+</ul>
+<h3 id="勘误-3为所有用户预分配-pubsub-频道基于对-redis-语义的误解">勘误 3：「为所有用户预分配 Pub/Sub 频道」基于对 Redis 语义的误解</h3>
+<ul>
+<li><strong>原文说法</strong>：「我们可以为所有使用附近好友功能的用户预分配频道，以避免处理『用户上线时创建新频道并通知活跃 WebSocket 服务器』这件事。」</li>
+<li><strong>问题</strong>：Redis Pub/Sub 的<strong>频道是隐式存在的</strong>——<code>SUBSCRIBE</code> 一个不存在的频道会<strong>自动创建</strong>它，当最后一个订阅者离开后频道<strong>自动销毁</strong>。<code>PUBSUB CHANNELS</code> 命令只会列出「至少有一个订阅者」的频道。所以「预分配频道」在 Redis Pub/Sub 里<strong>没有对应的操作</strong>，也不存在「上线时创建频道」这个步骤。原文前半句「频道被创建但没在使用时不消耗内存」之所以成立，正是因为这样的频道<strong>根本不存在</strong>，而不是因为有什么预分配机制。</li>
+<li><strong>正确说法</strong>：真正需要预分配和缓存的是**「频道 → Redis 节点」的归属映射**（哈希环分布）。把这套映射预先算好、缓存在每台 WebSocket 服务器的内存里，新用户上线时就能<strong>直接算出该去哪个节点订阅</strong>，无需一次分布式协调。这才是「避免用户上线时通知所有活跃服务器」的正解。</li>
+<li><strong>延伸</strong>：这个区分很重要，因为它对应着两类完全不同的成本——<strong>频道的存在成本</strong>（几乎为零）和<strong>频道归属的协调成本</strong>（真实的、需要优化的）。原文把两者混为一谈了。</li>
+</ul>
+<h3 id="勘误-4把-erlang-当作-pubsub-的语义替代品不准确">勘误 4：把 Erlang 当作 Pub/Sub 的语义替代品不准确</h3>
+<ul>
+<li><strong>原文说法</strong>：「Redis Pub/Sub 的一个替代方案是利用 Erlang……我们可以在同一个分布式 Erlang 应用里同时处理 WebSocket 连接和 Pub/Sub 频道。」</li>
+<li><strong>问题</strong>：Erlang 的进程间消息传递<strong>同样是内存中、即发即忘的</strong>，投递语义与 Redis Pub/Sub 一致，<strong>并没有解决任何持久性或丢失问题</strong>。把它放在「替代 Redis Pub/Sub」的标题下，会误导读者以为换语言就能修语义。</li>
+<li><strong>正确说法</strong>：Erlang 是<strong>实现技术栈的替代</strong>，不是<strong>消息语义的替代</strong>。它真正的优势在于：极轻量进程（单机百万级）、进程隔离与监督树带来的容错、热代码升级。如果目标是修复「丢消息」问题，正确的工具是 <strong>Redis Streams</strong> 或 <strong>Kafka</strong>。</li>
+<li><strong>延伸</strong>：看到「A 是 B 的替代方案」这种表述时，永远先问一句：<strong>它替代的是 B 的哪个维度？</strong> 是性能、语义、还是实现方式？混淆维度是技术选型中最常见的错误。</li>
+</ul>
+<h3 id="补充-1位置上报的节流策略">补充 1：位置上报的节流策略</h3>
+<p>原笔记只给出「位置刷新间隔 30 秒」这个结果，没有讲客户端应该怎么实现。完整的做法是<strong>距离阈值 + 最小间隔 + 最大间隔心跳</strong>三者组合，详见第 7 节。<strong>这是初级开发者最容易做错、也最容易被面试官追问的工程细节。</strong></p>
+<h3 id="补充-2位置隐私与三角定位防护">补充 2：位置隐私与三角定位防护</h3>
+<p>原笔记在需求阶段就排除了 GDPR，但真实产品必须处理。核心要点：<strong>模糊化必须在服务端做</strong>；<strong>时间窗内噪声必须一致</strong>（否则会被平均掉）；<strong>按查询者加盐</strong>防多账号合谋；<strong>历史轨迹是三角定位的最佳素材，必须降精度或缩短保留期</strong>。详见第 14 节。</p>
+<h3 id="补充-3扇出合并推送batching">补充 3：扇出合并推送（Batching）</h3>
+<p>原笔记没有提到「把多条推送合并成一条」这个优化。按 5 秒窗口合并，可以把扇出量从 1333 万/秒降到 200 万/秒（降低 6.7 倍），代价是消息最多延迟 5 秒。详见第 6 节。</p>
+<h3 id="补充-4推送-拉取兜底">补充 4：推送 + 拉取兜底</h3>
+<p>原笔记的「客户端初始化时从缓存读快照」实际上就是这个模式的一个特例，但没有把它抽象成通用模式。<strong>给每条更新带版本号，客户端发现断档就主动拉快照</strong>——这是弥补 Pub/Sub 丢失问题的标准解法。详见第 5.4 节。</p>
+<h3 id="补充-5距离阈值的滞回设计">补充 5：距离阈值的滞回设计</h3>
+<p>原笔记说「超出阈值就不转发」，但没有处理「正好在阈值上抖动」的问题。用<strong>显示半径 5 英里 + 推送半径 6 英里</strong>的双半径设计可以消除抖动。详见第 6 节。</p>
+<h3 id="补充-6redis-70-的分片-pubsub">补充 6：Redis 7.0 的分片 Pub/Sub</h3>
+<p>Redis 7.0 引入了 <code>SSUBSCRIBE</code> / <code>SPUBLISH</code>，让 Pub/Sub 消息在集群模式下只在持有该频道的分片内传播，而不是通过集群总线广播到所有节点。<strong>在大规模 Redis 集群里这是必知特性</strong>，原笔记（写于 Redis 6 时代）自然没有覆盖。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Redis Pub/Sub 就是消息队列</td>
+<td>Pub/Sub 不持久化、无 Ack、无重放、无消费者组</td>
+<td>它是<strong>广播总线</strong>。需要可靠投递要用 Redis Streams 或 Kafka</td>
+</tr>
+<tr>
+<td>只要订阅了就一定能收到消息</td>
+<td>订阅之前的消息已被丢弃，订阅期间的断连也会丢消息</td>
+<td>必须有<strong>状态快照兜底</strong>，客户端发现断档要主动拉取</td>
+</tr>
+<tr>
+<td>降低上报频率就能解决扇出问题</td>
+<td>扇出量 = 频率 × 好友数 × 在线率，频率只是一个乘数</td>
+<td>真正的大头是<strong>好友数</strong>和<strong>一对多的扇出结构</strong>，要靠距离过滤和合并推送</td>
+</tr>
+<tr>
+<td>每次 GPS 变化都上报，位置最准</td>
+<td>会导致上报量和扇出量暴涨，电量与流量都撑不住，且精度提升毫无价值</td>
+<td>用<strong>距离阈值 + 时间阈值</strong>节流，并在 UI 上显示「N 秒前更新」</td>
+</tr>
+<tr>
+<td>节流之后位置还是准的</td>
+<td>高速移动时，两次上报之间的真实位移可达数百米</td>
+<td>节流是<strong>用精度换容量</strong>，必须在 UI 上暴露时间戳让用户自行判断</td>
+</tr>
+<tr>
+<td>WebSocket 服务器可以像 Web 服务器一样随意增删</td>
+<td>它是有状态的，硬杀会造成重连风暴</td>
+<td>必须先 <strong>draining（排水）</strong>，等连接排空再下线</td>
+</tr>
+<tr>
+<td>客户端自己维护「该追踪哪些好友」</td>
+<td>只有服务端知道谁在线，客户端轮询会产生大量无效请求</td>
+<td>由服务端通过 WebSocket 主动下发<strong>订阅/退订指令</strong></td>
+</tr>
+<tr>
+<td>给坐标加随机噪声就能保护隐私</td>
+<td>多次查询求平均就能消掉独立噪声</td>
+<td>噪声必须在<strong>时间窗内保持一致</strong>，并按查询者加盐</td>
+</tr>
+<tr>
+<td>在客户端把坐标取整就能保护隐私</td>
+<td>抓包即可拿到精确坐标</td>
+<td>模糊化必须在<strong>服务端</strong>、在数据离开可信边界之前完成</td>
+</tr>
+<tr>
+<td>好友数上限只是产品规则</td>
+<td>好友数是扇出量的直接乘数</td>
+<td>它是<strong>保护系统</strong>的容量约束，也是防热点的第一道防线</td>
+</tr>
+<tr>
+<td>用 geohash 订阅一个格子就够了</td>
+<td>相邻格子的人可能离你更近，会漏掉</td>
+<td>要订阅相邻格子，但<strong>订阅数量要随 geohash 精度动态调整</strong></td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：这是一个<strong>高吞吐、允许少量丢失的实时位置扇出系统</strong>——用 WebSocket 维持长连接，用 Redis Pub/Sub 做广播总线，用 Redis 位置缓存做状态兜底，用距离阈值和合并推送控制扇出成本。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>量级要算清楚</strong>：10M 并发 → 33 万次上报/秒 → 扇出后 1333 万条推送/秒。把「上报量」和「扇出量」分开说。</li>
+<li><strong>通信选 WebSocket</strong>：因为需要双向（下行推好友位置、上行报自己位置），长轮询和 SSE 各缺一半。</li>
+<li><strong>Redis 承担两个角色</strong>：位置缓存（最新值 + TTL 自动过期）和 Pub/Sub 频道（广播总线）。</li>
+<li><strong>WebSocket 服务器是有状态的</strong>：扩容要处理重连，下线要 draining。这是和无状态 Web 层的根本区别。</li>
+<li><strong>Pub/Sub 是即发即忘的</strong>：丢消息靠「客户端初始化拉快照」和「版本号检测断档后拉取」来兜底。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动指出<strong>扇出量 ≠ 上报量</strong>，并说明两者的资源消耗完全不同。</li>
+<li>主动提出<strong>合并推送</strong>（按时间窗口打包），并给出降低倍数的估算。</li>
+<li>主动提出<strong>距离阈值的滞回设计</strong>（显示半径 ≠ 推送半径）。</li>
+<li>主动讨论<strong>位置隐私</strong>，特别是「服务端模糊化」和「时间窗内噪声一致」这两个反三角定位要点。</li>
+<li>主动区分 <strong>Pub/Sub / Streams / Kafka</strong> 的投递语义，并说明为什么本场景 Pub/Sub 够用。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>「Redis Pub/Sub 会丢消息吗？丢了怎么办？」</em>
+→ 会。它是至多一次投递，不持久化、无 Ack、无重放。本章需求允许偶尔丢点，所以可用。兜底方案是：客户端初始化时从 Redis 位置缓存拉快照；后续靠版本号检测断档，发现跳变就主动拉一次快照。若业务要求不丢，应换成 Redis Streams 或 Kafka。</li>
+<li><em>「如果一个用户有 5000 个好友怎么办？」</em>
+→ 先靠距离阈值过滤（5000 个好友里通常只有几十个在 5 英里内），再靠好友数上限兜底，必要时对该账号降采样其位置更新频率。注意「发布侧」是集中的，单纯加 WebSocket 服务器解决不了热点频道的单点压力。</li>
+<li><em>「为什么不用 Kafka 做实时广播？」</em>
+→ 语义错配：位置是「最新值覆盖」的状态，不是事件流；中间态消息全是垃圾。而且全量落盘 + 多副本的成本和延迟都不划算。正确做法是分两条链路——Pub/Sub 做实时广播，Kafka 做历史分析。</li>
+<li><em>「怎么防止别人通过反复查询定位我？」</em>
+→ 服务端模糊化；同一时间窗内返回一致的噪声（防平均）；噪声按查询者加盐（防多账号合谋）；限制查询频率；检测异常查询模式；历史轨迹降精度或缩短保留期。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://redis.io/docs/latest/develop/interact/pubsub/" target="_blank" rel="noopener noreferrer">Redis Pub/Sub 官方文档</a> — 理解频道语义与 <code>PUBSUB</code> 系列命令</li>
+<li><a href="https://redis.io/docs/latest/develop/data-types/streams/" target="_blank" rel="noopener noreferrer">Redis Streams 官方文档</a> — 需要持久化与消费位点时的选择</li>
+<li><a href="https://kafka.apache.org/documentation/" target="_blank" rel="noopener noreferrer">Apache Kafka 官方文档</a> — 投递语义与持久化机制</li>
+<li><a href="https://www.erlang.org/" target="_blank" rel="noopener noreferrer">Erlang 官网</a> — 了解 OTP 的进程模型与监督树</li>
+<li><a href="https://en.wikipedia.org/wiki/Geohash" target="_blank" rel="noopener noreferrer">Geohash 词条</a> — 精度对照表与编码原理</li>
+<li><a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> — 想自己动手做地理数据实验时最好的公开数据源</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../16/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">附近服务</span></a><a class="next" href="../18/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">Google Maps</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-问题定义把附近说清楚">1. 问题定义：把「附近」说清楚</a>
+<a class="lv3" href="#功能需求">功能需求</a>
+<a class="lv3" href="#非功能需求">非功能需求</a>
+<a class="lv3" href="#和附近的人proximity-service的区别">和「附近的人」（Proximity Service）的区别</a>
+<a class="lv2" href="#2-量级估算33-万次上报1300-万条推送">2. 量级估算：33 万次上报，1300 万条推送</a>
+<a class="lv3" href="#基础参数">基础参数</a>
+<a class="lv3" href="#第一层位置上报量">第一层：位置上报量</a>
+<a class="lv3" href="#第二层扇出量这里是真正的杀手">第二层：扇出量（这里是真正的杀手）</a>
+<a class="lv3" href="#第三层极端场景如果好友数不是-400而是-1000">第三层：极端场景——如果好友数不是 400，而是 1000</a>
+<a class="lv3" href="#从这次计算里能得出三个结论">从这次计算里能得出三个结论</a>
+<a class="lv2" href="#3-通信协议为什么必须是-websocket">3. 通信协议：为什么必须是 WebSocket</a>
+<a class="lv3" href="#为什么不用-p2p">为什么不用 P2P</a>
+<a class="lv3" href="#四种方案的对比">四种方案的对比</a>
+<a class="lv2" href="#4-高层设计一个共享后端做扇出">4. 高层设计：一个共享后端做扇出</a>
+<a class="lv3" href="#先给一个简单版本">先给一个简单版本</a>
+<a class="lv2" href="#5-redis-pubsub广播总线怎么工作以及它什么时候会骗你">5. Redis Pub/Sub：广播总线怎么工作，以及它什么时候会骗你</a>
+<a class="lv3" href="#51-它解决什么问题">5.1 它解决什么问题</a>
+<a class="lv3" href="#52-但是redis-pubsub-是即发即忘的">5.2 但是：Redis Pub/Sub 是即发即忘的</a>
+<a class="lv3" href="#53-这在什么情况下会咬人">5.3 这在什么情况下会咬人</a>
+<a class="lv3" href="#54-补救手段推送-拉取兜底">5.4 补救手段：推送 + 拉取兜底</a>
+<a class="lv3" href="#55-如果要换掉它streams-vs-kafka">5.5 如果要换掉它：Streams vs Kafka</a>
+<a class="lv2" href="#6-位置更新的完整流程">6. 位置更新的完整流程</a>
+<a class="lv3" href="#关于40-条这个数字">关于「40 条」这个数字</a>
+<a class="lv3" href="#距离阈值需要一个滞回hysteresis">距离阈值需要一个「滞回（Hysteresis）」</a>
+<a class="lv2" href="#7-位置上报的节流策略不是每次-gps-变化都上报">7. 位置上报的节流策略：不是每次 GPS 变化都上报</a>
+<a class="lv3" href="#为什么不能gps-一变就上报">为什么不能「GPS 一变就上报」</a>
+<a class="lv3" href="#双阈值-心跳一个可用的节流规则">双阈值 + 心跳：一个可用的节流规则</a>
+<a class="lv3" href="#距离阈值换算成实际频率">距离阈值换算成实际频率</a>
+<a class="lv3" href="#代价位置是不精确的">代价：位置是不精确的</a>
+<a class="lv2" href="#8-api-设计">8. API 设计</a>
+<a class="lv3" href="#websocket-例程">WebSocket 例程</a>
+<a class="lv3" href="#http-api">HTTP API</a>
+<a class="lv2" href="#9-数据模型">9. 数据模型</a>
+<a class="lv3" href="#位置缓存">位置缓存</a>
+<a class="lv3" href="#位置历史表">位置历史表</a>
+<a class="lv2" href="#10-扩展性深挖每个组件怎么长大">10. 扩展性深挖：每个组件怎么长大</a>
+<a class="lv3" href="#rest-api-服务器">REST API 服务器</a>
+<a class="lv3" href="#websocket-服务器">WebSocket 服务器</a>
+<a class="lv3" href="#客户端初始化">客户端初始化</a>
+<a class="lv3" href="#用户数据库">用户数据库</a>
+<a class="lv3" href="#位置缓存-1">位置缓存</a>
+<a class="lv3" href="#redis-pubsub-服务器">Redis Pub/Sub 服务器</a>
+<a class="lv2" href="#11-深挖redis-集群的容量规划">11. 深挖：Redis 集群的容量规划</a>
+<a class="lv3" href="#内存需求">内存需求</a>
+<a class="lv3" href="#cpu-需求真正的瓶颈">CPU 需求（真正的瓶颈）</a>
+<a class="lv3" href="#结论需要分布式-redis-集群">结论：需要分布式 Redis 集群</a>
+<a class="lv3" href="#集群的弹性伸缩">集群的弹性伸缩</a>
+<a class="lv3" href="#为什么-redis-集群要当有状态存储对待">为什么 Redis 集群要当「有状态存储」对待</a>
+<a class="lv3" href="#伸缩时的三个风险">伸缩时的三个风险</a>
+<a class="lv2" href="#12-深挖好友增删与鲸鱼用户">12. 深挖：好友增删与「鲸鱼」用户</a>
+<a class="lv3" href="#添加-删除好友">添加 / 删除好友</a>
+<a class="lv3" href="#好友特别多的用户鲸鱼用户">好友特别多的用户（「鲸鱼」用户）</a>
+<a class="lv2" href="#13-深挖附近随机陌生人">13. 深挖：附近随机陌生人</a>
+<a class="lv3" href="#边界问题">边界问题</a>
+<a class="lv2" href="#14-位置隐私谁能看到我">14. 位置隐私：谁能看到我</a>
+<a class="lv3" href="#141-谁能看到我">14.1 谁能看到我</a>
+<a class="lv3" href="#142-精确定位-vs-模糊定位">14.2 精确定位 vs 模糊定位</a>
+<a class="lv3" href="#143-防多次查询三角定位">14.3 防「多次查询三角定位」</a>
+<a class="lv3" href="#144-合规视角">14.4 合规视角</a>
+<a class="lv2" href="#15-替代方案redis-pubsubstreamskafka-与-erlang">15. 替代方案：Redis Pub/Sub、Streams、Kafka 与 Erlang</a>
+<a class="lv3" href="#原笔记的说法">原笔记的说法</a>
+<a class="lv3" href="#这个说法哪里不准确">这个说法哪里不准确</a>
+<a class="lv3" href="#所以正确的表述应该是">所以正确的表述应该是</a>
+<a class="lv2" href="#16-收尾本章设计回顾">16. 收尾：本章设计回顾</a>
+<a class="lv3" href="#核心组件">核心组件</a>
+<a class="lv3" href="#我们解决的问题清单">我们解决的问题清单</a>
+<a class="lv3" href="#一句话总结这个系统的设计哲学">一句话总结这个系统的设计哲学</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1redis-pubsub-的即发即忘语义完全没有被说明">勘误 1：Redis Pub/Sub 的「即发即忘」语义完全没有被说明</a>
+<a class="lv3" href="#勘误-2每秒-1400-万次位置更新是概念混淆">勘误 2：「每秒 1400 万次位置更新」是概念混淆</a>
+<a class="lv3" href="#勘误-3为所有用户预分配-pubsub-频道基于对-redis-语义的误解">勘误 3：「为所有用户预分配 Pub/Sub 频道」基于对 Redis 语义的误解</a>
+<a class="lv3" href="#勘误-4把-erlang-当作-pubsub-的语义替代品不准确">勘误 4：把 Erlang 当作 Pub/Sub 的语义替代品不准确</a>
+<a class="lv3" href="#补充-1位置上报的节流策略">补充 1：位置上报的节流策略</a>
+<a class="lv3" href="#补充-2位置隐私与三角定位防护">补充 2：位置隐私与三角定位防护</a>
+<a class="lv3" href="#补充-3扇出合并推送batching">补充 3：扇出合并推送（Batching）</a>
+<a class="lv3" href="#补充-4推送-拉取兜底">补充 4：推送 + 拉取兜底</a>
+<a class="lv3" href="#补充-5距离阈值的滞回设计">补充 5：距离阈值的滞回设计</a>
+<a class="lv3" href="#补充-6redis-70-的分片-pubsub">补充 6：Redis 7.0 的分片 Pub/Sub</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

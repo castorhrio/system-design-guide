@@ -1,0 +1,3041 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>勘误与补充汇总 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../guide/">学习指南</a><a class="nav-item" href="../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../ch/01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../ch/02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../ch/03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../ch/04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../ch/05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../ch/06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../ch/07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../ch/08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../ch/09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../ch/10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../ch/11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../ch/12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../ch/13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../ch/14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../ch/15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../ch/16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../ch/17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../ch/18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../ch/19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../ch/20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../ch/21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../ch/22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../ch/23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../ch/24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../ch/25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../ch/26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../ch/27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../ch/28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="glossary.html">术语表</a><a class="nav-item active" href="errata.html">勘误与补充汇总</a><a class="nav-item" href="interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="勘误与补充汇总">勘误与补充汇总</h1>
+<blockquote>
+<p>本文件汇总了全部 28 章对原英文笔记的<strong>勘误</strong>与<strong>补充</strong>。</p>
+<p>原项目 <code>liquidslr/system-design-notes</code> 是一份很好的速查笔记，但它压缩了大量工程细节，
+也存在术语过时、技术表述不准确、数字陈旧和内容缺失的问题。
+这份汇总把这些问题集中列出，方便你对照检查自己的认知。</p>
+<p>每条格式为：<strong>问题</strong> → <strong>正确说法</strong>。完整论述请回到对应章节的「勘误与补充」小节。</p>
+<p><strong>阅读建议</strong>：先看第一节「按错误类型速查」，这里回答的是「我学的哪些东西是错的」；
+再按需查第二节的逐章明细。</p>
+</blockquote>
+<hr />
+<h2 id="第一节按错误类型速查">第一节　按错误类型速查</h2>
+<h3 id="11术语过时应停止使用">1.1　术语过时（应停止使用）</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>原用词</th>
+<th>正确用词</th>
+<th>出现章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Master-Slave</td>
+<td>Primary-Replica / Leader-Follower</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>Multi-Master Replication</td>
+<td>Multi-Leader Replication</td>
+<td>第 7 章</td>
+</tr>
+<tr>
+<td>Leaking Bucket</td>
+<td>Leaky Bucket</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>vector locks</td>
+<td>vector clocks（向量时钟）</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>用「虚拟节点」解释数据中心可靠性</td>
+<td>node failures / data center outages</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>APNS</td>
+<td>APNs（苹果官方小写 s）</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>ws://</td>
+<td>wss://（WebSocket over TLS）</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>Adobe HDS（列为常见流媒体协议）</td>
+<td>HLS / DASH（HDS 随 Flash 于 2020 年停用）</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>Master / Slave（主/奴）</td>
+<td>Primary-Replica 或 Leader-Follower</td>
+<td>第 15 章</td>
+</tr>
+<tr>
+<td><code>ACK=all</code> / <code>ACK=1</code> / <code>ACK=0</code></td>
+<td><code>acks=all</code> / <code>acks=1</code> / <code>acks=0</code>（小写、复数）</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td><code>replica.lag.max.messages</code></td>
+<td><code>replica.lag.time.max.ms</code>（2015 年即被移除）</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td>消费者偏移量存 ZooKeeper</td>
+<td>Kafka 内部主题 <code>__consumer_offsets</code>（日志压缩）</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td>ZooKeeper 是 Kafka 的必需品</td>
+<td>KRaft（Kafka 4.0 已彻底移除 ZK 依赖）</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td><code>ZREVRANGE</code> / <code>ZREVRANGEBYSCORE</code></td>
+<td><code>ZRANGE ... REV</code>（Redis 6.2 起废弃旧写法）</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td><code>TC/C</code>（Try-Confirm/Cancel）</td>
+<td><code>TCC</code>（Try-Confirm-Cancel）</td>
+<td>第 27 章</td>
+</tr>
+<tr>
+<td>POP3「取走即删除」是协议强制</td>
+<td>只是默认配置，可保留副本；真正的分界是「状态存在哪一端」</td>
+<td>第 23 章</td>
+</tr>
+<tr>
+<td>「推送通知对 Web 应用不可用」</td>
+<td>Web Push（Service Worker + Push API + VAPID）早已标准化</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>「地图瓦片基于 geohash 下发」</td>
+<td>瓦片用 Z/X/Y 三级索引（Web Mercator 平面四叉树）</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>「对象存储面向冷数据、主要用于归档备份」</td>
+<td>已是云上数据的主要载体（数据湖 / 数仓 / ML / CDN 源站）</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>「InfluxDB 与 Prometheus 是最流行的两个时序数据库」</td>
+<td>需补 VictoriaMetrics、TimescaleDB、Grafana Mimir 等</td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>「InfluxDB 行协议被 Prometheus 使用」</td>
+<td>Prometheus 用文本暴露格式 <code>metric_name{label=&quot;v&quot;} 42</code>，远程写走 protobuf</td>
+<td>第 20 章</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="12技术事实错误">1.2　技术事实错误</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>正确说法</th>
+<th>章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>消息队列「持久化组件，存在内存中」</td>
+<td>持久化到磁盘；高性能来自顺序写、页缓存、零拷贝</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>主库故障转移靠「数据恢复脚本」</td>
+<td>半同步复制 + GTID/LSN 位点切换 + Patroni/Orchestrator 自动故障转移</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>一致性哈希能解决分片倾斜与名人问题</td>
+<td>只降低节点增减时的迁移比例（约 1/N），不解决热点 key</td>
+<td>第 1、5、11 章</td>
+</tr>
+<tr>
+<td>基本一致性哈希「保证均匀分布」</td>
+<td>只保证迁移代价小；均匀分布要靠虚拟节点逼近</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>Mitigates Hotspots（缓解热点）</td>
+<td>只缓解分区倾斜，不缓解热点 key</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>CAP 是「三选二」</td>
+<td>P 是必选项，现实只有 CP / AP，CA 系统不存在</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>W = 1 就会读到旧数据</td>
+<td>W + R &gt; N 仍强一致；W=1 的真实风险是持久性</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>NTP 能解决时钟问题</td>
+<td>NTP 只能减小漂移，step 模式本身会造成回拨</td>
+<td>第 7 章</td>
+</tr>
+<tr>
+<td>布隆过滤器能「解决」哈希冲突</td>
+<td>只能做前置过滤；冲突裁决必须由数据库唯一索引承担</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>唯一性表述为「每个长 URL 映射到一个短码」</td>
+<td>真正约束是「短码 → 长 URL 一对一」（方向相反）</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>301 只是「省资源、少统计」</td>
+<td>301 无法改跳转目标、无法撤销恶意链接、点击数据严重失真</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>哈希比对检测重复内容</td>
+<td>只能查字节级精确重复；近似重复需 SimHash / MinHash</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>URL Frontier 是一个 FIFO 队列</td>
+<td>是双层队列系统：前队列按优先级、后队列按主机名</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>Crawl-delay 是 robots.txt 标准指令</td>
+<td>非官方标准，Google 不支持；应关注 429 / Retry-After</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>用单个 event ID 去重</td>
+<td>幂等键必须是 (event_id, user_id) 组合</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>「Distributed Crawling」是通知系统优化项</td>
+<td>与通知无关，系跨章节误抄，应删除</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>调用第三方成功即送达</td>
+<td>推送是 best-effort，需应用内消息箱兜底</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>「按时间倒序」是现代信息流主流做法</td>
+<td>现代主流用算法排序；时间倒序是教学简化</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>E2EE 列在「未来扩展」</td>
+<td>是架构级决策，须在架构阶段决定并设计替代方案</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>WebSocket 就能保证消息可靠</td>
+<td>通道不保证不丢、不重、不乱序</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>Presence 用全量广播可行</td>
+<td>规模下成本不可接受，需按需拉取 + 短 TTL 缓存</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>补全查询「遍历子树」与「节点缓存」并列</td>
+<td>自相矛盾；主路径是走前缀 + 直接读节点缓存的 Top-K</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>KV 存储与 Trie 是等价选项</td>
+<td>性能特征完全不同：KV 失去前缀共享且每次查询一次网络往返</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>「实时处理不现实」（补全系统）</td>
+<td>双层 Trie / Lambda 架构可做到秒到分钟级</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>每日存储 150 TB 未给前提</td>
+<td>需补「只有约 10% 的 DAU 会上传」这一前提</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>转码主要是为了省空间</td>
+<td>核心目的是构建码率阶梯以支持 ABR</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>主库故障直接「提升副本」</td>
+<td>异步复制下会永久丢写入，违反 RPO=0；须半同步复制 + GTID/LSN 位点切换 + 自动故障转移</td>
+<td>第 15 章</td>
+</tr>
+<tr>
+<td><code>latitude BETWEEN :lat - radius</code> 用「度」减「米」</td>
+<td>单位不匹配，查询覆盖整个地球；须除以 111320，经度还要乘 <code>cos(纬度)</code></td>
+<td>第 16 章</td>
+</tr>
+<tr>
+<td>GeoHash「20 km → 长度 4」</td>
+<td>长度 4 格子纬度方向仅约 19.6 km，小于半径；改用长度 3 或把邻域扩到 5×5</td>
+<td>第 16 章</td>
+</tr>
+<tr>
+<td>「GeoHash 前缀越长越近」被当作双向性质</td>
+<td>只有单向成立；「距离近 ⇒ 前缀相同」错（赤道两侧相距 22 米可能零共享前缀）</td>
+<td>第 16 章</td>
+</tr>
+<tr>
+<td>「每秒 1400 万次位置更新」</td>
+<td>那是扇出推送量（约 1333 万/秒）；位置上报量是 33.4 万/秒，两者差一个数量级</td>
+<td>第 17 章</td>
+</tr>
+<tr>
+<td>「为所有用户预分配 Pub/Sub 频道」</td>
+<td>Redis 频道隐式存在、无预分配操作；真正要缓存的是「频道 → 节点」的哈希环映射</td>
+<td>第 17 章</td>
+</tr>
+<tr>
+<td>地图瓦片「based on their geohash」</td>
+<td>瓦片用 Z/X/Y 整数三元组；geohash 用于「一组点」的邻近查询</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>Web Mercator「modified」未解释</td>
+<td>EPSG:3857 是投影坐标系、单位为「伪米」，面积尺度因子 <code>1/cos²φ</code>；算距离须在 EPSG:4326 上用 haversine</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>「地理编码数据库用 Redis 存 KV」</td>
+<td>只覆盖反向地理编码；正向（地址→坐标）需倒排索引或 Nominatim / Pelias</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>路线规划「Dijkstra 或 A* 的变体」</td>
+<td>现代做法是 Contraction Hierarchies（CH）或 CRP，加速 500~1000 倍</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>「分区 Leader 创建副本分配方案」</td>
+<td>副本分配与 Leader 选举由 <strong>Controller</strong> 负责</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td>「用 <code>acks</code> 一个参数保证持久性」</td>
+<td>持久性 = <code>acks</code> + <code>replication.factor</code> + <code>min.insync.replicas</code> 三者共同决定</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td>行协议示例 <code>CPU.load host=... 1613707265 50</code></td>
+<td>字段须写成 <code>名=值</code> 且位于时间戳之前；且 Prometheus 并不使用行协议</td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>「Pull 用 TCP、Push 用 UDP」</td>
+<td>只有 StatsD 默认 UDP；Graphite/CloudWatch/OTLP/Prometheus remote write 都跑在 TCP 上</td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>「每个指标名一个 Kafka 分区」</td>
+<td>千万级序列 = 千万级分区，不可行；应按指标名哈希分区</td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>CHECK 约束 <code>total_reserved &lt;= total_inventory</code></td>
+<td>与「允许超卖 10%」需求冲突；应为 <code>total_reserved &lt;= total_inventory * 1.1</code>，且比例应参数化</td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td>扣减库存 <code>UPDATE</code> 漏掉 <code>hotel_id</code> 过滤</td>
+<td><code>room_type_id</code> 非全局唯一，会误扣所有酒店的库存；必须补 <code>WHERE hotel_id = ?</code></td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td><code>room_type_rate</code> 表没有 <code>room_type_id</code> 列</td>
+<td>名为「房型价格」却无法表达「不同房型不同价格」；主键应为 <code>(hotel_id, room_type_id, date)</code></td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td>「<code>status</code> 代表某个房间的状态机」</td>
+<td>它是**预订（reservation）**的状态机（Pending→Paid/Canceled/Rejected、Paid→Refunded）</td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td>分片策略两条要点都写成 <code>bucket_id</code></td>
+<td>第二条应为按 <code>object_id</code> 分片（负载均匀但查询变慢），是明显笔误</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>「三副本 = 6 个 9」</td>
+<td>该算法忽略副本修复（MTTR）；纠删码的真正优势是省存储（1.5x vs 3x），不是把持久性从 6 个 9 变 11 个 9</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>「对象存储强一致」无上下文</td>
+<td>S3 自 <strong>2020-12-01</strong> 起 GET/PUT/LIST 及标签、ACL、元数据变更全部强一致，EMRFS Consistent View / S3Guard 不再需要</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>用 <code>INFO keyspace</code> 取 sorted set 成员数</td>
+<td>它只返回 key 数量；正确命令是 <code>ZCARD key</code>（O(1)）</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>「Redis Cluster 是代理，类似一致性哈希」</td>
+<td>它无代理、去中心化；用 <strong>16384 个固定哈希槽</strong> + <code>MOVED</code>/<code>ASK</code> 重定向，不是一致性哈希</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>「哈希分片下无法确定用户排名」</td>
+<td>用 <code>ZCOUNT</code> 扇出可精确求和，结果精确，代价是扇出随分片数线性增长</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>「用 <code>ZREVRANK</code> 拿名次」（与「同分名次相同」需求矛盾）</td>
+<td><code>ZRANK</code> 返回序列位置，同分按成员名字典序不同；须用 <code>1 + ZCOUNT(key, &quot;(score&quot;, &quot;+inf&quot;)</code></td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td><code>accountID.hashCode() % partitionNumber</code></td>
+<td>Java 负数取模返回负值，会下标越界；应用 <code>Math.floorMod</code>，并考虑改一致性哈希/逻辑分片</td>
+<td>第 27 章</td>
+</tr>
+<tr>
+<td>撮合伪代码 <code>min(limitIter.next.quantity, order.quantity)</code></td>
+<td>应为 <code>leavesQuantity</code>（剩余待成交量），否则部分成交时累计超卖</td>
+<td>第 28 章</td>
+</tr>
+<tr>
+<td>订单状态只有 <code>new / canceled / filled</code></td>
+<td>缺少 <code>PARTIALLY_FILLED</code>；至少需要 NEW / PARTIALLY_FILLED / FILLED / CANCELED / REJECTED</td>
+<td>第 28 章</td>
+</tr>
+<tr>
+<td>事件溯源链接 <code>../chapter28</code></td>
+<td>数字钱包是第 27 章，应为 <code>../chapter27</code>，否则自我引用</td>
+<td>第 28 章</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="13数字与数据过时">1.3　数字与数据过时</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>正确说法</th>
+<th>章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>延迟数字表标注 2020 年，实为 2010 年前后数据</td>
+<td>SSD 随机读 150 µs → 20~100 µs（NVMe）；内存与 SSD 差距从约 1500 倍缩到约 500 倍</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>text: 140 bytes</td>
+<td>推文上限 2017 年已提高到 280 字符；且字符数不等于字节数</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>只算写 QPS = 3500</td>
+<td>必须算读 QPS：约 8.7 万，读写比约 25 : 1</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>限制前缀长度到 50</td>
+<td>实际分界点在 20–30 字符，目的是给 Trie 深度设上界</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>YouTube 日观看 50 亿次（2020）</td>
+<td>Shorts 单日观看量已超 2000 亿次</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>每分钟上传 500 小时</td>
+<td>官方已改用「平均每天上传超过 2000 万个视频」</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>广告收入 151 亿美元（2019）</td>
+<td>应更新为 2024 年 361 亿美元（Alphabet 10-K）</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>「37% 移动流量来自 YouTube」</td>
+<td>未注明来源与年份，不宜作为事实引用</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>碰撞概率被隐性低估</td>
+<td>生日悖论：7 位十六进制字符约 1.6 万条即 50% 碰撞</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>单个视频上限 1 GB 被当作真实限制</td>
+<td>是简化假设；真实上限为「12 小时或 256 GB 取较小者」</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>「总存储 500 PB」无推导</td>
+<td><code>1000万 × 10GB = 100 PB</code>；须补约 2 倍版本历史 × 2.5 倍冗余；更值得记的是配额（100 PB）与真实占用（约 3.65 PB/年）差近 30 倍</td>
+<td>第 15 章</td>
+</tr>
+<tr>
+<td><code>Search QPS = 5000</code></td>
+<td>按原数字应为约 5800；还须乘 2~3 倍峰值系数 → 峰值约 1.2 万~1.7 万 QPS</td>
+<td>第 16 章</td>
+</tr>
+<tr>
+<td>「每天 2500 万次实时位置更新」</td>
+<td>与本章自身估算差约 800 倍（逐秒算差 4 个数量级）；更可能指「每天 2500 万次地图数据更新」，但口径原文未说明</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>「~70 PB」无推导口径</td>
+<td>理论瓦片总量约 5.86 万亿块、约 29,000 PB；70 PB 是去重 + 矢量瓦片 + 按需生成后的<strong>实际存储量</strong></td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>格陵兰岛看起来比非洲大</td>
+<td>格陵兰约 216.6 万 km²，非洲约 3037 万 km²（约 14 倍）；格陵兰中心纬度约 72°N，面积被放大约 10.5 倍</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>「HDDs can achieve several MB/s」</td>
+<td>现代 7200 RPM HDD 顺序读写 150~250 MB/s；随机访问才只有 100~200 IOPS</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td>降采样 10s→30s 得 <code>19, 25</code></td>
+<td>每桶正好 3 个点，正确值是 <strong>15.3 和 26.7</strong></td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>InfluxDB「8 核 32G 下 25 万次写入/秒」</td>
+<td>这是厂商基准测试的理想值，不能当生产预期；须用自己的数据压测</td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>「三副本 = 6 个 9」/ AFR 0.81%</td>
+<td>AFR 因型号年份差异很大，任何具体数字只能当量级参考</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>「5mil DAU and 25mil MAU」vs「With 50mil DAU」</td>
+<td>反推应为 <strong>500 万 DAU</strong>（500 万 ÷ 10 万秒 = 50 人/秒）</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>「peak online users = 250 users per second」</td>
+<td><code>DAU ÷ 秒数</code> 是到达率，不是同时在线；并发数 = 到达率 × 停留时长（约 <code>50 × 600 = 3 万</code>）</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>「ID 24 字符 + score 16 位 = 26 字节」</td>
+<td>Redis 分数是 8 字节双精度，且忽略内部开销（实际约 120~150 字节/成员）：2500 万约 3~3.5 GB，5 亿约 65 GB</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>「100 万 TPS」被当作常态</td>
+<td>真实大型支付系统峰值在每秒几十万笔量级；100 万 TPS 是面试刻意放大的设计目标</td>
+<td>第 27 章</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="14概念混淆">1.4　概念混淆</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>正确说法</th>
+<th>章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LRU 是「最流行」淘汰策略（暗示唯一）</td>
+<td>需了解 LFU、W-TinyLFU，按访问模式选型</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>Lua 脚本与有序集合并列为两种方案</td>
+<td>Lua 是保证原子性的手段，Sorted Set 是数据结构，二者协作</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>限流 / 节流 / 熔断 / 降级混用</td>
+<td>四个不同概念，混用是面试减分项</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>CAP 中的 C = 日常说的「数据一致」</td>
+<td>特指线性一致性（Linearizability）</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>虚拟节点只是为了让分布更均匀</td>
+<td>还能表达机器能力差异，实现异构支持</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>「Queue Selector」被用于两个不同阶段</td>
+<td>应区分队列选择器（前队列）与队列路由器（前后队列转换）</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>AppKey/AppSecret 与 APNs/FCM 鉴权混为一谈</td>
+<td>是两层鉴权：对外用 AppKey/AppSecret，对下用证书/令牌/服务账号</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>一致性哈希被描述为「均匀分发请求」</td>
+<td>用于数据分片；请求分发是负载均衡器的职责</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>E2EE 能保护一切隐私</td>
+<td>只保护内容，元数据（谁与谁、何时、多频繁）服务器仍可见</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>MP4 是一种视频编码</td>
+<td>MP4 是容器；能否播放取决于编码</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>HLS / DASH 是编码格式</td>
+<td>是打包 + 传输协议，与编码正交</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>预签名 URL 是一种加密</td>
+<td>本质是带签名和有效期的限时授权</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>「First processed version wins」</td>
+<td>「wins」误导为丢弃另一版本；正确表述是服务端保留原名、客户端版本另存为冲突副本（保留双副本），冲突判定靠版本向量而非时间戳</td>
+<td>第 15 章</td>
+</tr>
+<tr>
+<td>Redis Pub/Sub 未说明投递语义</td>
+<td>它是**至多一次（At-Most-Once）**的广播总线，不落盘、无 Ack、无重放；需要可靠投递应用 Redis Streams 或 Kafka</td>
+<td>第 17 章</td>
+</tr>
+<tr>
+<td>「Erlang 是 Redis Pub/Sub 的替代」</td>
+<td>Erlang 是实现技术栈的替代，不是消息语义的替代（同样是内存即发即忘）</td>
+<td>第 17 章</td>
+</tr>
+<tr>
+<td>Prometheus 被当作「时序数据库」</td>
+<td>它是完整的监控系统（采集+存储+查询+告警），且<strong>单节点、不支持水平扩展</strong></td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>把「允许迟到时间」称作 watermark</td>
+<td>水位线是<strong>进度信号</strong>（决定窗口何时触发）；「延长窗口多等一段」叫<strong>允许迟到时间</strong>（决定触发后还能收多久），超时数据走侧输出流</td>
+<td>第 21 章</td>
+</tr>
+<tr>
+<td>窗口类型列了 Tumbling / Hopping / Sliding / Session</td>
+<td>Hopping 与 Sliding 是同一概念的两种叫法；主流为滚动 / 滑动 / 会话（+ 全局）</td>
+<td>第 21 章</td>
+</tr>
+<tr>
+<td>把「按维度预聚合」称为 star schema</td>
+<td>星型模型是<strong>表结构建模</strong>（事实表 + 维度表）；「提前算好聚合」叫预聚合 / 数据立方体 / 物化视图，两者是配合关系</td>
+<td>第 21 章</td>
+</tr>
+<tr>
+<td>「用 Kappa 架构，因为重算走聚合服务」</td>
+<td>Kappa 的关键特征是<strong>重放可保留的日志</strong>，不是「从冷存储跑批任务」；原文方案实为混合架构</td>
+<td>第 21 章</td>
+</tr>
+<tr>
+<td>「Exactly-Once Delivery」</td>
+<td>网络层不可能实现恰好一次投递；准确表述是 Exactly-Once <strong>Processing</strong> / Effectively-Once，是检查点+事务性 Sink 的组合效果</td>
+<td>第 21 章</td>
+</tr>
+<tr>
+<td>「CHECK 约束与乐观锁非常相似」</td>
+<td>并发行为相反：乐观锁冲突时影响 0 行并重试；<code>UPDATE + CHECK</code> 靠行锁排队阻塞、不重试，更接近悲观锁</td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td>「先 SELECT 查库存再 UPDATE 扣减」</td>
+<td>这是 <strong>TOCTOU</strong> 竞态；最简解法是把检查条件写进 <code>UPDATE ... WHERE</code> 并检查 <code>affected_rows</code></td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td>「用专用 IP 永远更好」</td>
+<td>专用 IP 需发信量足够大才能积累信誉；小量发信时「冷 IP」不如信誉良好的共享 IP</td>
+<td>第 23 章</td>
+</tr>
+<tr>
+<td>「Elasticsearch 只能扩展到一定程度」</td>
+<td>生产 ES 可做到几十到上百节点、PB 级；不用它的真实理由是<strong>运维成本与资源开销</strong>，不是扩展性不够</td>
+<td>第 23 章</td>
+</tr>
+<tr>
+<td>「对象存储面向冷数据」</td>
+<td>该定位过时且与原文「95% 操作是读」矛盾；对象存储牺牲的是单次延迟而非吞吐，可支撑热数据</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>「<code>ORDER BY score DESC</code> 性能不好因为全表扫描」</td>
+<td>有 <code>score</code> 索引时 Top-K 是 O(log N + 10)；真正的瓶颈是<strong>排名查询</strong>与高频更新的索引维护</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>「恰好一次投递」在支付场景可实现</td>
+<td>两将军问题证明不可实现；工程做法是 at-least-once + 幂等 = 恰好一次<strong>效果</strong></td>
+<td>第 26 章</td>
+</tr>
+<tr>
+<td>「用 Paxos / Raft 保证副本始终同步」</td>
+<td>混淆了共识协议与异步复制延迟；消除陈旧读只有三条路：全走主库、同步/半同步复制、换共识型分布式数据库</td>
+<td>第 26 章</td>
+</tr>
+<tr>
+<td>「本地磁盘方案不 durable」</td>
+<td>它<strong>是持久的</strong>（进程崩溃不丢），缺的是<strong>冗余/可用性</strong>；持久性、可用性、可靠性是三个不同指标</td>
+<td>第 27 章</td>
+</tr>
+<tr>
+<td>TCC 是「2PC 的一个变体」</td>
+<td>TCC 第一阶段已提交本地事务、不长期持锁，属<strong>补偿型事务</strong>族（与 Saga 同族），是 2PC 的替代方案</td>
+<td>第 27 章</td>
+</tr>
+<tr>
+<td>「交易所靠 AMM 避免维护订单簿」</td>
+<td>AMM 是 DeFi 概念；传统交易所仍维护订单簿（价格发现与透明度），趋势是云基础设施 + 指定做市商计划</td>
+<td>第 28 章</td>
+</tr>
+<tr>
+<td>「现代交易所把一切跑在一台巨型服务器上」</td>
+<td>单节点单线程说的是<strong>撮合核心</strong>；网关、行情分发、报送、监控、历史查询都是分布式的</td>
+<td>第 28 章</td>
+</tr>
+<tr>
+<td>「美国市场有三级报价 L1/L2/L3」</td>
+<td>L1/L2/L3 是行业通用的行情深度分级，不是美国监管制度；属于美国监管的是 NMS / Reg NMS</td>
+<td>第 28 章</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="15原笔记内容缺失重要缺口">1.5　原笔记内容缺失（重要缺口）</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>正确说法</th>
+<th>章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>缓存读写模式（Cache-Aside / Write-Through / Write-Back）</td>
+<td>初级开发者最需掌握、面试高频</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>缓存三大故障（穿透 / 击穿 / 雪崩）</td>
+<td>混用是面试减分项</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>主从延迟导致的读一致性问题</td>
+<td>真实业务投诉率很高的 bug</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>Pull CDN vs Push CDN</td>
+<td>两类 CDN 适用场景不同</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>Session 三种存储方案的取舍</td>
+<td>只说「移到共享存储」不够</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>百万用户架构的完整收口</td>
+<td>缺少把 12 个组件拼成完整架构的收尾</td>
+<td>第 1 章</td>
+</tr>
+<tr>
+<td>从估算导出设计结论</td>
+<td>把数字翻译成决策比算数字更被看重</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>可复用的估算工作流</td>
+<td>原笔记列了场景却没给算法</td>
+<td>第 2 章</td>
+</tr>
+<tr>
+<td>功能性需求与非功能性需求的区分</td>
+<td>Step 1 的核心，决定架构成败</td>
+<td>第 3 章</td>
+</tr>
+<tr>
+<td>API 设计与数据模型</td>
+<td>高层设计必须产出的交付物</td>
+<td>第 3 章</td>
+</tr>
+<tr>
+<td>面试官沉默 / 反复追问时的应对</td>
+<td>高频场景，考协作能力</td>
+<td>第 3 章</td>
+</tr>
+<tr>
+<td>五种限流算法的横向对比与选型</td>
+<td>无法判断「何时用哪个」</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>限流规则的定义维度</td>
+<td>NAT 导致 IP 限流误杀是必须知道的坑</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>被限流后的响应设计（429 与响应头）</td>
+<td>拒绝之后要做什么完全没讲</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>fail-open 与 fail-closed</td>
+<td>分布式限流器最重要的决策</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>限流 / 节流 / 熔断 / 降级的区分</td>
+<td>混用是明显减分项</td>
+<td>第 4 章</td>
+</tr>
+<tr>
+<td>节点少时分布不均的量化</td>
+<td>是「为什么必须用虚拟节点」的依据</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>虚拟节点数量的经验值</td>
+<td>原笔记只说「越多越均匀」</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>负载均衡与数据分区是两种用法</td>
+<td>重新映射代价、副本、故障处理完全不同</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>一致性哈希的替代方案</td>
+<td>Rendezvous / Jump / Maglev 是加分项</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>一致性哈希的代价与前提</td>
+<td>只讲收益显得缺乏工程经验</td>
+<td>第 5 章</td>
+</tr>
+<tr>
+<td>PACELC 定理</td>
+<td>判断数据库真实行为的关键框架</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>R + W &gt; N 的推导与直觉</td>
+<td>理解鸽巢原理比记公式重要</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>Merkle 树的比较过程</td>
+<td>本章最值得花时间理解的数据结构</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>写入路径中的 Compaction</td>
+<td>理解 LSM 系数据库写放大的关键</td>
+<td>第 6 章</td>
+</tr>
+<tr>
+<td>时钟回拨的完整处理方案</td>
+<td>Snowflake 最致命的问题</td>
+<td>第 7 章</td>
+</tr>
+<tr>
+<td>现代替代方案（ULID、Leaf、UUID v7）</td>
+<td>今天往往比 Snowflake 更省心</td>
+<td>第 7 章</td>
+</tr>
+<tr>
+<td>ID 有序性与数据库索引性能</td>
+<td>答案是 InnoDB 聚簇索引的页分裂</td>
+<td>第 7 章</td>
+</tr>
+<tr>
+<td>机器 ID 的分配与回收</td>
+<td>分配回收本身需要协调，可能产生重复 ID</td>
+<td>第 7 章</td>
+</tr>
+<tr>
+<td>短链的安全与合规（钓鱼防护）</td>
+<td>短链是天然的开放重定向系统</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>短码可枚举问题的对策</td>
+<td>顺序 ID 可被遍历爬取</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>点击分析的异步化实现</td>
+<td>同步写会把重定向延迟从毫秒推到几十毫秒</td>
+<td>第 8 章</td>
+</tr>
+<tr>
+<td>爬虫的法律与合规边界</td>
+<td>写爬虫可能违法，对初学者极重要</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>布隆过滤器去重的误判率量化</td>
+<td>「去重要花多少内存」的关键问题</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>礼貌性与节流的工程实现</td>
+<td>从朴素延迟到自适应节流</td>
+<td>第 9 章</td>
+</tr>
+<tr>
+<td>设备令牌的完整生命周期</td>
+<td>生产环境最容易出事故的地方</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>用户通知偏好与合规</td>
+<td>GDPR / CAN-SPAM / TCPA 的强制要求</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>扇出风暴</td>
+<td>「一条公告发给一亿用户」的场景</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>推送不可靠，需消息箱兜底</td>
+<td>决定架构是否需要消息箱</td>
+<td>第 10 章</td>
+</tr>
+<tr>
+<td>大 V 问题的量化</td>
+<td>面试中非常有说服力的一组数字</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>信息流排序的架构支持</td>
+<td>算法排序会破坏可缓存性</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>分页必须用游标</td>
+<td>offset 分页会重复和漏项</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>不活跃用户优化与冷启动</td>
+<td>投入产出比最高的优化之一</td>
+<td>第 11 章</td>
+</tr>
+<tr>
+<td>消息可靠投递（ACK / 离线 / 顺序）</td>
+<td>聊天系统最难、最核心的部分</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>SSE（Server-Sent Events）</td>
+<td>单向推送的轻量方案</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>已读回执</td>
+<td>有放大效应，需水位线 + 批量 + 节流</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>大群（超过 100 人）的消息投递</td>
+<td>小群写扩散、大群读扩散</td>
+<td>第 12 章</td>
+</tr>
+<tr>
+<td>Trie 的内存优化四招</td>
+<td>「几十 GB 怎么放进内存」</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>流式实时性（双层 Trie / Lambda）</td>
+<td>热点词秒级进入补全</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>个性化与隐私</td>
+<td>私人查询不能进全局 Trie</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>过滤层与 Top-K 缓存的交互</td>
+<td>需超额取 Top-(K+F)</td>
+<td>第 13 章</td>
+</tr>
+<tr>
+<td>码率阶梯与 ABR 工作原理</td>
+<td>没有它整个转码流水线说不清理由</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>容器格式与编码格式的区别</td>
+<td>「MP4 为什么播不了」的答案</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>内容审核与版权识别的架构位置</td>
+<td>发布闸门必须在 CDN 分发之前</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>预签名 URL 的定位</td>
+<td>是「授权」而非「加密」</td>
+<td>第 14 章</td>
+</tr>
+<tr>
+<td>内容定义分块（CDC）</td>
+<td>固定分块下头部插入一字节导致 100% 重传；CDC 能把重传量压到 5% 以下</td>
+<td>第 15 章</td>
+</tr>
+<tr>
+<td><code>pending</code> 状态机与块引用计数</td>
+<td>缺状态机会让用户下载到不完整文件且不报错；缺引用计数会误删仍被引用的块</td>
+<td>第 15 章</td>
+</tr>
+<tr>
+<td>压缩必须在加密之前</td>
+<td>加密后数据几乎不可压缩，顺序搞反会让存储/带宽成本悄悄翻倍且不报错</td>
+<td>第 15 章</td>
+</tr>
+<tr>
+<td>GeoHash 边界问题的完整解法</td>
+<td>必须查相邻格子并处理反经线环绕、两极退化；本章最易被追问的点</td>
+<td>第 16 章</td>
+</tr>
+<tr>
+<td>位置数据的隐私合规与工程对策</td>
+<td>假名化 ≠ 匿名化；客户端吸附 geohash 可同时解决性能与隐私；中国 PIPL 将「行踪轨迹」列为敏感个人信息</td>
+<td>第 16 章</td>
+</tr>
+<tr>
+<td>Redis GEO 与 PostGIS 工业实现</td>
+<td>Redis GEO = ZSET + 52 位 GeoHash 整数；PostGIS 默认 GiST 索引，等价于 R 树</td>
+<td>第 16 章</td>
+</tr>
+<tr>
+<td>位置上报的节流策略</td>
+<td>「距离阈值 + 最小间隔 + 最大间隔心跳」三者组合，是初级开发者最易做错的工程细节</td>
+<td>第 17 章</td>
+</tr>
+<tr>
+<td>位置隐私与三角定位防护</td>
+<td>模糊化须在服务端、时间窗内噪声一致、按查询者加盐、历史轨迹降精度</td>
+<td>第 17 章</td>
+</tr>
+<tr>
+<td>Redis 7.0 的分片 Pub/Sub</td>
+<td><code>SSUBSCRIBE</code> / <code>SPUBLISH</code> 让消息只在持有该频道的分片内传播，大规模集群必知</td>
+<td>第 17 章</td>
+</tr>
+<tr>
+<td>路线规划算法的完整演进</td>
+<td>Dijkstra → A* → ALT → Highway Hierarchies → CH → CRP，是本章最需补充的技术内容</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>地图数据的分层存储与增量更新</td>
+<td>更新频率相差 6 个数量级的图层必须分开存；须用版本号 + 影响分析做增量更新</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>矢量瓦片 vs 栅格瓦片</td>
+<td>最大价值不是省带宽，而是<strong>数据与样式解耦</strong>（同一数据渲染多套样式）</td>
+<td>第 18 章</td>
+</tr>
+<tr>
+<td>KRaft 与 ZooKeeper 的演进</td>
+<td>Kafka 2.8 引入、3.3 生产可用、4.0 移除 ZK；还说「Kafka 用 ZK」会暴露知识陈旧</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td>分段日志、稀疏索引与零拷贝</td>
+<td>「为什么 Kafka 用磁盘还这么快」的标准答案框架</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td>再均衡的代价与协作式再均衡</td>
+<td>急切式再均衡会造成 Stop-The-World 停顿与重复消费</td>
+<td>第 19 章</td>
+</tr>
+<tr>
+<td>基数爆炸（Cardinality Explosion）</td>
+<td>标签取值相乘，加一个 <code>user_id</code> 标签就能让序列数涨百万倍、打爆内存</td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>基于 SLO 与错误预算的告警</td>
+<td>现代 SRE 对纯阈值告警的替代方案，多窗口多燃烧率设计</td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>长期存储方案</td>
+<td>Prometheus 原生不支持长期存储与水平扩展，需 Thanos / Mimir / VictoriaMetrics</td>
+<td>第 20 章</td>
+</tr>
+<tr>
+<td>时间语义的完整体系</td>
+<td>事件时间→乱序→水位线→允许迟到→侧输出流→日终对账，本章最重要的补充</td>
+<td>第 21 章</td>
+</tr>
+<tr>
+<td>业务级数据去重</td>
+<td>重复点击 = 多收广告主钱 = 商业欺诈；本章商业价值最高的部分</td>
+<td>第 21 章</td>
+</tr>
+<tr>
+<td>背压（Backpressure）</td>
+<td>流处理系统最常见的故障模式，Flink 用信用式流控、Kafka 只能靠监控 lag</td>
+<td>第 21 章</td>
+</tr>
+<tr>
+<td>Redis 分布式锁与 Redlock 争议</td>
+<td>防超卖场景不该用 Redis 锁，应用数据库事务或带 fencing token 的方案</td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td>库存预占与「15 分钟超时释放」</td>
+<td>延迟触发机制都可能失效，必须「延时队列 + 兜底扫描 + 释放幂等」</td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td>分布式事务的完整对比（TCC、本地消息表）</td>
+<td>原笔记只提 2PC 和 Saga，缺少一致性与业务侵入性的完整取舍</td>
+<td>第 22 章</td>
+</tr>
+<tr>
+<td>反垃圾邮件的完整机制</td>
+<td>分层拦截、贝叶斯过滤、发信人信誉、灰名单；设计邮件系统必须掌握</td>
+<td>第 23 章</td>
+</tr>
+<tr>
+<td>退信处理（硬退信 / 软退信）</td>
+<td><code>4xx</code> 重试、<code>5xx</code> 永久移除；不清理硬退信会直接摧毁域名信誉</td>
+<td>第 23 章</td>
+</tr>
+<tr>
+<td>邮件传输安全</td>
+<td>STARTTLS 可被降级攻击，须配 MTA-STS 与 TLS-RPT</td>
+<td>第 23 章</td>
+</tr>
+<tr>
+<td>预签名 URL（Presigned URL）</td>
+<td>原笔记最大的工程缺口；让客户端直传，避免字节流经 API 服务中转（传 10 GB 搬 20 GB）</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>分片上传的工程细节</td>
+<td>分片大小受 10000 上限约束、断点续传须依赖 <code>ListParts</code>、未完成分片必须配生命周期清理</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>ETag 的陷阱</td>
+<td>分片上传对象的 ETag 是「各分片 MD5 拼接后再取 MD5」且带 <code>-N</code> 后缀，不能用于整体校验或去重</td>
+<td>第 24 章</td>
+</tr>
+<tr>
+<td>全局聚合排名的完整算法</td>
+<td>分片后如何算全局排名是本章最难的工程问题（分数范围 / 哈希 / 精英榜三种方案）</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>防作弊的分层设计</td>
+<td>原笔记只有一句「游戏服务校验合法性」；完整防御含信任边界、签名+nonce 防重放、服务端复算、统计检测</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>持久化的真实保证与重建方式</td>
+<td>Redis 主从默认异步；建议用只追加的 <code>score_events</code> 表重建，而非解析 binlog</td>
+<td>第 25 章</td>
+</tr>
+<tr>
+<td>复式记账的完整原理与工程实现</td>
+<td>支付系统最核心机制：为什么不能只用余额字段、PSP 清算账户、SQL 校验借贷平衡</td>
+<td>第 26 章</td>
+</tr>
+<tr>
+<td>幂等键的完整设计</td>
+<td>谁生成、存什么、并发竞态、过期时间（受客户端重试窗口与 PSP 幂等窗口双重约束，取小值）</td>
+<td>第 26 章</td>
+</tr>
+<tr>
+<td>对账的差异分类与「时间差」陷阱</td>
+<td>长款/短款/金额不符/状态不符/重复；须排除结算截止时刻的在途交易，否则每晚大量噪音</td>
+<td>第 26 章</td>
+</tr>
+<tr>
+<td>TCC 的三种失败模式</td>
+<td>Confirm 失败只能重试、空回滚、悬挂——TCC 面试高频考点，原笔记只覆盖半个</td>
+<td>第 27 章</td>
+</tr>
+<tr>
+<td>余额不能为负的并发保证</td>
+<td>余额为负意味着凭空放贷；须用条件更新（<code>WHERE balance &gt;= amount</code>）+ CHECK 约束兜底</td>
+<td>第 27 章</td>
+</tr>
+<tr>
+<td>对账与审计</td>
+<td>对账是资金系统生命线，假设「系统一定会有错」；对账只能发现差异，事件溯源才能定位根因</td>
+<td>第 27 章</td>
+</tr>
+<tr>
+<td>为什么不用 Raft/Paxos 做撮合</td>
+<td>Raft 每笔提交等多数派确认（几百微秒~毫秒），受最慢节点拖累；撮合用主备+异步日志复制，Raft 只用于控制平面</td>
+<td>第 28 章</td>
+</tr>
+<tr>
+<td>订单簿的有序索引结构</td>
+<td>普通哈希表不维护顺序；价格维度须红黑树/跳表/定 tick 数组，档位内双向链表实现时间优先</td>
+<td>第 28 章</td>
+</tr>
+<tr>
+<td>行情可丢包、订单不能</td>
+<td>行情是完整状态快照流（下一帧可覆盖），订单是增量事件（丢了无法恢复）</td>
+<td>第 28 章</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="第二节逐章明细">第二节　逐章明细</h2>
+<h2 id="第-1-章从零到百万用户">第 1 章：从零到百万用户</h2>
+<h3 id="勘误">勘误</h3>
+<ol>
+<li>
+<p><strong>Master-Slave 是过时的术语</strong></p>
+<ul>
+<li>原文说法：全文使用「Master-Slave Model」「master database」「slave database」。</li>
+<li>正确说法：使用 Primary-Replica 或 Leader-Follower。MySQL 用 SOURCE/REPLICA、PostgreSQL 用 Primary/Standby、Kafka 用 Leader/Follower。这是沟通准确性问题，不是「政治正确」问题。</li>
+</ul>
+</li>
+<li>
+<p><strong>消息队列不是「存在内存中」</strong></p>
+<ul>
+<li>原文说法：消息队列是持久化组件，存在内存中。</li>
+<li>正确说法：消息队列持久化到磁盘，高性能来自顺序写、页缓存、零拷贝。面试答「如何不丢消息」的链条是：生产者 ack → Broker 持久化并多副本 → 消费者手动提交 offset。</li>
+</ul>
+</li>
+<li>
+<p><strong>主库故障转移的「数据恢复脚本」是过时做法</strong></p>
+<ul>
+<li>原文说法：选中的从库可能不是最新的，需要运行数据恢复脚本更新数据（多主和环形复制可能有帮助）。</li>
+<li>正确说法：用半同步复制保证至少一台副本已收到数据，用 GTID / LSN 做精确位点切换，用 Patroni / Orchestrator / MHA 自动故障转移。核心指标是 RPO 与 RTO。</li>
+</ul>
+</li>
+<li>
+<p><strong>一致性哈希不能解决分片倾斜和名人问题</strong></p>
+<ul>
+<li>原文说法：重新分片和名人问题可以「用一致性哈希来克服」。</li>
+<li>正确说法：一致性哈希只解决「节点增减时数据重新分布的比例」问题。倾斜要靠预先规划大量逻辑分片 + 合理分片键；热点要靠缓存、key 加盐、热点数据单独分片。</li>
+</ul>
+</li>
+<li>
+<p><strong>LRU 不是唯一值得知道的淘汰策略</strong></p>
+<ul>
+<li>原文说法：LRU 是最流行的缓存淘汰策略。</li>
+<li>正确说法：LRU 无法抵抗顺序扫描，一次全表遍历会挤出所有热点数据。应了解 LFU、W-TinyLFU（Caffeine 采用），生产选型需按访问模式决定。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充">补充</h3>
+<ol>
+<li>
+<p><strong>三种缓存读写模式</strong></p>
+<ul>
+<li>要点：原笔记完全没提 Cache-Aside / Write-Through / Write-Back，这是初级开发者最需掌握、面试最易被问的缓存知识（详见第 6 节表格）。</li>
+</ul>
+</li>
+<li>
+<p><strong>缓存三大故障（穿透 / 击穿 / 雪崩）</strong></p>
+<ul>
+<li>要点：原笔记只讲一致性与淘汰策略，未覆盖失效故障场景。三个概念必须分清，混用是面试减分项（详见第 6 节表格）。</li>
+</ul>
+</li>
+<li>
+<p><strong>主从延迟导致的读一致性问题</strong></p>
+<ul>
+<li>要点：复制带来副作用——用户写完立刻读可能读到旧数据。这是真实业务投诉率很高的一类 bug（详见第 5 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>Pull CDN vs Push CDN</strong></p>
+<ul>
+<li>要点：原笔记只讲 CDN 一般流程（本质是 Pull），未区分两种类型及适用场景（详见第 7 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>Session 三种存储方案的取舍</strong></p>
+<ul>
+<li>要点：原笔记只说「把 session 移到共享存储」，没有对比其他方案（详见第 8 节表格）。</li>
+</ul>
+</li>
+<li>
+<p><strong>百万用户架构的完整收口</strong></p>
+<ul>
+<li>要点：原笔记从 Section 12 直接跳到 Conclusion，缺少把 12 个组件拼成完整架构的收尾（详见第 13 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-2-章粗略估算">第 2 章：粗略估算</h2>
+<h3 id="勘误-1">勘误</h3>
+<ol>
+<li>
+<p><strong>延迟数字表标注为 2020 年，但数值是 2010 年前后的数据</strong></p>
+<ul>
+<li>原文说法：表格标题为 Latency (2020)，SSD 随机读 150 µs、L1 0.5 ns、L2 7 ns。</li>
+<li>正确说法：这组数字来自 Jeff Dean 2010 年前后的表格。SSD 随机读应为 20~100 µs（NVMe），主内存约 80~120 ns（二十年几乎没变），跨区域 RTT 是强依赖物理距离的区间而非固定值。</li>
+</ul>
+</li>
+<li>
+<p><strong>text: 140 bytes 是过时且单位混淆的写法</strong></p>
+<ul>
+<li>原文说法：Tweet Size Components 中列出 text: 140 bytes。</li>
+<li>正确说法：推文上限 2017 年已提高到 280 字符；且 140 是字符数不是字节数，UTF-8 下中文占 3 字节、emoji 更多。估算时统一按 1 KB/条留余量。</li>
+</ul>
+</li>
+<li>
+<p><strong>QPS 只算了写入路径，遗漏了读路径</strong></p>
+<ul>
+<li>原文说法：只计算 Tweets QPS = 3500、Peak QPS = 7000。</li>
+<li>正确说法：这两个只是写 QPS。按「1.5 亿 DAU × 每人每天刷 50 次」估算，读 QPS 约 8.7 万，读写比约 25 : 1，设计重心应在读路径。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-1">补充</h3>
+<ol>
+<li>
+<p><strong>可用性数字一节的验算结果</strong></p>
+<ul>
+<li>要点：原笔记五档停机时间全部正确，本节给出验算；真正需要补的是月度换算与「串联可用性相乘」规律。</li>
+</ul>
+</li>
+<li>
+<p><strong>幂等近似——为什么用 10^5 而不是 86400</strong></p>
+<ul>
+<li>要点：假设本身的误差远大于 86400 → 100000 带来的 13.6% 误差，所以取整是净收益（详见第 6 节技巧一）。</li>
+</ul>
+</li>
+<li>
+<p><strong>峰值系数怎么取</strong></p>
+<ul>
+<li>要点：原笔记直接写 Peak = 2 × 3500 却没解释 2 从哪来。峰值系数取值不当是估算中最易出错处（详见第 6 节技巧四表格）。</li>
+</ul>
+</li>
+<li>
+<p><strong>十进制与二进制存储单位</strong></p>
+<ul>
+<li>要点：原笔记没区分 TB（10^12）与 TiB（2^40），会导致「你算的数字」和「运维看到的数字」对不上（详见第 2 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>从估算导出设计结论</strong></p>
+<ul>
+<li>要点：原笔记止步于数字，没有把数字翻译成设计决策。这个能力比算数字更被面试看重（详见第 5 节末尾表格）。</li>
+</ul>
+</li>
+<li>
+<p><strong>可复用的估算工作流</strong></p>
+<ul>
+<li>要点：原笔记列了五个场景却没给算法。补上完整流程与缓存内存估算实例（详见第 7 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-3-章系统设计框架">第 3 章：系统设计框架</h2>
+<h3 id="勘误-2">勘误</h3>
+<ol>
+<li>
+<p><strong>时间分配的上限之和超过了它自己假设的面试时长</strong></p>
+<ul>
+<li>原文说法：标题写明 45 分钟面试，四段分别是 3–10、10–15、10–25、3–5 分钟。</li>
+<li>正确说法：上限之和是 55 分钟，超过 45 分钟。这四组是弹性区间，下限是底线、上限是封顶；45 分钟的一个可行切法是 8 / 12 / 20 / 5。</li>
+</ul>
+</li>
+<li>
+<p><strong>原笔记没有区分功能性需求和非功能性需求</strong></p>
+<ul>
+<li>原文说法：Step 1 的示例问题全部围绕功能展开。</li>
+<li>正确说法：系统设计成败往往由非功能性需求决定（延迟、一致性、可用性、读写比）。Step 1 必须同时澄清两类需求。</li>
+</ul>
+</li>
+<li>
+<p><strong>Step 2 提到 API 但没有讲 API 设计</strong></p>
+<ul>
+<li>原文说法：API 只是作为方框图列表里的一个方框出现。</li>
+<li>正确说法：API 设计是高层设计必须产出的交付物。Step 2 应明确给出 3~5 个核心接口（路径、方法、关键参数、返回），它把「需求」翻译成「契约」。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-2">补充</h3>
+<ol>
+<li>
+<p><strong>功能性需求与非功能性需求</strong></p>
+<ul>
+<li>要点：分两轮提问。非功能维度含规模、延迟、一致性、可用性、持久性、读写比、成本，并给出完整话术示例。</li>
+</ul>
+</li>
+<li>
+<p><strong>API 设计与数据模型</strong></p>
+<ul>
+<li>要点：给出 3~5 个核心接口；主动点出用游标分页而非 offset、不暴露内部 ID 含义、读写接口路径分离；数据模型只需说出实体、存储与选型理由。</li>
+</ul>
+</li>
+<li>
+<p><strong>面试官沉默或反复追问时怎么办</strong></p>
+<ul>
+<li>要点：沉默通常是压力测试，应继续讲并抛开放式问题；反复追问说明那是评分点，应深入；被否定时先问清顾虑再调整，展示协作能力。</li>
+</ul>
+</li>
+<li>
+<p><strong>不同面试形式的差异</strong></p>
+<ul>
+<li>要点：白板、共享文档、带代码的系统设计、多轮面试的时长与差异点不同，应对方式也不同；通用原则是先问清面试官希望你产出什么。</li>
+</ul>
+</li>
+<li>
+<p><strong>把四步框架用成「检查清单」</strong></p>
+<ul>
+<li>要点：把 Step 1~4 各环节列成打勾清单，避免面试中漏掉环节。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-4-章限流器">第 4 章：限流器</h2>
+<h3 id="勘误-3">勘误</h3>
+<ol>
+<li>
+<p><strong>Leaking Bucket 是错误的术语</strong></p>
+<ul>
+<li>原文说法：第二种算法标题写作 Leaking Bucket，配图名为 leaking-bucket.png。</li>
+<li>正确说法：标准英文名是 Leaky Bucket（漏桶），描述「一个会漏的桶」这个容器属性。搜索资料用 leaky bucket 才能找到正确内容。（图片文件名按规范不改，仅正文术语已更正。）</li>
+</ul>
+</li>
+<li>
+<p><strong>章节结构断层——缺少 Step 4，且 Step 2 的内容被放到了 Step 3 之后</strong></p>
+<ul>
+<li>原文说法：Step 1 → Step 2 → Step 3 之后直接跳到两个无编号小节，没有 Step 4；High-Level Architecture 被放在算法之后。</li>
+<li>正确说法：完整顺序应为 Step 1 需求 → Step 2 高层设计 → Step 3 深入设计 → Step 4 收尾。架构与存储应先于算法确定。正文保留原小节顺序但已标注实际归属并补写 Step 4。</li>
+</ul>
+</li>
+<li>
+<p><strong>分布式限流只给了结论，没有解释「为什么」</strong></p>
+<ul>
+<li>原文说法：只写挑战是竞态与同步问题，方案是「用锁、Lua 脚本或有序集合」。</li>
+<li>正确说法：原子性问题来自「读-判断-写」三步可能被并发交错；Lua 的原子性来自 Redis 单线程执行脚本。Lua 是保证原子性的手段，Sorted Set 是滑动窗口日志的数据结构，二者是协作关系而非并列方案。</li>
+</ul>
+</li>
+<li>
+<p><strong>Leaky Bucket 的缺点描述不准确</strong></p>
+<ul>
+<li>原文说法：Cons 是「突发流量可能延迟最近的请求」。</li>
+<li>正确说法：队列是有界的，排队的请求会被延迟，队列满之后的请求会被直接拒绝。准确代价是「高延迟 + 突发时丢弃」。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-3">补充</h3>
+<ol>
+<li>
+<p><strong>五种算法的横向对比表与选型决策树</strong></p>
+<ul>
+<li>要点：原笔记逐个介绍却没横向对比，读者无法判断何时用哪个。这是本章最需要补的一块（详见第 4 节末尾）。</li>
+</ul>
+</li>
+<li>
+<p><strong>限流规则的定义维度</strong></p>
+<ul>
+<li>要点：按什么维度定义限流（用户 ID / IP / 接口）；NAT 导致的 IP 限流误杀是必须知道的坑（详见第 5 节末尾表格）。</li>
+</ul>
+</li>
+<li>
+<p><strong>被限流后的响应设计（HTTP 429 与响应头）</strong></p>
+<ul>
+<li>要点：返回 429 + X-RateLimit-* + Retry-After，并说明为何告知重试时间如此重要（详见第 5 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>fail-open 与 fail-closed</strong></p>
+<ul>
+<li>要点：原笔记最大的内容缺失。只写了「高容错」需求却没说怎么做，这是分布式限流器最重要的决策，也是面试高频追问点（详见第 7 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>工业界实现清单</strong></p>
+<ul>
+<li>要点：Redis INCR + EXPIRE（含「key 永不过期」经典坑的三种正确写法）、redis-cell 与 GCRA、Nginx limit_req（nodelay 行为差异）、Envoy 两级限流与 failure_mode_deny（详见第 8 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>限流 vs 节流 vs 熔断 vs 降级</strong></p>
+<ul>
+<li>要点：原笔记没区分这四个概念，混用是面试明显减分项（详见第 1 节末尾表格）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-5-章一致性哈希">第 5 章：一致性哈希</h2>
+<h3 id="勘误-4">勘误</h3>
+<ol>
+<li>
+<p><strong>Introduction 声称一致性哈希「保证均匀分布」，与后文自相矛盾</strong></p>
+<ul>
+<li>原文说法：Introduction 写它「ensures an even distribution of data」。</li>
+<li>正确说法：一致性哈希保证的是「节点增减时迁移比例小」（约 1/N）。均匀分布不是它保证的，而是要靠虚拟节点去逼近。</li>
+</ul>
+</li>
+<li>
+<p><strong>Mitigates Hotspots 的说法会误导初学者</strong></p>
+<ul>
+<li>原文说法：Benefits 一节写它「Balances data distribution to avoid server overload」。</li>
+<li>正确说法：它缓解的是分区倾斜导致的热点，不缓解热点 key——同一个 key 永远映射到同一节点。热 key 要靠缓存、key 加盐、热点数据单独分配节点。</li>
+</ul>
+</li>
+<li>
+<p><strong>拼写与编号问题（表述层面）</strong></p>
+<ul>
+<li>原文说法：Key Concepts 编号重复（两个 1.）、虚拟节点一节把 distributed 拼成 distrubuted、serverIndex 命名与全文风格不一致。</li>
+<li>正确说法：编号应为 1→2→3，拼写应为 distributed，命名统一为 server_index。不影响技术正确性，但降低教程可信度。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-4">补充</h3>
+<ol>
+<li>
+<p><strong>节点少时的分布不均需要量化</strong></p>
+<ul>
+<li>要点：N 个随机节点时最大弧长期望约 (ln N + γ)/N，即最忙节点要扛平均值的 ln N + γ 倍（10 台 2.9 倍、100 台 5.2 倍）。这是「为什么必须用虚拟节点」的量化依据。</li>
+</ul>
+</li>
+<li>
+<p><strong>虚拟节点数量的经验值</strong></p>
+<ul>
+<li>要点：负载相对标准差 ≈ 1/√V，给出 V=64/128/256/1024 的数值，以及 Cassandra 从 256 改到 16 的原因（元数据、修复、启动开销）。</li>
+</ul>
+</li>
+<li>
+<p><strong>为什么是「顺时针」——这只是一个约定</strong></p>
+<ul>
+<li>要点：顺时针和逆时针在数学上完全等价，唯一要求是所有参与者约定一致。不要把任意约定当成算法组成部分。</li>
+</ul>
+</li>
+<li>
+<p><strong>负载均衡与数据分区是两种不同的用法</strong></p>
+<ul>
+<li>要点：两类用法在重新映射代价、是否需要副本、故障处理上完全不同；数据分区场景还必须配合副本与 Quorum（原笔记完全缺失）。</li>
+</ul>
+</li>
+<li>
+<p><strong>一致性哈希不是唯一解</strong></p>
+<ul>
+<li>要点：Rendezvous Hashing（HRW）、Jump Consistent Hash、Maglev Hashing 三个替代方案，含复杂度、内存、均匀性与适用场景对比（详见第 9 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>一致性哈希的代价与前提</strong></p>
+<ul>
+<li>要点：它只决定映射关系、不负责搬数据；有元数据一致性、vnode 运维成本、新节点冷启动等代价。只讲收益不讲代价会被认为缺乏工程经验。</li>
+</ul>
+</li>
+<li>
+<p><strong>真实系统的具体用法</strong></p>
+<ul>
+<li>要点：补充 DynamoDB、Cassandra、Discord、Akamai、Maglev 各自怎么用，以及 DynamoDB 与 Dynamo 论文需小心区分的地方（详见第 11 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-6-章键值存储">第 6 章：键值存储</h2>
+<h3 id="勘误-5">勘误</h3>
+<ol>
+<li>
+<p><strong>CAP 定理被简化成「三选二」，这个框架是错的</strong></p>
+<ul>
+<li>原文说法：开篇写「只能满足三个保证中的两个」，并把系统分为 CP、AP、CA 三类。</li>
+<li>正确说法：网络分区不是设计选项而是物理现实，P 是必选项。CAP 真正描述的是「分区发生时如何在 C 和 A 之间取舍」，现实中只存在 CP 与 AP，不存在 CA 系统。</li>
+</ul>
+</li>
+<li>
+<p><strong>CAP 中的 C 不是「所有客户端看到同样的数据」</strong></p>
+<ul>
+<li>原文说法：把 Consistency 定义为「所有客户端同时看到相同的数据」。</li>
+<li>正确说法：CAP 的 C 指线性一致性——一旦某次写入返回成功，之后任何读取都必须看到这次写入，行为等价于单机系统。</li>
+</ul>
+</li>
+<li>
+<p><strong>把「虚拟节点」和「数据中心故障」扯上了关系</strong></p>
+<ul>
+<li>原文说法：写「把副本放在不同数据中心，以在虚拟节点的情况下提高可靠性」。</li>
+<li>正确说法：应为 in case of node failures 或 data center outages。虚拟节点是一致性哈希环上的概念，与数据中心可靠性无关。</li>
+</ul>
+</li>
+<li>
+<p><strong>W = 1 不等于「可能读到旧数据」</strong></p>
+<ul>
+<li>原文说法：写「W=1、R=N 时系统为快速写入优化」，读者会顺势理解为 W=1 就会读到旧数据。</li>
+<li>正确说法：W=1、R=N 时 W+R=N+1&gt;N，依然满足强一致。W=1 需要警惕的是持久性风险。要读到旧数据必须 W+R ≤ N。</li>
+</ul>
+</li>
+<li>
+<p><strong>术语笔误 vector locks</strong></p>
+<ul>
+<li>原文说法：小标题写「Versioning and vector locks are used to solve inconsistency problems」。</li>
+<li>正确说法：应为向量时钟（Vector Clock）。vector locks 不是一个存在的数据结构。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-5">补充</h3>
+<ol>
+<li>
+<p><strong>PACELC 定理</strong></p>
+<ul>
+<li>要点：CAP 只描述分区时的取舍，PACELC 补上正常运行时的延迟与一致性权衡。是判断数据库真实行为特征的关键框架，也是面试加分点（详见第 2 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>R + W &gt; N 的推导与直觉</strong></p>
+<ul>
+<li>要点：原笔记只给结论没解释为什么。理解「读集合与写集合必然相交」的鸽巢原理推导，比记住公式重要得多（详见第 5 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>Merkle 树的比较过程</strong></p>
+<ul>
+<li>要点：原笔记列了构建四步却没讲清为什么能减少传输量。这是本章最值得花时间理解的数据结构（详见第 7.3 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>向量时钟与版本向量的区别</strong></p>
+<ul>
+<li>要点：原笔记混用两个概念。Dynamo 论文虽叫 vector clock，实质更接近版本向量（详见第 6 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>写入路径中的 Compaction（压实）</strong></p>
+<ul>
+<li>要点：原笔记讲了 commit log → memtable → SSTable，却没提 SSTable 需要后台合并。这是理解 LSM-Tree 写放大问题的关键（详见第 9 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>Sloppy Quorum 必须配合 Hinted Handoff</strong></p>
+<ul>
+<li>要点：原笔记把两者列为独立条目，没强调必须成对使用，只用前者会导致数据永久遗留在错误节点上（详见第 7.2 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-7-章唯一-id-生成器">第 7 章：唯一 ID 生成器</h2>
+<h3 id="勘误-6">勘误</h3>
+<ol>
+<li>
+<p><strong>步骤编号从 Step 2 直接跳到 Step 4，缺少 Step 3</strong></p>
+<ul>
+<li>原文说法：小节标题依次是 Step 1、Step 2、Step 4，没有 Step 3。</li>
+<li>正确说法：补上 Step 3 深挖设计细节（位分配验算、序列号溢出、时钟回拨、位段调优），原 Step 4 相应调整为收尾。这是 Alex Xu 原书四步结构的标准范式。</li>
+</ul>
+</li>
+<li>
+<p><strong>Multi-Master 是正在被淘汰的术语</strong></p>
+<ul>
+<li>原文说法：使用「Multi-Master Replication」。</li>
+<li>正确说法：使用 Multi-Leader Replication（多主复制）。Kafka、Raft 早已使用 Leader/Follower 术语；Active-Active（双活）也是现代说法。</li>
+</ul>
+</li>
+<li>
+<p><strong>NTP 被描述为解决时钟问题的方案，实际上它也可能是问题来源</strong></p>
+<ul>
+<li>原文说法：写「解决方案：使用 NTP 来减小漂移」。</li>
+<li>正确说法：NTP 只能减小漂移，不能保证时钟单调；其 step 模式本身就会造成时钟回拨。必须配合 slew 模式并在生成器内部实现回拨保护。任何依赖时钟的系统都要把「时钟可能倒退」当作基本假设。</li>
+</ul>
+</li>
+<li>
+<p><strong>Snowflake 的容量数字全部正确（诚实说明）</strong></p>
+<ul>
+<li>原文说法：给出 32 个数据中心、32 台机器、4096 个序列号，自定义纪元 1288834974657 对应 2010-11-04 01:42:54 UTC。</li>
+<li>正确说法：以上数字经逐字验算全部正确。唯一补充：41 位时间戳约 69.68 年，从 2010 年起算约在 2080 年 7 月耗尽（属内容缺失而非错误）。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-6">补充</h3>
+<ol>
+<li>
+<p><strong>时钟回拨的完整处理方案</strong></p>
+<ul>
+<li>要点：原笔记只有一句「用 NTP 减小漂移」，完全没覆盖这个最致命问题。补上等待、抛异常、借用备用位、复用时间戳四种方案及取舍（详见第 4.3 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>现代替代方案（ULID、Leaf、UidGenerator）</strong></p>
+<ul>
+<li>要点：原笔记只讲 Snowflake。对今天的项目，ULID 和 UUID v7 往往比 Snowflake 更省心（详见第 5.2 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>ID 有序性与数据库索引性能</strong></p>
+<ul>
+<li>要点：原笔记没解释为什么 ID 要按时间有序。答案是 InnoDB 聚簇索引的页分裂行为（详见第 5.3 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>UUID 的版本差异</strong></p>
+<ul>
+<li>要点：原笔记把 UUID 当整体评价，没区分 v1 / v4 / v7。UUID v7（RFC 9562）是 2024 年新标准，具有时间有序性（详见第 3.2 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>机器 ID 的分配与回收</strong></p>
+<ul>
+<li>要点：机器 ID 只有 10 位（最多 1024 台），分配和回收本身需要协调；回收太快可能产生重复 ID（详见第 5.1 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-8-章url-短链">第 8 章：URL 短链</h2>
+<h3 id="勘误-7">勘误</h3>
+<ol>
+<li>
+<p><strong>布隆过滤器不能「解决」哈希冲突</strong></p>
+<ul>
+<li>原文说法：写「用布隆过滤器解决冲突，以实现高效查找」。</li>
+<li>正确说法：布隆过滤器只有假阳性没有假阴性，且不支持删除，是内存中的概率结构。它只能做前置过滤，真正的冲突裁决必须由数据库唯一索引承担。完整链路是：布隆过滤器预检 → 唯一索引兜底 → 冲突后重试（有上限）。</li>
+</ul>
+</li>
+<li>
+<p><strong>「每个长 URL 映射到一个短码」不是唯一性的完整表述</strong></p>
+<ul>
+<li>原文说法：写「每个长 URL 必须哈希到一个哈希值」。</li>
+<li>正确说法：这句描述的是函数确定性，短链真正需要的唯一性是反方向的——短码 → 长 URL 一对一。同一长 URL 可允许多个短码，但一个短码绝不能对应两个长 URL。</li>
+</ul>
+</li>
+<li>
+<p><strong>301 重定向的代价被严重低估</strong></p>
+<ul>
+<li>原文说法：把「减少服务器压力」呈现为 301 的主要优势，只说 302 适合统计点击。</li>
+<li>正确说法：301 还导致无法修改跳转目标、无法撤销恶意链接（安全问题）、点击数据严重失真。需要统计/风控/可撤销的场景必须用 302（或 307）。商业短链服务普遍使用 302。</li>
+</ul>
+</li>
+<li>
+<p><strong>碰撞概率被隐性地低估了</strong></p>
+<ul>
+<li>原文说法：只说「取前 7 个字符会导致哈希碰撞」，没说有多频繁。</li>
+<li>正确说法：根据生日悖论，约 √M 次插入碰撞概率就超 50%。7 位十六进制字符（16^7）只需约 1.6 万条记录即过半。对每天 1 亿条的服务，碰撞是日常事件。</li>
+</ul>
+</li>
+<li>
+<p><strong>Base 62 的数值全部正确（诚实说明）</strong></p>
+<ul>
+<li>原文说法：给出「7 个字符支持约 3.5 万亿个 URL」与示例 2009215674938 → zn9edcu。</li>
+<li>正确说法：两处都正确。补充原笔记未算出的关键结论：62^6 ≈ 568 亿小于所需的 3650 亿，所以必须用 7 位；7 位短码按每天 1 亿条可撑约 96.4 年。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-7">补充</h3>
+<ol>
+<li>
+<p><strong>短链的安全与合规（钓鱼防护）</strong></p>
+<ul>
+<li>要点：短链是天然的开放重定向系统。补上目标 URL 扫描、预览页、域名信誉分级、创建侧风控、撤销能力、签名短码等方案（详见第 4.5 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>短码可枚举问题的具体对策</strong></p>
+<ul>
+<li>要点：原笔记只提一句「ID 递增可能带来安全问题」。补上 ID 随机偏移、短码加扰（可逆双射变换）、随机短码三种方案及取舍（详见第 3.4 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>点击分析的异步化实现</strong></p>
+<ul>
+<li>要点：不要同步写分析数据，应通过消息队列异步化。这也是 301/302 取舍的另一个维度（详见第 4.3 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>完整的需求量级估算</strong></p>
+<ul>
+<li>要点：补上记录数、存储量、平均/峰值 QPS 的完整计算，以及「每条记录约 1 KB」这个隐含假设的反推验证（详见第 1 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-9-章网络爬虫">第 9 章：网络爬虫</h2>
+<h3 id="勘误-8">勘误</h3>
+<ol>
+<li>
+<p><strong>URL Frontier 不是「一个 FIFO 队列」</strong></p>
+<ul>
+<li>原文说法：组件列表写「URL 前沿存放待下载的 URL，实现为一个 FIFO 队列」。</li>
+<li>正确说法：它是多层队列系统，至少包含前队列（按优先级）与后队列（按主机名）。「FIFO 队列」只是对外的抽象接口。应把它理解成一个调度器，而非一个队列。</li>
+</ul>
+</li>
+<li>
+<p><strong>「Queue Selector」一词被用于两个不同阶段，造成混淆</strong></p>
+<ul>
+<li>原文说法：礼貌性一节和优先级一节都把该组件叫「Queue selector」。</li>
+<li>正确说法：应区分队列选择器（在前队列阶段带偏置随机挑选）与队列路由器（在前队列到后队列转换阶段查映射表）；「工作线程绑定后队列」是设计结果，不是选择动作。</li>
+</ul>
+</li>
+<li>
+<p><strong>「哈希比对检测重复内容」只覆盖了精确重复</strong></p>
+<ul>
+<li>原文说法：写「内容查重：通过比较两个网页的哈希值来检测重复内容」。</li>
+<li>正确说法：哈希比对只能检测字节级完全一致的重复，而互联网上绝大多数是近似重复。需引入 SimHash（Google 采用）或 MinHash + Shingling。URL 规范化是更前置、更廉价的手段。</li>
+</ul>
+</li>
+<li>
+<p><strong>Crawl-delay 被当作标准指令</strong></p>
+<ul>
+<li>原文说法：只提「遵守 robots.txt 规则」与「加一个延迟」，没说明 Crawl-delay 的实际地位。</li>
+<li>正确说法：Crawl-delay 不是 robots.txt 官方标准指令，Google 不支持。即使没写也必须自行控制速率；更权威的信号是 429 与 Retry-After。robots.txt 已于 2022 年标准化为 RFC 9309。</li>
+</ul>
+</li>
+<li>
+<p><strong>爬虫的数值验算（诚实说明）</strong></p>
+<ul>
+<li>原文说法：给出「每月 10 亿页面 → 400 页/秒、峰值 800 QPS」与「存储 5 年约需 30 PB」。</li>
+<li>正确说法：400 页/秒与峰值 800 均正确；30 PB 反推为 500 KB/页，偏保守但量级合理。原笔记没展示推导过程，建议读者自己反推隐含假设。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-8">补充</h3>
+<ol>
+<li>
+<p><strong>爬虫的法律与合规边界</strong></p>
+<ul>
+<li>要点：原笔记完全没涉及，但写爬虫可能违法。含 robots.txt 的法律地位、CFAA 与 hiQ 案、GDPR / PIPL、不正当竞争判例、著作权，以及给初级开发者的合规清单。</li>
+</ul>
+</li>
+<li>
+<p><strong>布隆过滤器去重的误判率公式与参数选择</strong></p>
+<ul>
+<li>要点：量化「去重要花多少内存」。给出误判率公式、最优 k、每元素所需位数速查表，以及 10 亿条只需约 1.2 GB 的具体估算。</li>
+</ul>
+</li>
+<li>
+<p><strong>礼貌性与节流的工程实现</strong></p>
+<ul>
+<li>要点：从朴素延迟升级为三层节流（全局、单主机、自适应），含单调时钟、自适应节流、必须遵守的信号。</li>
+</ul>
+</li>
+<li>
+<p><strong>布隆过滤器在爬虫去重中的量化分析</strong></p>
+<ul>
+<li>要点：URL 已见与内容已见两个巨大集合；普通哈希表需 6 TB 内存不现实；含三个关键特性（无假阴性、有假阳性、不支持删除）及 Cuckoo Filter 替代。</li>
+</ul>
+</li>
+<li>
+<p><strong>礼貌性与节流的工程实现（详细）</strong></p>
+<ul>
+<li>要点：单主机节流实现、自适应节流（借鉴 TCP 拥塞控制）、robots.txt 缓存、并发连接限制、标识自己、提供退出机制。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-10-章通知系统">第 10 章：通知系统</h2>
+<h3 id="勘误-9">勘误</h3>
+<ol>
+<li>
+<p><strong>只用一个 event ID 去重会导致大面积漏发</strong></p>
+<ul>
+<li>原文说法：写「收到事件时检查 event ID，见过就丢弃，否则发送」。</li>
+<li>正确说法：一个事件通常扇出给多个用户，用全局 event_id 会让第一个用户之后的全部被误判为重复。去重键必须是 (event_id, user_id) 组合，用 Redis SET key value NX EX ttl 保证原子性。</li>
+</ul>
+</li>
+<li>
+<p><strong>Key Optimizations 里的「Distributed Crawling」与通知系统无关</strong></p>
+<ul>
+<li>原文说法：第 4 条写「Distributed Crawling：按地理优化消息投递」。</li>
+<li>正确说法：通知系统里没有爬虫，这是从其他章节误抄的，应删除。若想说地理就近投递，正确表述是把发送 worker 部署在离第三方接入点较近的区域，属部署拓扑优化。</li>
+</ul>
+</li>
+<li>
+<p><strong>AppKey / AppSecret 不是对接 APNs / FCM 的鉴权方式</strong></p>
+<ul>
+<li>原文说法：写「用 AppKey 和 AppSecret 来鉴权并保护推送 API」。</li>
+<li>正确说法：这是两个不同层次的鉴权。AppKey/AppSecret 是你自己服务对外 API 的鉴权；对接 APNs/FCM 需要 APNs 证书或 .p8 令牌、FCM 的 OAuth2 服务账号。两层都要配置。</li>
+</ul>
+</li>
+<li>
+<p><strong>APNs 的正确缩写，以及「推送保证送达」的错误预期</strong></p>
+<ul>
+<li>原文说法：写作 APNS，整体设计默认「调用第三方成功即送达」。</li>
+<li>正确说法：苹果官方缩写是 APNs（小写 s）；推送是 best-effort，不保证送达。要求「用户一定能看到」时，必须做推送 + 应用内消息箱双保险。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-9">补充</h3>
+<ol>
+<li>
+<p><strong>设备令牌（device token）的完整生命周期</strong></p>
+<ul>
+<li>要点：原笔记只讲「收集 device token」。补上获取、刷新、失效、清理、多账号多设备边界；最常见的线上 bug 是客户端只在首次安装上报 token。</li>
+</ul>
+</li>
+<li>
+<p><strong>用户通知偏好与合规</strong></p>
+<ul>
+<li>要点：偏好要按「渠道 × 类别」建模，在 worker 发送前检查；GDPR / CAN-SPAM / TCPA 对营销通知有强制同意与退订要求，最终要落成数据库字段与检查点（详见第 5 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>扇出风暴（Fan-out Storm）</strong></p>
+<ul>
+<li>要点：原笔记没覆盖「一条公告发给一亿用户」。核心是分批、限速、优先级队列物理隔离、用户级限流、按本地时间发送（详见第 6 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>推送不可靠，需要「应用内消息箱」兜底</strong></p>
+<ul>
+<li>要点：任何「用户必须看到」的消息都不能只依赖推送，必须有服务端消息箱，用户打开 App 时同步拉取（详见第 1 节和第 4 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-11-章新闻信息流">第 11 章：新闻信息流</h2>
+<h3 id="勘误-10">勘误</h3>
+<ol>
+<li>
+<p><strong>「按时间倒序」不是现代信息流的主流做法</strong></p>
+<ul>
+<li>原文说法：写「信息流按时间倒序排列，以求简单」。</li>
+<li>正确说法：作为教学简化没问题，但现代主流信息流几乎全部采用算法排序。算法排序需新增候选生成、特征存储、在线模型服务、策略过滤四个环节，并显著降低缓存命中率。</li>
+</ul>
+</li>
+<li>
+<p><strong>一致性哈希的定位被写偏了</strong></p>
+<ul>
+<li>原文说法：写「一致性哈希：把请求均匀分发到服务器」。</li>
+<li>正确说法：一致性哈希解决的是数据分片问题（key 放哪个节点），请求分发是负载均衡器的职责。两者是不同层次的机制。它也不解决热点问题。</li>
+</ul>
+</li>
+<li>
+<p><strong>推 / 拉模式的对比过于简略，且缺少关键结论</strong></p>
+<ul>
+<li>原文说法：只列出推与拉的 pros/cons，一句「Hybrid Approach」带过。</li>
+<li>正确说法：没有给出系统对比维度，也没解释为什么混合方案能成立（依赖粉丝数的幂律分布）。大 V 极少，所以「给大 V 走拉模式」的读取成本是 O(几十)。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-10">补充</h3>
+<ol>
+<li>
+<p><strong>大 V 问题的量化</strong></p>
+<ul>
+<li>要点：1000 万粉丝 × 一条动态 = 1000 万次缓存写入 ≈ 80 MB，单台 Redis 串行处理约 200 秒；改拉模式后写入降到 1 次，读取侧增加约 116 QPS（可缓存）。面试中很有说服力（详见第 5 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>信息流排序的架构支持</strong></p>
+<ul>
+<li>要点：算法排序需要两阶段架构（候选生成 → 精排），依赖特征存储与在线模型服务；它会破坏信息流的可缓存性，这是最容易被忽略的代价（详见第 7 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>分页必须用游标，不能用 offset</strong></p>
+<ul>
+<li>要点：信息流持续变化，offset 分页会导致重复和漏项。正确做法是基于游标（cursor）分页，用上一页最后一条的 ID/时间戳锚定（详见第 2.2 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>不活跃用户优化与冷启动</strong></p>
+<ul>
+<li>要点：不活跃用户不推送是投入产出比最高的优化之一，在日活远小于月活的平台能直接砍掉大部分扇出量（详见第 4.4 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-12-章聊天系统">第 12 章：聊天系统</h2>
+<h3 id="勘误-11">勘误</h3>
+<ol>
+<li>
+<p><strong>把 E2EE 列在「未来扩展」里严重低估了它的影响</strong></p>
+<ul>
+<li>原文说法：Future Extensions 第 2 条写「端到端加密：确保消息隐私」。</li>
+<li>正确说法：E2EE 是架构级决策。一旦启用，服务端无法做全文搜索、内容审核、媒体转码，多设备同步与备份也会复杂。必须在架构阶段决定并同步设计替代方案。（注：Telegram 默认聊天并非端到端加密。）</li>
+</ul>
+</li>
+<li>
+<p><strong>原笔记没有覆盖「消息可靠投递」，而这才是聊天系统的核心</strong></p>
+<ul>
+<li>原文说法：全文只提消息 ID、KV 存储、cur_max_message_id 同步与「重试机制」。</li>
+<li>正确说法：没讲 ACK 机制、离线消息存储、消息顺序保证。核心是：发送方用 client_msg_id 做幂等键 + 服务器 ACK；接收方 ACK + 超时重推；离线消息存用户维度离线箱；顺序靠服务器分配的会话内 seq 保证。</li>
+</ul>
+</li>
+<li>
+<p><strong>Presence 的扇出模型被低估了规模</strong></p>
+<ul>
+<li>原文说法：写「Presence 更新通过发布-订阅模型推给好友，每个好友对维护一个频道」，并承认对小型用户群有效。</li>
+<li>正确说法：没量化大规模下有多糟，也没给解法。按 5000 万用户 × 150 好友，会产生 75 亿个好友对频道和每秒约 87 万条广播，只为显示一个绿点。真实系统用按需拉取 + 短 TTL 缓存 + 只推给正在看的人 + 防抖节流。</li>
+</ul>
+</li>
+<li>
+<p><strong>WebSocket 应该用 wss:// 而不是 ws://</strong></p>
+<ul>
+<li>原文说法：写「使用 WebSockets（ws）协议收发消息」。</li>
+<li>正确说法：ws:// 是明文的，生产环境必须使用 wss://（WebSocket over TLS），等价于 HTTP 的 HTTPS。原笔记应只是泛指协议，但字面会误导初学者。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-11">补充</h3>
+<ol>
+<li>
+<p><strong>SSE（Server-Sent Events）</strong></p>
+<ul>
+<li>要点：原笔记漏掉了 SSE。它是服务器单向推送的轻量方案，跑在普通 HTTP 上、浏览器自动重连、穿透防火墙强；适合通知、行情、大模型流式输出，不适合客户端高频发送的聊天（详见第 2.4 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>WebSocket 与「无状态原则」的关系</strong></p>
+<ul>
+<li>要点：原笔记没解释为什么聊天服务器必须有状态。WebSocket 连接本身就是状态；有状态不等于放弃扩展性——要让状态最小化，用服务发现或 Pub/Sub 外部化，并支持优雅下线与抖动退避重连（详见第 3 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>已读回执</strong></p>
+<ul>
+<li>要点：原笔记完全没提。已读回执有放大效应（100 人群一条消息可能产生 99 条回执），必须用水位线 + 批量 + 节流；并要遵守对等原则（详见第 9 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>大群（超过 100 人）的消息投递</strong></p>
+<ul>
+<li>要点：原笔记把群上限设为 100 人避开了大群问题。真实频道成员可达几十万，小群用写扩散、大群改用读扩散（按 last_read_seq 水位线拉取）（详见第 6.2 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>ZooKeeper 的现代替代方案</strong></p>
+<ul>
+<li>要点：ZooKeeper 更擅长分布式协调，做纯服务发现偏重；现代更常用 etcd / Consul / Nacos 或 Kubernetes 原生服务发现（详见第 5 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-13-章搜索自动补全">第 13 章：搜索自动补全</h2>
+<h3 id="勘误-12">勘误</h3>
+<ol>
+<li>
+<p><strong>查询流程自相矛盾（遍历子树 vs 不遍历）</strong></p>
+<ul>
+<li>原文说法：Query Processing Flow 写「遍历子树收集有效建议」，Optimizations 又写「在每个节点缓存 top-k 以避免重复遍历」。</li>
+<li>正确说法：两处互相矛盾。主路径是「走前缀 → 直接读节点缓存的 Top-K」（O(前缀长度 + K)）；遍历子树只作为兜底。</li>
+</ul>
+</li>
+<li>
+<p><strong>「实时处理不现实」是过时的表述</strong></p>
+<ul>
+<li>原文说法：写「实时处理对大数据集不现实」，Trie 更新「很少实时，每周更新替换旧数据」。</li>
+<li>正确说法：「实时全量重建 Trie」确实不现实，但「实时更新建议」完全可行。用基础层 + 热点层的双层结构（Lambda 架构），热点词可在秒到分钟级进入补全。</li>
+</ul>
+</li>
+<li>
+<p><strong>「限制前缀长度到 50」的数字和理由都不严谨</strong></p>
+<ul>
+<li>原文说法：写「把前缀长度限制到 50，因为用户很少输入长查询」。</li>
+<li>正确说法：50 很随意，真实分界点在 20–30 字符。真正原因是超过一定长度后建议基本收敛，且限制深度能给 Trie 大小设上界、控制内存。</li>
+</ul>
+</li>
+<li>
+<p><strong>KV 存储方案被当成了等价选项，其实代价很大</strong></p>
+<ul>
+<li>原文说法：把 KV 存储和 Trie 并列成两种存储选项。</li>
+<li>正确说法：KV 方案会失去前缀共享（t、tr、tre 是三个独立 key），且每次查询是一次网络往返。KV 适合查询量不大、想快速上线的场景；自建 Trie + mmap 适合查询量极大、对延迟和成本敏感的场景。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-12">补充</h3>
+<ol>
+<li>
+<p><strong>节点缓存 Top-K 的细节与内存代价</strong></p>
+<ul>
+<li>要点：把「遍历子树 + 排序」降为「走前缀 + 读 K 条」；代价是内存（约 1 亿节点 × 5 × 4 字节 ≈ 2 GB）；浅层热节点必须缓存，深层冷节点选择性缓存（详见第 3.2 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>Trie 的内存优化四招</strong></p>
+<ul>
+<li>要点：双数组 Trie、前缀压缩（Radix Tree，节点数减少 50%–90%）、序列化 + mmap（无指针扁平文件，进程间共享、按需加载、零 GC）、KV 存储方案（详见第 5 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>流式实时性（双层 Trie / Lambda 架构）</strong></p>
+<ul>
+<li>要点：基础层天级批量重建保证全和准，热点层秒/分钟级流式更新保证快，查询时合并；用 Count-Min Sketch 省内存，时间衰减自动过期，写入幂等（详见第 8 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>个性化与隐私</strong></p>
+<ul>
+<li>要点：个性化分全局/群体/个人三层；个人层绝不能写进全局 Trie；共享设备、敏感查询、名誉侵权、搜索投毒都是真实风险（详见第 9 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>过滤层与 Top-K 缓存的交互（超额取）</strong></p>
+<ul>
+<li>要点：若节点缓存 Top-5 中 2 条被黑名单过滤，用户只看到 3 条。解法是节点缓存 Top-(K+F)，过滤后返回前 K 条，F 按历史过滤率动态调整（详见第 3.3 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>QPS 48,000 的推导</strong></p>
+<ul>
+<li>要点：1000 万 DAU × 10 次搜索 × 20 次按键 = 20 亿请求/天 → 平均 23,148 QPS → 峰值（2 倍）≈ 46,296 ≈ 48,000。峰值倍数只有 2 倍，因为搜索行为分散在全天（详见第 1 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-14-章youtube">第 14 章：YouTube</h2>
+<h3 id="勘误-13">勘误</h3>
+<ol>
+<li>
+<p><strong>「每日存储 150 TB」缺少关键前提，按字面算会差 10 倍</strong></p>
+<ul>
+<li>原文说法：假设中列出 DAU 500 万、平均视频 300 MB、每日存储 150 TB。</li>
+<li>正确说法：500 万 × 300 MB = 1500 TB，与 150 TB 相差 10 倍。正确前提是只有约 10% 的 DAU 会上传视频：500 万 × 10% × 300 MB = 150 TB。</li>
+</ul>
+</li>
+<li>
+<p><strong>Adobe HDS 已被淘汰，不应列为「常见流媒体协议」</strong></p>
+<ul>
+<li>原文说法：写「常见的流媒体协议有 MPEG-DASH、Apple HLS、Adobe HDS」。</li>
+<li>正确说法：HDS 依赖 Flash，Flash 已于 2020 年 12 月全面停止支持。当前主流是 HLS 和 DASH，另有 LL-HLS / LL-DASH。现代流媒体完全建立在普通 HTTP 之上。</li>
+</ul>
+</li>
+<li>
+<p><strong>Key Statistics 数据停留在 2020 年，多个数字已被官方口径取代</strong></p>
+<ul>
+<li>原文说法：月活 20 亿、每日观看 50 亿次、每分钟上传 500 小时、37% 移动流量来自 YouTube、2019 年广告收入 151 亿美元。</li>
+<li>正确说法：Shorts 单日观看量已超 2000 亿次；官方改用「平均每天上传超过 2000 万个视频」；广告收入应更新为 2024 年 361 亿美元；37% 一说无来源年份，不宜引用。引用统计数据必须同时给出年份和来源。</li>
+</ul>
+</li>
+<li>
+<p><strong>转码的「三个重要性」中，真正关键的那一条被写成了次要项</strong></p>
+<ul>
+<li>原文说法：转码的重要性为①减少存储空间、②保证跨设备兼容、③适配网络状况。</li>
+<li>正确说法：①和②是「做一次就结束」的静态问题，③要求同时维护多个清晰度并支持动态切换，才是复杂度和成本的主要来源。转码的核心目的是构建码率阶梯以支持 ABR。</li>
+</ul>
+</li>
+<li>
+<p><strong>单个视频上限 1 GB 是简化假设，与真实平台差距很大</strong></p>
+<ul>
+<li>原文说法：假设中列出「每个视频上限 1 GB」。</li>
+<li>正确说法：这是原书为简化估算设定的假设。真实 YouTube 上限是「12 小时或 256 GB，取较小者」。写估算时要明确标注「这是我们设定的假设」，而不是「这是 YouTube 的限制」。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-13">补充</h3>
+<ol>
+<li>
+<p><strong>容器格式与编码格式的区别</strong></p>
+<ul>
+<li>要点：原笔记只有两行定义。能不能播取决于编码，不取决于容器——「MP4 视频为什么播不了」的答案就在这里（详见第 6 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>四种编码格式的技术与商业取舍</strong></p>
+<ul>
+<li>要点：原笔记只举 H.264 与 VP9。重点是 H.265 的多专利池困境与 AV1 的免专利费路线（详见第 6 节四国杀表格）。</li>
+</ul>
+</li>
+<li>
+<p><strong>码率阶梯与 ABR 工作原理</strong></p>
+<ul>
+<li>要点：原笔记说「转码是为了适配网络状况」却没解释怎么适配。没有码率阶梯和 ABR，整个转码流水线的存在理由就说不清（详见第 7 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>HLS 与 DASH 的区别、选型与 CMAF</strong></p>
+<ul>
+<li>要点：两者都基于 HTTP 分片，差别在生态；CMAF 让同一套分片同时服务两者，能把存储和回源成本减半（详见第 8 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>分片粒度与 CDN 预热的成本</strong></p>
+<ul>
+<li>要点：原笔记完全没涉及。这是视频系统成本结构里最容易被忽视的一块（详见第 8 节末）。</li>
+</ul>
+</li>
+<li>
+<p><strong>内容审核与版权识别的架构位置</strong></p>
+<ul>
+<li>要点：对任何真实运营的平台不是可选项。审核任务挂在转码 DAG 上并行执行，发布闸门必须位于 CDN 分发之前（详见第 12 节）。</li>
+</ul>
+</li>
+<li>
+<p><strong>预签名 URL 的定位是「授权」而非「加密」</strong></p>
+<ul>
+<li>要点：原笔记把它放在 Safety Optimizations 下，容易让人以为是加密手段。它的本质是限时通行证，安全边界在于有效期要短（详见第 10 节）。</li>
+</ul>
+</li>
+</ol>
+<h2 id="第-15-章google-drive-设计">第 15 章：Google Drive 设计</h2>
+<h3 id="勘误-14">勘误</h3>
+<ol>
+<li>
+<p><strong>「500 PB 总存储」没有推导，按字面算不出来</strong></p>
+<ul>
+<li>原文说法：10M DAU × 10 GB 免费空间 = 500 PB。</li>
+<li>正确说法：<code>1000 万 × 10 GB = 100 PB</code>，只有五分之一。要得到 500 PB 需补齐约 2 倍版本历史 × 2.5 倍冗余。更值得记的是用户配额（100 PB）与真实占用（约 3.65 PB/年）差近 30 倍——云盘商业模型建立在<strong>配额超卖</strong>之上。</li>
+</ul>
+</li>
+<li>
+<p><strong>「First processed version wins」用词有严重误导性</strong></p>
+<ul>
+<li>原文说法：冲突时「先被处理的版本胜出」，同时又说冲突版本单独保存。</li>
+<li>正确说法：应表述为「服务端版本保留原文件名，客户端版本另存为带冲突标记的新文件」（保留双副本）。判定冲突靠<strong>因果关系</strong>而非时间戳，须用<strong>版本向量</strong>；LWW 会静默丢数据，只适用于在线状态这类可丢数据。</li>
+</ul>
+</li>
+<li>
+<p><strong>「Master-Slave」是过时的术语</strong></p>
+<ul>
+<li>原文说法：<code>Promote a slave node to master</code>。</li>
+<li>正确说法：改用 <strong>Primary-Replica</strong> 或 <strong>Leader-Follower</strong>（MySQL <code>SOURCE/REPLICA</code>、PostgreSQL <code>Primary/Standby</code>、Kafka <code>Leader/Follower</code>）。</li>
+</ul>
+</li>
+<li>
+<p><strong>主库故障「提升副本」与本系统核心约束冲突</strong></p>
+<ul>
+<li>原文说法：Metadata DB 故障时提升 slave 为 master 并重定向流量。</li>
+<li>正确说法：异步复制下被提升的副本可能落后，未复制的写入永久丢失，违反「数据丢失不可接受」。须用<strong>半同步复制 + GTID/LSN 位点切换 + 自动故障转移</strong>（Orchestrator / Vitess / Patroni），并接受写延迟——这是 RPO=0 的必然代价。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-14">补充</h3>
+<ol>
+<li><strong>块级同步与内容定义分块（CDC）</strong>：原笔记只有一句「只传变化的块」。固定 4 MB 分块下，文件开头插入一字节会导致 100% 重传；CDC 能把重传量压到 5% 以下。</li>
+<li><strong>rsync 滚动校验和算法</strong>：核心是弱校验和的<strong>增量可更新性</strong>，把滑动窗口代价从 O(w) 降到 O(1)。</li>
+<li><strong>通知服务的四种机制与容量估算</strong>：没有一种机制覆盖所有场景（WebSocket / SSE / 长轮询 / 移动推送混合）；通知只能作<strong>提示</strong>，绝不能承载数据（不可靠 vs 拉取幂等）。</li>
+<li><strong>存储成本优化的三个隐藏矛盾</strong>：去重 / 加密 / 隐私三者只能取其二；冷存储取回有分钟到小时延迟；纠删码比三副本省一半以上但恢复更慢。</li>
+<li><strong>命名空间模型无法支撑「分享」</strong>：「路径唯一标识」打破了「一个文件只属于一个用户」的假设；真实云盘转向**「文件 ID + 父子引用」的图模型**。</li>
+<li><strong><code>pending</code> 状态机与块引用计数</strong>：缺状态机会让用户下载到不完整文件且不报错；缺引用计数会误删仍被引用的块——自研云盘最常见的数据丢失事故来源。</li>
+<li><strong>压缩必须在加密之前</strong>：加密后数据几乎不可压缩，顺序搞反会让存储与带宽成本悄悄翻倍且不报错。</li>
+</ol>
+<hr />
+<h2 id="第-16-章proximity-service附近服务">第 16 章：Proximity Service（附近服务）</h2>
+<h3 id="勘误-15">勘误</h3>
+<ol>
+<li>
+<p><strong>二维范围查询的 SQL 单位错误——用「度」减「米」</strong></p>
+<ul>
+<li>原文说法：<code>WHERE latitude BETWEEN :lat - radius AND :lat + radius</code>。</li>
+<li>正确说法：<code>radius</code> 单位是米、经纬度是度，<code>:lat - radius</code> 会覆盖整个地球。须除以 <code>111320</code>，<strong>经度还要乘 <code>cos(纬度)</code></strong>（北纬 60° 处漏掉会少一半结果）。另注意<strong>包围盒 ≠ 圆</strong>，须用 Haversine 做第二阶段精筛。</li>
+</ul>
+</li>
+<li>
+<p><strong>搜索 QPS 的算术有偏差</strong></p>
+<ul>
+<li>原文说法：<code>(100M × 5) / 86,400 ≈ 5,000 QPS</code>。</li>
+<li>正确说法：<code>5 亿 / 86,400 ≈ 5,787</code>，约 <strong>5,800 QPS</strong>；更重要的是必须再乘 2~3 倍峰值系数 → 峰值约 <strong>1.2 万~1.7 万 QPS</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>GeoHash 半径映射表中「20 km → 长度 4」是边界情况</strong></p>
+<ul>
+<li>原文说法：参考表给出 <code>20 km → geohash length = 4</code>。</li>
+<li>正确说法：长度 4 格子纬度方向仅约 19.6 km，小于搜索半径。应改用长度 3，或保持长度 4 但把邻域从 3×3 扩到 <strong>5×5</strong>（实践中更合理）。表中前四项均正确。</li>
+</ul>
+</li>
+<li>
+<p><strong>「GeoHash 保证共享前缀越长越近」需补上逆命题不成立</strong></p>
+<ul>
+<li>原文说法：前缀越长越近。</li>
+<li>正确说法：应明确为<strong>单向保证</strong>——「前缀相同 ⇒ 位置相近」成立，「位置相近 ⇒ 前缀相同」不成立。反例：相邻格子只共享 5 个字符；赤道两侧相距约 22 米的点可能零共享前缀。必须查询相邻 8 个格子。</li>
+</ul>
+</li>
+<li>
+<p><strong>Quadtree 小节内容准确，无技术错误</strong></p>
+<ul>
+<li>核查结果：逐条验算通过（约 267 万节点、GB 级内存、O(n log n) 构建、三条运维注意事项均成立）。补充：四叉树核心优势是<strong>自适应密度</strong>，核心劣势是<strong>写代价高</strong>，最适合每天批量更新的场景——恰好匹配本章需求。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-15">补充</h3>
+<ol>
+<li><strong>GeoHash 精度的完整验算表</strong>：6 位 geohash ≈ 1.22 km × 0.61 km（赤道）；经度宽度随纬度收缩；12 个层级从 5000 km 细分到 3.7 cm。</li>
+<li><strong>GeoHash 的边界问题及解决方案</strong>：原笔记只说「需搜索相邻格子」，没说清严重程度与完整解法——本章最易被追问的点。</li>
+<li><strong>Redis GEO 与 PostGIS 的工业实现</strong>：Redis GEO 底层是 ZSET（score 为 52 位 GeoHash 整数）；PostGIS 默认 GiST 索引，行为等价于 R 树。</li>
+<li><strong>Uber H3 与「六边形网格」的价值</strong>：正方形网格的角邻居距离 1.41 格会造成方向偏差；六边形 6 个邻居等距，更适合逐环扩展。</li>
+<li><strong>位置数据的隐私合规与工程对策</strong>：假名化 ≠ 匿名化；客户端把坐标吸附到 geohash 格子中心可同时解决性能与隐私；中国 PIPL 将「行踪轨迹」列为敏感个人信息，需<strong>单独同意</strong>。</li>
+<li><strong>最终检索流程缺少「精筛」和「限制条数」</strong>：须过滤包围盒四角误报并限制返回条数（市中心 500 米内可能有几千家餐厅）。</li>
+<li><strong>缓存键用 geohash 的深层原因</strong>：本质是<strong>量化（Quantization）</strong>——把连续值离散化，让缓存键稳定、从而能命中。</li>
+</ol>
+<hr />
+<h2 id="第-17-章nearby-friends附近的朋友">第 17 章：Nearby Friends（附近的朋友）</h2>
+<h3 id="勘误-16">勘误</h3>
+<ol>
+<li>
+<p><strong>Redis Pub/Sub 的「即发即忘」语义完全没有被说明</strong></p>
+<ul>
+<li>原文说法：把 Pub/Sub 描述为「轻量级消息总线」。</li>
+<li>正确说法：它是<strong>至多一次（At-Most-Once）<strong>投递——不落盘、无确认、无重放、无消费者组，订阅者不在线消息就永久丢失。它是</strong>广播总线</strong>而非消息队列；本场景因允许偶尔丢点而适用，但正确性依赖 Redis 位置缓存兜底。</li>
+</ul>
+</li>
+<li>
+<p><strong>「每秒 1400 万次位置更新」是概念混淆</strong></p>
+<ul>
+<li>原文说法：<code>push ~14mil location updates per second</code>。</li>
+<li>正确说法：那是<strong>扇出后的推送消息数</strong>（33.4 万 × 40 ≈ 1333 万），不是位置更新数。须严格区分：上报量 33.4 万/秒、扇出量约 1333 万/秒、订阅关系总数约 40 亿——三者对应完全不同的资源。</li>
+</ul>
+</li>
+<li>
+<p><strong>「为所有用户预分配 Pub/Sub 频道」基于对 Redis 语义的误解</strong></p>
+<ul>
+<li>原文说法：预分配频道以避免上线时创建新频道。</li>
+<li>正确说法：Redis 频道<strong>隐式存在</strong>，<code>SUBSCRIBE</code> 自动创建、最后一个订阅者离开自动销毁，没有「预分配」操作。真正要预分配并缓存的是**「频道 → Redis 节点」的归属映射**（哈希环分布）。</li>
+</ul>
+</li>
+<li>
+<p><strong>把 Erlang 当作 Pub/Sub 的语义替代品不准确</strong></p>
+<ul>
+<li>原文说法：用 Erlang 在同一应用里处理 WebSocket 与 Pub/Sub。</li>
+<li>正确说法：Erlang 的进程消息同样是内存中、即发即忘，<strong>没有解决任何持久性或丢失问题</strong>。它是<strong>实现技术栈的替代</strong>，不是消息语义的替代；要修丢消息应用 Redis Streams 或 Kafka。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-16">补充</h3>
+<ol>
+<li><strong>位置上报的节流策略</strong>：距离阈值 + 最小间隔 + 最大间隔心跳三者组合——初级开发者最易做错的工程细节。</li>
+<li><strong>位置隐私与三角定位防护</strong>：模糊化必须在<strong>服务端</strong>做；时间窗内噪声必须一致（否则会被平均掉）；按查询者加盐防多账号合谋；历史轨迹须降精度。</li>
+<li><strong>扇出合并推送（Batching）</strong>：按 5 秒窗口合并，可把扇出量从 1333 万/秒降到 200 万/秒（降低 6.7 倍），代价是消息最多延迟 5 秒。</li>
+<li><strong>推送 + 拉取兜底</strong>：给每条更新带版本号，客户端发现断档就主动拉快照——弥补 Pub/Sub 丢失问题的标准解法。</li>
+<li><strong>距离阈值的滞回设计</strong>：用「显示半径 5 英里 + 推送半径 6 英里」的双半径消除阈值抖动。</li>
+<li><strong>Redis 7.0 的分片 Pub/Sub</strong>：<code>SSUBSCRIBE</code> / <code>SPUBLISH</code> 让消息只在持有该频道的分片内传播，大规模集群必知。</li>
+</ol>
+<hr />
+<h2 id="第-18-章google-maps-设计">第 18 章：Google Maps 设计</h2>
+<h3 id="勘误-17">勘误</h3>
+<ol>
+<li>
+<p><strong>地图瓦片用的是 Z/X/Y 索引，不是 geohash</strong></p>
+<ul>
+<li>原文说法：<code>Map tiles are served statically, based on their geohash</code>。</li>
+<li>正确说法：瓦片用 <strong>Z/X/Y 三级索引</strong>（Web Mercator 平面四叉树），geohash 在 WGS84 经纬度上做四叉树切分。瓦片格子必须是<strong>正方形</strong>以便无缝拼接。判断标准：要「一张图」用 Z/X/Y，要「一组点」用 geohash。</li>
+</ul>
+</li>
+<li>
+<p><strong>Web Mercator 的「modified」没有解释，容易导致误用</strong></p>
+<ul>
+<li>原文说法：Google Maps 选择了 Mercator 的变体 Web Mercator。</li>
+<li>正确说法：<strong>EPSG:3857 是投影坐标系，单位是「伪米」</strong>，水平尺度因子 <code>1/cos φ</code>、面积尺度因子 <code>1/cos² φ</code>（纬度 60° 放大 4 倍、85° 放大 131 倍）。算距离必须在 <strong>EPSG:4326 经纬度上用 haversine</strong>。这就是格陵兰岛看起来比非洲大的原因。</li>
+</ul>
+</li>
+<li>
+<p><strong>「地理编码数据库用 Redis 存 KV」过于简化</strong></p>
+<ul>
+<li>原文说法：用 Redis 存经纬度与地点的 KV 对。</li>
+<li>正确说法：只覆盖<strong>反向地理编码</strong>（坐标→地址）。<strong>正向地理编码</strong>（地址→坐标）需要全文检索、模糊匹配、多语言消歧，须用<strong>倒排索引</strong>或专用引擎（Nominatim / Pelias）。</li>
+</ul>
+</li>
+<li>
+<p><strong>「推送通知不支持 Web 应用」已经过时</strong></p>
+<ul>
+<li>原文说法：推送通知对 Web 应用不可用。</li>
+<li>正确说法：<strong>Web Push 早已标准化</strong>。结论（不用推送做导航）仍对，但理由应换为：延迟不可控、可靠性不足、载荷受限（约 4 KB）。「结论对但理由过时」是很隐蔽的错误。</li>
+</ul>
+</li>
+<li>
+<p><strong>「每天 2500 万次实时位置更新」与本章自己的量级估算差 4 个数量级</strong></p>
+<ul>
+<li>原文说法：<code>25mil updates daily of real-time location info</code>。</li>
+<li>正确说法：按本章自身估算约 200 亿次/天，差约 800 倍。更合理的解释是它指「每天 2500 万次<strong>地图数据更新</strong>」，但<strong>原文没有说明统计口径</strong>，口径不清的数字不能用于容量规划。</li>
+</ul>
+</li>
+<li>
+<p><strong>路线规划只提「Dijkstra 或 A* 的变体」，遗漏了真正的答案</strong></p>
+<ul>
+<li>原文说法：大多数导航算法用 Dijkstra 或 A* 的变体。</li>
+<li>正确说法：现代做法是 <strong>Contraction Hierarchies（CH）</strong> 或 <strong>CRP</strong>，加速比约 500~1000 倍。纯 Dijkstra 不可用的本质是<strong>经济上不成立</strong>：美国路网 2394 万节点，20 万 QPS 需约 40 万 CPU 核、每小时约 1.2 万美元。</li>
+</ul>
+</li>
+<li>
+<p><strong>约 70 PB 这个数字需要说明推导口径</strong></p>
+<ul>
+<li>原文说法：<code>estimated as ~70pb based on all the tiles we need to store</code>。</li>
+<li>正确说法：70 PB 是<strong>实际存储量</strong>，不是理论瓦片总量。Z=0~21 共约 5.86 万亿块，即使每块 5 KB 也是约 29,000 PB。差距来自去重、矢量瓦片、按需生成三项优化。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-17">补充</h3>
+<ol>
+<li><strong>Z/X/Y 瓦片坐标体系与缩放级别规律</strong>：<code>X = floor(n × (lon + 180) / 360)</code>（Y 轴向下）；瓦片总数 <code>= 4^Z</code>，每加一级 ×4；Z=21 时一块瓦片在赤道仅 19.1 米宽。</li>
+<li><strong>路线规划算法的完整演进</strong>：Dijkstra → A* → ALT → Highway Hierarchies → CH → CRP，及各自加速比与适用场景——本章最需补充的技术内容。</li>
+<li><strong>实时路况的数据来源与更新频率</strong>：五类数据源、分钟级更新；探针不足时应<strong>回退到历史模型</strong>（按星期几 + 时段）。</li>
+<li><strong>地图数据的分层存储与增量更新</strong>：七个图层、更新频率相差 6 个数量级必须分开存；六种增量更新手段（版本号、影响分析、版本化 URL、条件请求、预取、原子切换）。</li>
+<li><strong>矢量瓦片 vs 栅格瓦片</strong>：它是一次架构级选择，最大价值不是省带宽而是<strong>数据与样式解耦</strong>。</li>
+<li><strong>地图数据建模的图论细节</strong>：边权重是<strong>通行时间</strong>而非距离、转弯代价、有向图（单行道）、立交桥上下层不连通。</li>
+</ol>
+<hr />
+<h2 id="第-19-章distributed-message-queue分布式消息队列">第 19 章：Distributed Message Queue（分布式消息队列）</h2>
+<h3 id="勘误-18">勘误</h3>
+<ol>
+<li>
+<p><strong><code>replica.lag.max.messages</code> 已被移除十年</strong></p>
+<ul>
+<li>原文说法：用「副本落后多少条消息」判定是否在 ISR 中。</li>
+<li>正确说法：该参数在 <strong>Kafka 0.9.0.0（2015 年）就被移除</strong>。用条数衡量不合理（流量暴涨时健康副本会被误判踢出 ISR）。现代 Kafka 用 <strong><code>replica.lag.time.max.ms</code></strong>，基于时间判断（默认 30 秒）。</li>
+</ul>
+</li>
+<li>
+<p><strong>消费者偏移量不存在 ZooKeeper 里</strong></p>
+<ul>
+<li>原文说法：消费者状态适合放在 ZooKeeper。</li>
+<li>正确说法：<strong>从 Kafka 0.9 起不再成立</strong>。ZK 每次写都走共识（Zab），扛不住高频小写入。偏移量存在 Kafka 内部主题 <strong><code>__consumer_offsets</code></strong>，用<strong>日志压缩</strong>只保留最新值。</li>
+</ul>
+</li>
+<li>
+<p><strong>副本分配方案不是分区 Leader 决定的</strong></p>
+<ul>
+<li>原文说法：分区 Leader 创建副本分配方案并存入 ZK。</li>
+<li>正确说法：分区 Leader 负责数据复制与读写服务；决定副本放在哪些 Broker 上的是 <strong>Controller</strong>（ZK 模式写 ZK、KRaft 模式写元数据日志）。</li>
+</ul>
+</li>
+<li>
+<p><strong>HDD 顺序读写「几 MB/s」严重低估</strong></p>
+<ul>
+<li>原文说法：<code>HDDs can achieve several MB/s</code>。</li>
+<li>正确说法：现代 7200 RPM HDD 顺序读写 <strong>150~250 MB/s</strong>，是「几 MB/s」的几十倍。机械盘<strong>随机</strong>访问才慢（IOPS 100~200），顺序访问能接近盘片理论带宽——这正是「追加日志替代随机更新」的全部理由。</li>
+</ul>
+</li>
+<li>
+<p><strong><code>ACK=all</code> 的写法与理解都要修正</strong></p>
+<ul>
+<li>原文说法：用 <code>ACK=all</code> 并把持久性完全归因于该参数。</li>
+<li>正确说法：参数名是 <strong><code>acks</code></strong>（小写复数），取值 <code>0</code>/<code>1</code>/<code>all</code>。持久性由 <strong><code>acks</code> + <code>replication.factor</code> + <code>min.insync.replicas</code></strong> 共同决定；还要知道 <code>unclean.leader.election.enable</code>（默认 false）。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-18">补充</h3>
+<ol>
+<li><strong>KRaft 与 ZooKeeper 的演进（原笔记完全缺失）</strong>：Kafka 2.8 引入、3.3 生产可用、<strong>4.0 已彻底移除 ZK 依赖</strong>；还说「Kafka 用 ZK 存元数据」会立刻暴露知识陈旧。</li>
+<li><strong>分段日志、稀疏索引与零拷贝</strong>：回答「为什么 Kafka 用磁盘还这么快」的标准答案框架（顺序追加写 + 稀疏索引 + 零拷贝 + 页缓存）。</li>
+<li><strong>消息顺序性的真实边界</strong>：分区内有序天然保证；同一业务键有序需用业务键做分区键；全局严格有序只能单分区。<strong>增加分区会破坏原有顺序保证</strong>（哈希取模结果变化）。</li>
+<li><strong>再均衡的代价与协作式再均衡</strong>：急切式再均衡会造成 Stop-The-World 停顿与重复消费；协作式再均衡（Kafka 2.4+）+ 静态成员资格可把影响降到最低。</li>
+<li><strong>投递语义的准确边界</strong>：端到端的「恰好一次」不可能靠消息队列单独实现；Kafka 的 EOS 只在 Kafka 内部成立，跨系统必须由消费端保证幂等。</li>
+<li><strong>主流消息队列的架构对比</strong>：Kafka（KRaft）/ Pulsar（BookKeeper 存算分离）/ RocketMQ（NameServer）/ RabbitMQ（Erlang），及各自选型场景。</li>
+<li><strong>本地动手验证</strong>：用 Docker 起单节点 KRaft 模式 Kafka，做三个实验（验证分区键、消费者组、偏移量 <code>LAG</code>）。</li>
+</ol>
+<hr />
+<h2 id="第-20-章metrics-monitoring-and-alerting-system监控告警系统">第 20 章：Metrics Monitoring and Alerting System（监控告警系统）</h2>
+<h3 id="勘误-19">勘误</h3>
+<ol>
+<li>
+<p><strong>行协议的格式写错了，而且 Prometheus 并不用它</strong></p>
+<ul>
+<li>原文说法：<code>CPU.load host=webserver01,region=us-west 1613707265 50</code> 称为「行协议」，被 Prometheus、OpenTSDB 使用。</li>
+<li>正确说法：① 字段顺序不对——须写成 <code>名=值</code> 且位于时间戳<strong>之前</strong>；② <strong>Prometheus 不使用行协议</strong>，它用文本暴露格式 <code>metric_name{label=&quot;value&quot;} 42</code>，远程写走 protobuf。这是 InfluxDB 行协议、OpenTSDB <code>put</code>、Prometheus 文本格式三种被混在一起。</li>
+</ul>
+</li>
+<li>
+<p><strong>降采样表格的算术是错的</strong></p>
+<ul>
+<li>原文说法：10 秒分辨率降采样到 30 秒得到 <code>19, 25</code>。</li>
+<li>正确说法：每桶正好 3 个点，正确值是 <strong>15.3 和 26.7</strong>。原文用了「4 个点 + 2 个点」的不一致分组。降采样规则必须明确定义桶边界对齐、每桶点数、空桶处理。</li>
+</ul>
+</li>
+<li>
+<p><strong>「推模式通常用 UDP」是不准确的</strong></p>
+<ul>
+<li>原文说法：Push methods typically use UDP，因此延迟更低。</li>
+<li>正确说法：只有 <strong>StatsD</strong> 默认用 UDP；Graphite carbon 默认 TCP、CloudWatch 用 HTTPS、OTLP 主流是 gRPC/HTTP over TCP、Prometheus remote write 也是 HTTP over TCP。今天绝大多数推送方案都跑在 TCP 上。</li>
+</ul>
+</li>
+<li>
+<p><strong>「每个指标名一个 Kafka 分区」在本书的规模下不可行</strong></p>
+<ul>
+<li>原文说法：<code>one partition per metric name</code>。</li>
+<li>正确说法：1000 万条时间序列意味着上千万个分区，单集群分区总数实践上通常在几十万量级。应按<strong>指标名的哈希值</strong>分区，分区总数保持可控。</li>
+</ul>
+</li>
+<li>
+<p><strong>InfluxDB 的性能数字与行业格局都需要更新</strong></p>
+<ul>
+<li>原文说法：8 核 32G 下超 25 万次写入/秒，并把 InfluxDB 与 Prometheus 并列为「两个最流行的时序数据库」。</li>
+<li>正确说法：该数字来自厂商基准测试，只能当<strong>数量级参考</strong>，不能当容量规划依据。行业格局需补 VictoriaMetrics、TimescaleDB、Grafana Mimir。更重要的一点：<strong>Prometheus 不只是「时序数据库」，它是完整的监控系统，且单节点、不支持水平扩展</strong>。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-19">补充</h3>
+<ol>
+<li><strong>基数爆炸（Cardinality Explosion）</strong>：标签取值组合是<strong>相乘</strong>的，加一个 <code>user_id</code> 标签就能让基数涨一百万倍，直接打爆内存——生产环境最常见、最容易由开发者自己制造的事故。</li>
+<li><strong>拉模式 vs 推模式的完整取舍，以及 Pushgateway</strong>：包括 Pushgateway 的三个使用陷阱（不自动清理、不适合长期服务、无法做健康检查）。</li>
+<li><strong>PromQL 与记录规则</strong>：瞬时向量、区间向量、<code>rate()</code>、<code>histogram_quantile</code>，以及做「查询侧降采样」的记录规则。</li>
+<li><strong>长期存储方案</strong>：Prometheus 原生不支持长期存储与水平扩展，标准解法是「Prometheus + 远程存储」（Thanos / Mimir / VictoriaMetrics / Cortex）。</li>
+<li><strong>告警风暴、告警疲劳、抑制与静默</strong>：聚合（Grouping）、抑制（Inhibition）、静默（Silencing）三种降噪机制。</li>
+<li><strong>基于 SLO 与错误预算的告警</strong>：SLI / SLO / 错误预算定义、错误预算计算、多窗口多燃烧率告警——本章最值得掌握的现代实践。</li>
+<li><strong>RED 方法与 USE 方法</strong>：RED（Rate / Errors / Duration）面向服务，USE（Utilization / Saturation / Errors）面向资源。</li>
+<li><strong>本地动手验证</strong>：Docker Compose 起 Prometheus + Grafana + node_exporter，做三个实验（验证拉模式、亲手制造基数爆炸、观察降采样效果）。</li>
+</ol>
+<hr />
+<h2 id="第-21-章ad-click-event-aggregation广告点击事件聚合">第 21 章：Ad Click Event Aggregation（广告点击事件聚合）</h2>
+<h3 id="勘误-20">勘误</h3>
+<ol>
+<li>
+<p><strong>把「允许迟到时间」误称为水位线（Watermark）</strong></p>
+<ul>
+<li>原文说法：窗口延长出来的部分就叫做 watermark。</li>
+<li>正确说法：水位线是<strong>进度信号</strong>（表示事件时间早于 T 的事件不会再来了），决定窗口<strong>何时触发</strong>；「把窗口往后延长一段」叫<strong>允许迟到时间</strong>（Allowed Lateness），决定触发后<strong>还能收多久</strong>。正确三层表述：水位线 → 允许迟到 → 侧输出流。</li>
+</ul>
+</li>
+<li>
+<p><strong>窗口类型分类混乱，Hopping 与 Sliding 是同一个东西</strong></p>
+<ul>
+<li>原文说法：并列列出 Tumbling、Hopping、Sliding、Session 四种。</li>
+<li>正确说法：Hopping 与 Sliding 是同一概念的两种叫法（Flink 叫 Sliding、Azure Stream Analytics 叫 Hopping）。主流为三类：滚动 / 滑动 / 会话（外加全局）。<code>Size == Slide</code> 即滚动窗口——<strong>滚动窗口是滑动窗口的特例</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>把「按维度预聚合」称为星型模型（Star Schema）</strong></p>
+<ul>
+<li>原文说法：按 country 等维度预聚合「这个技术叫做 star schema」。</li>
+<li>正确说法：<strong>星型模型是数据建模术语</strong>（事实表 + 多个维度表），回答「数据怎么组织」；原文描述的是<strong>预聚合 / 数据立方体 / 物化视图</strong>，回答「结果怎么算」。原文的表可作为星型模型的事实表，但两者是配合关系。</li>
+</ul>
+</li>
+<li>
+<p><strong>Kappa 架构的判定依据不严谨</strong></p>
+<ul>
+<li>原文说法：因为重算也走聚合服务，所以是 Kappa 架构。</li>
+<li>正确说法：Kappa 的关键特征是**「重放可保留的日志」**，而不是「从冷存储跑批任务」。原文的重算从冷存储读、是独立批任务，更像 Lambda 的批处理层。准确描述是「混合架构」或「以 Kappa 思想实现的架构」。</li>
+</ul>
+</li>
+<li>
+<p><strong>投递语义的表述不完整</strong></p>
+<ul>
+<li>原文说法：通过第二个消息队列实现「端到端 exactly-once atomic commit semantics」。</li>
+<li>正确说法：「恰好一次<strong>投递</strong>」在网络层不可能实现。准确表述是 <strong>Exactly-Once Processing</strong> 或 <strong>Effectively-Once</strong>——由「状态恰好一次（检查点）+ 输出恰好一次（两阶段提交 / 幂等 Sink）」组合而成，需链路上每一环配合。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-20">补充</h3>
+<ol>
+<li><strong>Lambda 与 Kappa 的完整对比</strong>：Lambda = 两套代码；Kappa = 一套代码、靠重放日志；演进动因是现代流处理引擎补齐了正确性能力。</li>
+<li><strong>时间语义的完整体系</strong>：原笔记只讲了事件时间 vs 处理时间的取舍。记忆链：事件时间 → 乱序 → 水位线 → 允许迟到 → 侧输出流 → 日终对账。<strong>本章最重要的补充内容</strong>。</li>
+<li><strong>业务级数据去重（原文完全缺失）</strong>：同一用户对同一广告的重复点击该不该计费——重复点击 = 多收广告主钱 = 商业欺诈。含三种方案对比与内存成本推算（1.8 亿 key → 布隆 216 MB vs Redis SET 20~30 GB）。</li>
+<li><strong>对账（Reconciliation）的完整机制</strong>：对账的具体做法、阈值怎么定、发现差异怎么办；<strong>阈值必须由业务方定义</strong>。</li>
+<li><strong>Flink 的端到端恰好一次实现</strong>：检查点（Chandy-Lamport 快照）+ 两阶段提交 Sink + 幂等写入三条路径；下游幂等是最便宜的解法。</li>
+<li><strong>背压（Backpressure）</strong>：流处理系统最常见的故障模式。Flink 用基于信用的流控；Kafka 没有真正背压，只能靠监控 lag + 自动扩容。背压是<strong>症状</strong>不是病因。</li>
+</ol>
+<hr />
+<h2 id="第-22-章hotel-reservation-system酒店预订系统">第 22 章：Hotel Reservation System（酒店预订系统）</h2>
+<h3 id="勘误-21">勘误</h3>
+<ol>
+<li>
+<p><strong>CHECK 约束与「允许超卖 10%」的需求自相矛盾</strong></p>
+<ul>
+<li>原文说法：需求允许超卖 110%，约束却是 <code>CHECK(total_inventory - total_reserved &gt;= 0)</code>。</li>
+<li>正确说法：该约束等价于「已预订不超过 100%」，会直接禁止超卖。应为 <code>CHECK (total_reserved &lt;= total_inventory * 1.1)</code>，更规范的做法是<strong>把超卖比例参数化</strong>（按酒店/房型/季节配置），而非硬编码 <code>1.1</code>。</li>
+</ul>
+</li>
+<li>
+<p><strong>扣减库存的 UPDATE 语句漏掉了 <code>hotel_id</code> 过滤条件</strong></p>
+<ul>
+<li>原文说法：<code>WHERE room_type_id = ? AND date BETWEEN ? AND ?</code>（前一步 SELECT 却有 <code>hotel_id</code>）。</li>
+<li>正确说法：<code>room_type_id</code> 只在酒店内唯一，该语句会误扣<strong>所有酒店</strong>的库存，是资金损失级 bug。必须补 <code>AND hotel_id = ?</code>；防呆手段包括让主键为 <code>(hotel_id, room_type_id, date)</code>、开启 <code>sql_safe_updates</code>、先 SELECT 验证影响范围。</li>
+</ul>
+</li>
+<li>
+<p><strong><code>room_type_rate</code> 表缺少 <code>room_type_id</code> 列，无法存储分房型价格</strong></p>
+<ul>
+<li>原文说法：字段为 <code>hotel_id</code>(PK)、<code>date</code>(PK)、<code>rate</code>。</li>
+<li>正确说法：名为「房型价格」却无房型字段，同一酒店同一天只能有一个价格，无法表达「标准房与套房价格不同」。主键应为 <code>(hotel_id, room_type_id, date)</code>——与 <code>room_type_inventory</code> 结构一致。</li>
+</ul>
+</li>
+<li>
+<p><strong><code>status</code> 字段的归属描述错误</strong></p>
+<ul>
+<li>原文说法：<code>status</code> 代表<strong>某个房间</strong>的状态机。</li>
+<li>正确说法：从状态图（Pending→Paid/Canceled/Rejected、Paid→Refunded）看，它是**预订（reservation）**的状态机。每个状态转换都对应一次业务动作（释放预占、退款、加回库存），且必须幂等、须有明确不变量。</li>
+</ul>
+</li>
+<li>
+<p><strong>把 CHECK 约束描述为「与乐观锁非常相似」是不准确的</strong></p>
+<ul>
+<li>原文说法：该方案和乐观锁非常相似，只是守卫换成了数据库约束。</li>
+<li>正确说法：并发行为相反——乐观锁冲突时影响 0 行、应用层失败重试；<code>UPDATE + CHECK</code> 靠 InnoDB 行锁<strong>阻塞排队</strong>、不重试，更接近<strong>悲观锁</strong>。CHECK 约束是<strong>安全网</strong>，不是并发控制机制。另注意 MySQL 8.0.16 之前会<strong>静默忽略</strong> CHECK 约束。</li>
+</ul>
+</li>
+<li>
+<p><strong>缺少「检查后使用（TOCTOU）」问题的命名与原子解法</strong></p>
+<ul>
+<li>原文说法：准确描述了竞态并给出三个基于锁/约束的解法。</li>
+<li>正确说法：该问题通用名称是 <strong>TOCTOU（Time-of-Check to Time-of-Use）</strong>。最简洁解法是<strong>原子条件更新</strong>——把检查条件写进 <code>UPDATE ... WHERE ... AND total_reserved + n &lt;= total_inventory * 1.1</code>，再检查 <code>affected_rows</code>，比悲观锁轻、比乐观锁简单、比约束可控。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-21">补充</h3>
+<ol>
+<li><strong>Redis 分布式锁与 Redlock 争议</strong>：酒店场景不推荐 Redis 锁（多一层故障点、无性能收益、正确性难保证）；Redlock 因依赖时钟假设、缺 fencing token 受质疑；Redis 官方文档也建议配合 fencing token。</li>
+<li><strong>库存预占与「15 分钟超时释放」的实现</strong>：<code>total_reserved</code> + <code>total_held</code> 双字段；延迟任务四种实现取舍；推荐「延时队列（准时）+ 兜底扫描（不漏）+ 释放逻辑幂等（防重复）」。</li>
+<li><strong>分布式事务的完整对比（TCC、本地消息表）</strong>：2PC / TCC / Saga / 本地消息表四种方案在一致性、性能、业务侵入性三个维度的取舍。</li>
+<li><strong>搜索与预订的一致性</strong>：问题有三层成因，其中「用户思考的时间差」物理上无法消除；四层缓解策略（预占 / 短 TTL + CDC / 前端兜底 / 异步排队）。核心原则：<strong>缓存可以不准，数据库必须准</strong>。</li>
+<li><strong>价格缓存策略（与库存缓存的区别）</strong>：价格与库存的变化频率、错误后果完全不同——库存用短 TTL + CDC 失效，价格用长 TTL + 每日定时刷新 + 随机抖动 + 预取。</li>
+<li><strong>幂等的三层实现模式</strong>：唯一约束 / 幂等键表 / 状态机条件更新；并区分<strong>幂等 ≠ 去重</strong>——幂等是更强的性质，也更容易实现。</li>
+</ol>
+<hr />
+<h2 id="第-23-章distributed-email-service分布式邮件服务">第 23 章：Distributed Email Service（分布式邮件服务）</h2>
+<blockquote>
+<p>本章原笔记整体结构清晰、结论可靠，估算部分经复算全部正确。以下为表述含糊、内容缺失或需要限定之处。</p>
+</blockquote>
+<h3 id="勘误-22">勘误</h3>
+<ol>
+<li>
+<p><strong>POP3「取走即删除」是默认配置，不是协议强制</strong></p>
+<ul>
+<li>原文说法：Once retrieved, emails are deleted from remote server。</li>
+<li>正确说法：POP3 默认 <code>RETR</code> 后删除，但客户端可选择<strong>保留副本</strong>。真正淘汰 POP3 的原因是<strong>状态在客户端</strong>——不支持服务端文件夹、已读标记、搜索，多设备必然出问题。IMAP 也不是终点，现代替代是 <strong>JMAP（RFC 8620/8621）</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>送达率部分漏掉了 DMARC，且未涵盖 2024 年的行业强制要求</strong></p>
+<ul>
+<li>原文说法：只提 SPF 和 DKIM。</li>
+<li>正确说法：<strong>没有 DMARC，SPF 和 DKIM 无法阻止伪造显示名（<code>From:</code> 头）</strong>。完整验证是 <strong>SPF + DKIM + DMARC 三位一体</strong>，DMARC 负责对齐检查、失败处置策略与报告回传。<strong>2024 年 2 月起</strong> Google/Yahoo 对批量发信人强制要求三件套 + 一键退订（RFC 8058）、投诉率 &lt; 0.3%。</li>
+</ul>
+</li>
+<li>
+<p><strong>「使用专用 IP」并非对所有发信方都更好</strong></p>
+<ul>
+<li>原文说法：<code>use dedicated IPs ... otherwise recipient servers will not trust you</code>。</li>
+<li>正确说法：结论过于绝对。专用 IP 需发信量足够大才能积累信誉；小量发信时「冷 IP」送达率往往不如信誉良好的共享 IP。正确判断：<strong>发信量大 → 专用 IP；发信量小 → 共享 IP</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>「Elasticsearch 只能扩展到一定程度」需要限定</strong></p>
+<ul>
+<li>原文说法：ES scales to some extent，自研可 scale further。</li>
+<li>正确说法：生产 ES 集群可做到几十到上百节点、PB 级。不用它的真实理由是<strong>运维成本和资源开销</strong>（独立有状态服务、分片规划、JVM 堆开销），不是扩展性不够。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-22">补充</h3>
+<ol>
+<li><strong>反垃圾邮件的完整机制</strong>：分层拦截、贝叶斯过滤、发信人信誉、灰名单——设计邮件系统必须掌握的部分。</li>
+<li><strong>退信处理（硬退信 / 软退信）</strong>：<code>4xx</code> 软退信重试、<code>5xx</code> 硬退信永久移除；<strong>不清理硬退信地址会直接摧毁域名信誉</strong>。</li>
+<li><strong>邮件搜索的底层结构</strong>：倒排索引、分词、增量索引，以及「为什么不能用 <code>LIKE '%x%'</code>」。</li>
+<li><strong>附件与正文分离存储的设计理由</strong>：元数据「小、读多、要强一致」，附件「大、写一次读多次、要便宜」——访问模式不同的数据混在一起只会互相拖累。</li>
+<li><strong>Cassandra 的一致性是可调的</strong>：通过读写法定人数满足 <code>R + W &gt; N</code>（如 3 副本下 QUORUM 读 + QUORUM 写）获得强一致性，代价是可用性下降。</li>
+<li><strong>邮件传输安全</strong>：STARTTLS（可被降级攻击）、MTA-STS（RFC 8461，强制 TLS）、TLS-RPT（RFC 8460，失败报告）；这些只保护传输中的邮件，端到端加密（S/MIME、PGP）是另一回事。</li>
+</ol>
+<hr />
+<h2 id="第-24-章s3-like-object-storage类-s3-对象存储">第 24 章：S3-like Object Storage（类 S3 对象存储）</h2>
+<blockquote>
+<p>本章原笔记结构完整、估算经复算全部正确，对纠删码与多副本的取舍分析到位。以下为真实的错误、过时表述与内部矛盾。</p>
+</blockquote>
+<h3 id="勘误-23">勘误</h3>
+<ol>
+<li>
+<p><strong>分片策略的两条要点都写成了 <code>bucket_id</code>（明确的笔误）</strong></p>
+<ul>
+<li>原文说法：两条要点一条说 <code>bucket_id</code> 造成热点，另一条说它让负载更均匀。</li>
+<li>正确说法：第二条应为按 <strong><code>object_id</code></strong> 分片。修正后：按 <code>bucket_id</code> 分片列举快但大桶热点；按 <code>object_id</code> 分片负载均匀但查询慢。原笔记最终选 <code>hash(bucket_name, object_name)</code> 是「大多数查询按名字来」前提下的折中。</li>
+</ul>
+</li>
+<li>
+<p><strong>设计目标「6 个 9」与开头引用的 S3「11 个 9」自相矛盾；且「三副本 = 6 个 9」的算法忽略了副本修复</strong></p>
+<ul>
+<li>原文说法：开头引用 S3 11 个 9，设计目标却是 6 个 9；并称三副本 = 6 个 9。</li>
+<li>正确说法：① 真实的 S3 在多副本模式下同样承诺 11 个 9，6 个 9 只是面试简化目标；② <code>AFR³</code> 的计算忽略了<strong>副本自动修复（Repair）</strong>，正确模型必须考虑 MTTR 与修复窗口内的二次故障；③ 纠删码的真正优势是<strong>省存储（1.5x vs 3x）</strong>，不是把持久性从 6 个 9 变 11 个 9——原文属<strong>不对等的比较</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>「对象存储面向冷数据、主要用于归档备份」已经过时，且与后文自相矛盾</strong></p>
+<ul>
+<li>原文说法：<code>It targets &quot;cold&quot; data and is mainly used for archival and backup.</code></li>
+<li>正确说法：与原文自己的「95% 操作是读」矛盾。对象存储已是云上数据的主要载体（数据湖、数仓、ML、CDN 源站、日志、Iceberg/Delta/Hudi）。它能「从冷变热」是因为牺牲的是<strong>单次请求延迟</strong>而非吞吐量。</li>
+</ul>
+</li>
+<li>
+<p><strong>「对象存储是强一致的」需要补上一个关键时间点</strong></p>
+<ul>
+<li>原文说法：对比表 <code>Consistency: Strong consistency</code>。</li>
+<li>正确说法：<strong>S3 的数据一致性模型在 2020-12-01 发生根本变化</strong>。之前覆盖写与 DELETE 是最终一致的；之后所有 GET/PUT/LIST 及标签、ACL、元数据变更<strong>全部强一致</strong>，且不额外收费、对性能无影响。影响：EMRFS Consistent View / S3Guard 不再需要、数据湖可直接读刚写入的数据、<code>LIST</code> 后立刻 <code>GET</code> 安全。注意「S3 强一致」≠「所有对象存储强一致」。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-23">补充</h3>
+<ol>
+<li><strong>预签名 URL（Presigned URL）——原笔记完全缺失</strong>：原笔记的上传流程让客户端字节流经 API 服务中转（传 10 GB 搬 20 GB），大文件场景不可接受。预签名 URL 实现「控制面签发凭证、数据面直连」。</li>
+<li><strong>分片上传的工程细节</strong>：分片大小受 10000 上限约束（<code>分片大小 ≥ 文件大小 ÷ 10000</code>）、断点续传依赖服务端 <code>ListParts</code>、并行上传绕过单 TCP 的 RTT 限制、未完成分片必须配生命周期规则清理。</li>
+<li><strong>元数据存储的扩展性</strong>：为什么元数据是瓶颈（全局共享命名空间、访问量与请求数成正比、随机访问、强一致约束），以及业界做法（分片 + 一致性哈希 + 多层缓存 + 读写分离 + 反范式列举表 + 分层存储）。</li>
+<li><strong>ETag 的陷阱</strong>：分片上传对象的 ETag 是「各分片 MD5 拼接后再取 MD5」并带 <code>-N</code> 后缀，不等于整个对象的 MD5，不能用于整体校验、跨上传方式比对或去重。</li>
+<li><strong>垃圾回收的完整机制</strong>：垃圾占比阈值、引用计数、生命周期策略、反向孤儿清理。</li>
+<li><strong>纠删码的进阶话题</strong>：修复放大、LRC（局部可修复码）、为什么常见配置是 8+4 / 10+4 而非 20+4、以及<strong>纠删码不能替代备份</strong>（防硬件故障，不防误删除和软件 bug）。</li>
+</ol>
+<hr />
+<h2 id="第-25-章real-time-gaming-leaderboard实时游戏排行榜">第 25 章：Real-time Gaming Leaderboard（实时游戏排行榜）</h2>
+<blockquote>
+<p>原笔记整体结构清晰、判断基本正确，但在几处数字、命令和结论上存在可核实的问题。</p>
+</blockquote>
+<h3 id="勘误-24">勘误</h3>
+<ol>
+<li>
+<p><strong>量级估算里的 DAU 前后不一致</strong></p>
+<ul>
+<li>原文说法：需求澄清写「5mil DAU and 25mil MAU」，量级估算却写「With 50mil DAU」。</li>
+<li>正确说法：两处差 10 倍。从「50 users per second」反推，<code>5,000,000 ÷ 100,000 = 50</code>，正确值是 <strong>500 万 DAU</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>把「到达率」当成了「同时在线人数」</strong></p>
+<ul>
+<li>原文说法：<code>peak online users would be 250 users per second</code>。</li>
+<li>正确说法：<code>DAU ÷ 秒数</code> 是<strong>到达率（人/秒）</strong>，不是同时在线人数。两者靠<strong>利特尔法则</strong>联系：并发数 = 到达率 × 平均停留时长（若平均在线 10 分钟，约 3 万人）。容量规划看并发数，QPS 规划才看到达率。</li>
+</ul>
+</li>
+<li>
+<p><strong>关系型数据库「性能不好」的说法不准确</strong></p>
+<ul>
+<li>原文说法：<code>ORDER BY score DESC</code> 全表排序 makes a table scan。</li>
+<li>正确说法：有 <code>score</code> 索引时 <code>ORDER BY score DESC LIMIT 10</code> 是高效的（O(log N + 10)）。真正的瓶颈是<strong>排名查询</strong>（<code>COUNT(*) WHERE score &gt;= X</code> 要扫过约一半索引条目）和<strong>高频更新的索引维护成本</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>每条记录 26 字节的估算漏了两件事</strong></p>
+<ul>
+<li>原文说法：<code>ID is 24-character string and score is 16-bit integer ... 26 bytes * 25mil = ~650MB</code>。</li>
+<li>正确说法：Redis 分数是 <strong>8 字节双精度浮点</strong>，且完全忽略了 Redis 内部开销（哈希表节点、SDS 头、跳表节点，约 120~150 字节/成员）。2500 万成员实际约 <strong>3~3.5 GB</strong>，5 亿成员约 <strong>65 GB</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong><code>INFO keyspace</code> 拿不到 sorted set 的成员数</strong></p>
+<ul>
+<li>原文说法：<code>total records per shard can quickly be accessed via the info keyspace command</code>。</li>
+<li>正确说法：<code>INFO keyspace</code> 返回的是<strong>数据库里 key 的数量</strong>，不返回 sorted set 成员数。正确命令是 <strong><code>ZCARD key</code></strong>（O(1)）——结论对，命令错。</li>
+</ul>
+</li>
+<li>
+<p><strong>Redis Cluster 不是代理，也不是一致性哈希</strong></p>
+<ul>
+<li>原文说法：<code>It is a proxy which distributes data ... similar to consistent hashing</code>。</li>
+<li>正确说法：① 它是<strong>去中心化</strong>集群，节点间用 Gossip 交换状态，客户端靠 <code>MOVED</code>/<code>ASK</code> 重定向直连，<strong>没有代理进程</strong>；② 它用 <strong>16384 个固定哈希槽</strong>（<code>CRC16(key) mod 16384</code>），是确定性哈希，<strong>没有哈希环、没有虚拟节点</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>哈希分片下「无法确定用户排名」不成立</strong></p>
+<ul>
+<li>原文说法：<code>There is no straightforward approach to determine a user's rank</code>。</li>
+<li>正确说法：用 <code>rank(u) = 1 + Σ_i ZCOUNT(shard_i, &quot;(score(u)&quot;, &quot;+inf&quot;)</code> 可精确算出全局排名。结论（推荐按分数范围分区）不变，但<strong>理由要换</strong>——是「扇出成本随分片数增长、尾延迟受最慢分片拖累」，而不是「算不出来」。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-24">补充</h3>
+<ol>
+<li><strong><code>ZREVRANGE</code> 已被废弃</strong>：Redis 6.2 起推荐 <code>ZRANGE ... REV</code>；<code>ZRANK</code>/<code>ZREVRANK</code> 在 Redis 7.2+ 支持 <code>WITHSCORE</code>。</li>
+<li><strong><code>ZRANK</code> 不返回并列名次（与需求矛盾）</strong>：需求说「同分名次相同」，<code>ZRANK</code> 返回的是序列位置。正确做法是 <code>1 + ZCOUNT(key, &quot;(myScore&quot;, &quot;+inf&quot;)</code>——本章最重要的一处实现级错误。</li>
+<li><strong>全局聚合排名的完整算法</strong>：按分数范围（Σ 更高分片 <code>ZCARD</code> + 本分片 <code>ZCOUNT</code> + 1）、按哈希（Σ 所有分片 <code>ZCOUNT</code> + 1，精确但扇出 N 次）、精英榜 + 全量榜（头部精确、其余百分位近似）。</li>
+<li><strong>分桶排名不会降低渐近复杂度</strong>：很多资料说「分桶能把排名查询降到 O(1)」是<strong>错的</strong>；分桶的价值是分散内存与写入压力、让 Top-K 只读顶部桶。</li>
+<li><strong>实时性与一致性的三层分解</strong>：写入路径（写扩散 vs 定时重算）、读取路径（缓存与副本延迟）、跨地域。</li>
+<li><strong>防作弊的分层设计</strong>：信任边界、身份认证、请求完整性（签名 + nonce 防重放）、服务端复算、合理性校验、统计检测、限流。</li>
+<li><strong>持久化的真实保证与重建方式</strong>：Redis 主从复制默认<strong>异步</strong>；建议维护只追加的 <code>score_events</code> 表重建，而非解析脆弱的 binlog。</li>
+</ol>
+<hr />
+<h2 id="第-26-章payment-system支付系统">第 26 章：Payment System（支付系统）</h2>
+<blockquote>
+<p>原笔记覆盖了主要环节，<code>payment_order_id</code> 作幂等键、金额用字符串、复式记账、对账、重试退避、DLQ 等判断都是对的。但在「恰好一次」的表述、数据模型的合规性与若干工程细节上存在问题或缺失。</p>
+</blockquote>
+<h3 id="勘误-25">勘误</h3>
+<ol>
+<li>
+<p><strong>「恰好一次投递」是一个不可实现的目标</strong></p>
+<ul>
+<li>原文说法：<code>An operation is executed exactly-once if it is executed at-least-once and at-most-once at the same time</code>。</li>
+<li>正确说法：结论（支付不能被处理两次）对，但「恰好一次<strong>投递</strong>」是<strong>两将军问题</strong>的直接推论，不可能实现——你无法区分「请求没到」和「扣了钱但响应丢了」。工程上追求 <strong>At-least-once + 消费端幂等 = Effectively-once</strong>，靠三层幂等（客户端幂等键、<code>payment_order_id</code>、PSP nonce）+ 对账兜底。</li>
+</ul>
+</li>
+<li>
+<p><strong><code>payment_events</code> 表里的 <code>credit_card_info</code> 与合规要求矛盾</strong></p>
+<ul>
+<li>原文说法：访谈说不在系统里存信用卡数据，数据模型却列了 <code>credit_card_info</code>。</li>
+<li>正确说法：自相矛盾——真存卡数据就进入 PCI DSS 最高审计范围（SAQ D）。该列应只存 <strong>PSP 返回的支付方式令牌（token）</strong> 和展示用元数据（卡组织品牌、后 4 位、有效期），字段名可改为 <code>payment_method_token</code>。边界在于「卡数据有没有<strong>经过</strong>你的系统」，不在于「有没有落库」。</li>
+</ul>
+</li>
+<li>
+<p><strong>账本与钱包的更新顺序反了</strong></p>
+<ul>
+<li>原文说法：先更新钱包，后记账本。</li>
+<li>正确说法：复式记账体系中<strong>账本是账簿（Book of Record），钱包只是物化视图</strong>。先更新钱包会导致账本写入失败时账对不平且无法自动修复。应<strong>先写账本</strong>（原子插入借贷平衡分录），再用 <code>journal_id</code> 做幂等键<strong>投影到钱包</strong>。通用心智模型：先写事实、再更新缓存。</li>
+</ul>
+</li>
+<li>
+<p><strong>「用 Paxos / Raft 保证副本始终同步」混淆了两件事</strong></p>
+<ul>
+<li>原文说法：<code>we can ensure replicas are always in-sync by utilizing a consensus algorithm such as Paxos or Raft</code>。</li>
+<li>正确说法：前半句把共识协议与异步复制延迟混为一谈。Paxos/Raft 实现的是<strong>法定人数复制</strong>，与异步复制是<strong>不同的复制协议</strong>；不能给异步复制的 MySQL 主从「加上 Raft」。消除陈旧读有三条路：全走主库、同步/半同步复制、换基于共识的分布式数据库。（后半句的 YugabyteDB / CockroachDB 是准确的。）</li>
+</ul>
+</li>
+<li>
+<p><strong><code>FAILED</code> 状态把「明确失败」和「结果未知」混为一谈</strong></p>
+<ul>
+<li>原文说法：枚举为 <code>NOT_STARTED</code>、<code>EXECUTING</code>、<code>SUCCESS</code>、<code>FAILED</code>。</li>
+<li>正确说法：缺少「未知」状态。<code>FAILED</code> 同时表达「卡被拒」（终态）与「超时结果不明」（<strong>非终态</strong>），把后者当 <code>FAILED</code> 会提示重试，而钱已扣——<strong>用户重试即被重复扣款</strong>。必须有独立的 <code>UNKNOWN</code> / <code>PENDING_CONFIRMATION</code> 状态，且<strong>只要结果未知就必须查询，绝不重试扣款</strong>。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-25">补充</h3>
+<ol>
+<li><strong>复式记账的完整原理与工程实现</strong>：为什么不能用简单的余额字段（七个理由）、账本里有哪些账户（尤其易被忽略的 <strong>PSP 清算账户</strong>）、怎么用 SQL 校验借贷平衡。</li>
+<li><strong>幂等键的完整设计</strong>：该由谁生成（<strong>必须客户端生成并持久化</strong>）、必须存什么（完整响应、请求哈希、<code>client_id</code> 复合主键）、并发竞态处理、过期时间（受客户端重试窗口与 PSP 幂等窗口双重约束，<strong>必须取小值</strong>）。</li>
+<li><strong>支付状态机的三条铁律</strong>：终态不可变更、状态只能单向流转、状态转移必须原子校验；另需只追加的状态转移审计表。</li>
+<li><strong>重试的抖动、上限、断路器，以及「绝不能重试」的场景</strong>：没有抖动会导致惊群效应；<strong>「已提交但未收到响应」的模糊态绝对不能重试，只能查询</strong>。</li>
+<li><strong>「用户看到失败但其实成功了」的完整处理</strong>：五层（界面只显示处理中、前端幂等、webhook 唯一权威、补偿任务兜底、主动通知），以及反向情况的冲正流程。</li>
+<li><strong>对账的差异分类与「时间差」陷阱</strong>：长款/短款/金额不符/状态不符/重复；<strong>结算截止时刻在途的交易会被误判为差异，必须排除</strong>。</li>
+<li><strong>同步 vs 异步通信的术语精确化</strong>：业界标准术语是<strong>点对点 / 竞争消费者</strong>和<strong>发布-订阅 / 扇出</strong>；Kafka 组内是队列、组间是发布订阅，顺序保证只在分区内、不支持单条消息 ack。</li>
+<li><strong>金额不能只用「字符串」就完事</strong>：传输层用字符串正确，但<strong>存储层应用最小货币单位的整数</strong>；且不同货币最小单位不同（USD 2 位、JPY 0 位、KWD 3 位），必须与 <code>currency</code> 一起解释。</li>
+<li><strong>出账流程的合规与现金流细节</strong>：KYC/AML、制裁名单筛查、税务申报，以及<strong>可用余额 vs 待结算余额</strong>的区分（PSP 打款通常 T+1 到 T+3）。</li>
+</ol>
+<hr />
+<h2 id="第-27-章digital-wallet数字钱包">第 27 章：Digital Wallet（数字钱包）</h2>
+<blockquote>
+<p>原笔记本章整体质量很高（尤其事件溯源与 CQRS 部分），但有几处术语、代码和表述需要修正。</p>
+</blockquote>
+<h3 id="勘误-26">勘误</h3>
+<ol>
+<li>
+<p><strong><code>TC/C</code> 应写作 <code>TCC</code>，且它不是 2PC 的「变体」</strong></p>
+<ul>
+<li>原文说法：使用 <code>TC/C</code>，并称它是「2PC 协议的一个变体」。</li>
+<li>正确说法：① 业界标准名称是 <strong>TCC（Try-Confirm-Cancel）</strong>；② TCC 第一阶段就<strong>提交了本地事务</strong>，不长期持锁，属于<strong>补偿型事务</strong>族（与 Saga 同族），与 2PC 是<strong>替代关系</strong>而非变体。工业界最有影响力的实现是蚂蚁的 <strong>Apache Seata</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>分片示例代码存在负数取模的隐患</strong></p>
+<ul>
+<li>原文说法：<code>Int myPartition = accountID.hashCode() % partitionNumber;</code></li>
+<li>正确说法：Java 的 <code>%</code> 对负数返回负结果（<code>String.hashCode()</code> 可能为负，如 <code>&quot;polygenelubricants&quot;.hashCode()</code> 等于 <code>Integer.MIN_VALUE</code>），会下标越界或路由错误。应用 <code>Math.floorMod</code>。此外 <code>% partitionNumber</code> 在分片数变化时几乎全量迁移，生产应改用<strong>一致性哈希</strong>或<strong>预先划分远多于物理节点数的逻辑分片</strong>。</li>
+</ul>
+</li>
+<li>
+<p><strong>「本地磁盘方案不 durable」的表述不准确</strong></p>
+<ul>
+<li>原文说法：<code>The previous approach, although performant, wasn't durable.</code></li>
+<li>正确说法：把<strong>持久性</strong>与<strong>可用性/可靠性</strong>混在一起了。本地磁盘 + mmap + RocksDB 在持久性上是合格的（进程崩溃不丢），它缺的是<strong>冗余</strong>（磁盘坏了数据就没了）。正确说法：短板是<strong>没有副本、存在单点故障</strong>。持久性 ≠ 高可用。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-26">补充</h3>
+<ol>
+<li><strong>三阶段提交（3PC）</strong>：理解「2PC 为什么阻塞」的最好对照；它假设网络不会分区，该假设在真实网络中不成立，工业界基本不用。</li>
+<li><strong>TCC 的三种失败模式</strong>：Confirm 失败只能不断重试（故 Confirm 必须幂等）、空回滚（Empty Rollback）、悬挂（Suspension）——TCC 面试高频考点，原笔记只覆盖了第三个的一半。</li>
+<li><strong>幂等性的实现方式</strong>：用唯一事务 ID 建去重表，把「插入去重记录」和「执行业务操作」放在同一个本地事务里。</li>
+<li><strong>余额不能为负，并发下如何保证</strong>：四种做法按推荐度排列——条件更新（推荐）、乐观锁、悲观锁、数据库约束兜底。条件更新把检查与扣减合并为原子操作，避免 <strong>TOCTOU</strong>。</li>
+<li><strong>对账（Reconciliation）与审计</strong>：内部一致性 / 内部账实相符 / 外部对账（T+1）/ 监管报送四层；核心工具是<strong>复式记账</strong>。对账只能<strong>发现</strong>差异，事件溯源才能<strong>定位</strong>根因。</li>
+<li><strong>现实参照——100 万 TPS 意味着什么</strong>：真实大型支付系统峰值在每秒几十万笔量级，100 万 TPS 已超过绝大多数真实支付系统峰值；要能区分「设计目标」与「行业常态」。</li>
+<li><strong>ZooKeeper 之外的配置存储选择</strong>：今天 <strong>etcd</strong> 和 <strong>Consul</strong> 更常见、更轻量；ZooKeeper 正被逐步替代（Kafka 从 2.8 起支持 KRaft）。</li>
+</ol>
+<hr />
+<h2 id="第-28-章stock-exchange股票交易所">第 28 章：Stock Exchange（股票交易所）</h2>
+<blockquote>
+<p>原笔记本章整体质量高（尤其「关键路径剥离」和「确定性」两节），但有几处事实错误、代码 bug 和概念混淆必须指出。</p>
+</blockquote>
+<h3 id="勘误-27">勘误</h3>
+<ol>
+<li>
+<p><strong>事件溯源的章节链接是错的</strong></p>
+<ul>
+<li>原文说法：<code>Event sourcing is discussed in-depth in the [digital wallet chapter](../chapter28)</code>。</li>
+<li>正确说法：数字钱包是第 27 章，应指向 <strong><code>../chapter27</code></strong>；<code>chapter28</code> 指向本章自己，形成自我引用的坏链接。</li>
+</ul>
+</li>
+<li>
+<p><strong>撮合伪代码存在超卖 bug</strong></p>
+<ul>
+<li>原文说法：<code>Quantity matched = min(limitIter.next.quantity, order.quantity);</code></li>
+<li>正确说法：应为 <strong><code>leavesQuantity</code></strong>（剩余待成交量）。用 <code>order.quantity</code> 在多轮撮合时会导致累计成交超过原始数量——例：<code>quantity=100</code>，对手方 30 手、80 手，错误代码累计成交 <strong>110 手</strong>（超卖 10 手），正确代码为 100 手。真实系统中超卖意味着凭空创造持仓。</li>
+</ul>
+</li>
+<li>
+<p><strong>AMM 不是传统交易所的趋势</strong></p>
+<ul>
+<li>原文说法：<code>modern exchanges rely ... on automatic market makers (AMM) to avoid maintaining an order book</code>。</li>
+<li>正确说法：AMM 是**去中心化金融（DeFi）**概念（用公式定价、不维护订单簿，如 Uniswap 的 <code>x × y = k</code>）。传统交易所仍维护订单簿（提供价格发现与透明度），趋势是云基础设施 + <strong>指定做市商 / 流动性提供者计划</strong>（做市商仍在订单簿挂单，只是承担流动性义务）。</li>
+</ul>
+</li>
+<li>
+<p><strong>订单状态缺少「部分成交」</strong></p>
+<ul>
+<li>原文说法：<code>status</code> 为 <code>new / canceled / filled</code> 三种。</li>
+<li>正确说法：缺少 <code>PARTIALLY_FILLED</code>，而原文自己也说限价单可能部分成交。至少需要 <strong>NEW / PARTIALLY_FILLED / FILLED / CANCELED / REJECTED</strong> 五种——客户端和风控都依赖准确状态。</li>
+</ul>
+</li>
+<li>
+<p><strong>「所有交易所都把一切放在一台服务器上」是过度概括</strong></p>
+<ul>
+<li>原文说法：<code>typically run everything on one gigantic server</code>。</li>
+<li>正确说法：原文 Wrap Up 自己已承认并非所有交易所都这样。准确表述是<strong>撮合核心（matching core）单节点单线程</strong>（为确定性与微秒级延迟），而<strong>外围服务（网关、行情分发、报送、监控、历史查询）是分布式的</strong>。更精确的说法是「关键路径在同一个故障域内」。</li>
+</ul>
+</li>
+<li>
+<p><strong>「美国市场有三级报价」的表述不准确</strong></p>
+<ul>
+<li>原文说法：<code>The US market has three tiers of price quotes - L1, L2, L3</code>。</li>
+<li>正确说法：L1/L2/L3 是<strong>行业通用的行情深度分级约定</strong>（L1 最优买卖价、L2 多档聚合深度、L3 逐笔明细），全球通用，不是美国特有制度。真正属于美国监管的是 <strong>NMS / Reg NMS</strong>（订单保护规则等）。</li>
+</ul>
+</li>
+</ol>
+<h3 id="补充-27">补充</h3>
+<ol>
+<li><strong>为什么不能用普通数据库做撮合</strong>：磁盘 IO（尤其 <code>fsync</code>）、锁竞争、GC 停顿、SQL 解析开销、不可预测的尾延迟；正确做法是<strong>内存撮合 + 顺序写 WAL + 异步写数据库</strong>。</li>
+<li><strong>为什么交易所不用 Raft/Paxos 做撮合</strong>：Raft 每笔提交都要等<strong>多数派确认</strong>（几百微秒到毫秒，受最慢节点拖累）；交易所用<strong>主备 + 异步日志复制</strong>（几十微秒），用同机架同步复制 + 定期快照控制风险。<strong>Raft 的正确用法是控制平面（选主），不是数据平面。</strong></li>
+<li><strong>连续竞价、集合竞价与部分成交</strong>：连续竞价（随到随撮）vs 集合竞价（开盘/收盘统一定价、最大化成交量）；<code>filledQuantity + remainingQuantity = quantity</code> 是必须永远成立的不变量。</li>
+<li><strong>订单簿的有序索引结构</strong>：价格维度用<strong>红黑树 / 跳表</strong>（O(log N)），价格范围固定且 tick 固定时可用<strong>数组按 tick 索引</strong>做到 O(1)；档位内用<strong>双向链表</strong>实现 FIFO，配合 <code>orderMap</code> 实现 O(1) 撤单。</li>
+<li><strong>行情可以丢包，订单不能——为什么？</strong>：行情是<strong>完整状态快照流</strong>（丢一帧可由下一帧覆盖），订单是<strong>增量事件</strong>（丢了永久缺失）。</li>
+<li><strong>公平性与机房托管的矛盾</strong>：等长线缆、统一接入点、速度缓冲（Speed Bump，IEX 的著名机制）——用「故意更慢」换取「更公平」。</li>
+<li><strong>延迟指标的量级澄清</strong>：毫秒级指端到端（含网络、网关、风控），微秒级指撮合引擎内部；现代主流交易所撮合内核在微秒级，端到端在几十微秒到亚毫秒级。</li>
+</ol>
+
+    </article>
+    <nav class="pager"><a class="prev" href="glossary.html"><span class="pg-label">&larr; 上一页</span><span class="pg-title">术语表</span></a><a class="next" href="interview.html"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">高频面试题速查</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#第一节按错误类型速查">第一节　按错误类型速查</a>
+<a class="lv3" href="#11术语过时应停止使用">1.1　术语过时（应停止使用）</a>
+<a class="lv3" href="#12技术事实错误">1.2　技术事实错误</a>
+<a class="lv3" href="#13数字与数据过时">1.3　数字与数据过时</a>
+<a class="lv3" href="#14概念混淆">1.4　概念混淆</a>
+<a class="lv3" href="#15原笔记内容缺失重要缺口">1.5　原笔记内容缺失（重要缺口）</a>
+<a class="lv2" href="#第二节逐章明细">第二节　逐章明细</a>
+<a class="lv2" href="#第-1-章从零到百万用户">第 1 章：从零到百万用户</a>
+<a class="lv3" href="#勘误">勘误</a>
+<a class="lv3" href="#补充">补充</a>
+<a class="lv2" href="#第-2-章粗略估算">第 2 章：粗略估算</a>
+<a class="lv3" href="#勘误-1">勘误</a>
+<a class="lv3" href="#补充-1">补充</a>
+<a class="lv2" href="#第-3-章系统设计框架">第 3 章：系统设计框架</a>
+<a class="lv3" href="#勘误-2">勘误</a>
+<a class="lv3" href="#补充-2">补充</a>
+<a class="lv2" href="#第-4-章限流器">第 4 章：限流器</a>
+<a class="lv3" href="#勘误-3">勘误</a>
+<a class="lv3" href="#补充-3">补充</a>
+<a class="lv2" href="#第-5-章一致性哈希">第 5 章：一致性哈希</a>
+<a class="lv3" href="#勘误-4">勘误</a>
+<a class="lv3" href="#补充-4">补充</a>
+<a class="lv2" href="#第-6-章键值存储">第 6 章：键值存储</a>
+<a class="lv3" href="#勘误-5">勘误</a>
+<a class="lv3" href="#补充-5">补充</a>
+<a class="lv2" href="#第-7-章唯一-id-生成器">第 7 章：唯一 ID 生成器</a>
+<a class="lv3" href="#勘误-6">勘误</a>
+<a class="lv3" href="#补充-6">补充</a>
+<a class="lv2" href="#第-8-章url-短链">第 8 章：URL 短链</a>
+<a class="lv3" href="#勘误-7">勘误</a>
+<a class="lv3" href="#补充-7">补充</a>
+<a class="lv2" href="#第-9-章网络爬虫">第 9 章：网络爬虫</a>
+<a class="lv3" href="#勘误-8">勘误</a>
+<a class="lv3" href="#补充-8">补充</a>
+<a class="lv2" href="#第-10-章通知系统">第 10 章：通知系统</a>
+<a class="lv3" href="#勘误-9">勘误</a>
+<a class="lv3" href="#补充-9">补充</a>
+<a class="lv2" href="#第-11-章新闻信息流">第 11 章：新闻信息流</a>
+<a class="lv3" href="#勘误-10">勘误</a>
+<a class="lv3" href="#补充-10">补充</a>
+<a class="lv2" href="#第-12-章聊天系统">第 12 章：聊天系统</a>
+<a class="lv3" href="#勘误-11">勘误</a>
+<a class="lv3" href="#补充-11">补充</a>
+<a class="lv2" href="#第-13-章搜索自动补全">第 13 章：搜索自动补全</a>
+<a class="lv3" href="#勘误-12">勘误</a>
+<a class="lv3" href="#补充-12">补充</a>
+<a class="lv2" href="#第-14-章youtube">第 14 章：YouTube</a>
+<a class="lv3" href="#勘误-13">勘误</a>
+<a class="lv3" href="#补充-13">补充</a>
+<a class="lv2" href="#第-15-章google-drive-设计">第 15 章：Google Drive 设计</a>
+<a class="lv3" href="#勘误-14">勘误</a>
+<a class="lv3" href="#补充-14">补充</a>
+<a class="lv2" href="#第-16-章proximity-service附近服务">第 16 章：Proximity Service（附近服务）</a>
+<a class="lv3" href="#勘误-15">勘误</a>
+<a class="lv3" href="#补充-15">补充</a>
+<a class="lv2" href="#第-17-章nearby-friends附近的朋友">第 17 章：Nearby Friends（附近的朋友）</a>
+<a class="lv3" href="#勘误-16">勘误</a>
+<a class="lv3" href="#补充-16">补充</a>
+<a class="lv2" href="#第-18-章google-maps-设计">第 18 章：Google Maps 设计</a>
+<a class="lv3" href="#勘误-17">勘误</a>
+<a class="lv3" href="#补充-17">补充</a>
+<a class="lv2" href="#第-19-章distributed-message-queue分布式消息队列">第 19 章：Distributed Message Queue（分布式消息队列）</a>
+<a class="lv3" href="#勘误-18">勘误</a>
+<a class="lv3" href="#补充-18">补充</a>
+<a class="lv2" href="#第-20-章metrics-monitoring-and-alerting-system监控告警系统">第 20 章：Metrics Monitoring and Alerting System（监控告警系统）</a>
+<a class="lv3" href="#勘误-19">勘误</a>
+<a class="lv3" href="#补充-19">补充</a>
+<a class="lv2" href="#第-21-章ad-click-event-aggregation广告点击事件聚合">第 21 章：Ad Click Event Aggregation（广告点击事件聚合）</a>
+<a class="lv3" href="#勘误-20">勘误</a>
+<a class="lv3" href="#补充-20">补充</a>
+<a class="lv2" href="#第-22-章hotel-reservation-system酒店预订系统">第 22 章：Hotel Reservation System（酒店预订系统）</a>
+<a class="lv3" href="#勘误-21">勘误</a>
+<a class="lv3" href="#补充-21">补充</a>
+<a class="lv2" href="#第-23-章distributed-email-service分布式邮件服务">第 23 章：Distributed Email Service（分布式邮件服务）</a>
+<a class="lv3" href="#勘误-22">勘误</a>
+<a class="lv3" href="#补充-22">补充</a>
+<a class="lv2" href="#第-24-章s3-like-object-storage类-s3-对象存储">第 24 章：S3-like Object Storage（类 S3 对象存储）</a>
+<a class="lv3" href="#勘误-23">勘误</a>
+<a class="lv3" href="#补充-23">补充</a>
+<a class="lv2" href="#第-25-章real-time-gaming-leaderboard实时游戏排行榜">第 25 章：Real-time Gaming Leaderboard（实时游戏排行榜）</a>
+<a class="lv3" href="#勘误-24">勘误</a>
+<a class="lv3" href="#补充-24">补充</a>
+<a class="lv2" href="#第-26-章payment-system支付系统">第 26 章：Payment System（支付系统）</a>
+<a class="lv3" href="#勘误-25">勘误</a>
+<a class="lv3" href="#补充-25">补充</a>
+<a class="lv2" href="#第-27-章digital-wallet数字钱包">第 27 章：Digital Wallet（数字钱包）</a>
+<a class="lv3" href="#勘误-26">勘误</a>
+<a class="lv3" href="#补充-26">补充</a>
+<a class="lv2" href="#第-28-章stock-exchange股票交易所">第 28 章：Stock Exchange（股票交易所）</a>
+<a class="lv3" href="#勘误-27">勘误</a>
+<a class="lv3" href="#补充-27">补充</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../"};</script>
+<script src="../assets/app.js" defer></script>
+</body>
+</html>

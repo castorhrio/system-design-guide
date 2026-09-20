@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 11 章：设计信息流系统 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item active" href="./"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-11-章设计信息流系统">第 11 章：设计信息流系统</h1>
+<blockquote>
+<p>原章节：Design a News Feed System · 原项目路径 <code>11. News Feed System/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>信息流（News Feed）是你每天都会用、却很少去想它有多难的东西。打开微信朋友圈、刷微博、看 Twitter——屏幕上的内容是怎么在几百毫秒内被拼出来的？</p>
+<p>这一章要解决的核心问题是：<strong>当你有 1000 万活跃用户、有人有 5000 个好友、还有人有一千万粉丝时，&quot;把好友的动态聚合给你看&quot;这件事，到底该在写入的时候做，还是在读取的时候做？</strong></p>
+<p>这不是一个可以含糊过去的问题——它决定了整个系统的成本、延迟和可扩展性。学完这一章，你应该能回答：为什么 Twitter、微博这类系统最终都选择了&quot;推拉结合&quot;？一个大 V 发一条动态，系统要付出多少代价？为什么&quot;按时间倒序&quot;正在被&quot;算法排序&quot;取代，架构上要做什么改造？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>信息流系统的两条核心链路：发布（Feed Publishing）与读取（News Feed Building）</li>
+<li><strong>推模式（Fan-out on Write / 写扩散）、拉模式（Fan-out on Read / 读扩散）、推拉结合</strong>的完整对比与选型依据</li>
+<li>为什么 Twitter / 微博最终选择&quot;普通用户推、大 V 拉&quot;的混合模式</li>
+<li>大 V 问题的量化：一个 1000 万粉丝的用户发一条动态，成本是多少</li>
+<li>五层缓存架构各自解决什么问题</li>
+<li>从时间倒序到算法排序：排序系统需要哪些新组件</li>
+</ul>
+<hr />
+<h2 id="1-需求与规模">1. 需求与规模</h2>
+<h3 id="功能需求">功能需求</h3>
+<ul>
+<li><strong>平台</strong>：同时支持 Web 和移动端。</li>
+<li><strong>发布</strong>：用户可以发帖（文字、图片、视频、链接）。</li>
+<li><strong>消费</strong>：用户可以看到好友的动态，聚合在自己的信息流里。</li>
+<li><strong>排序</strong>：原笔记为了简化，设定为<strong>按时间倒序（reverse chronological order）</strong>。</li>
+</ul>
+<h3 id="规模估算">规模估算</h3>
+<p>原笔记给的数字是：</p>
+<ul>
+<li>单用户最多 <strong>5000 个好友</strong></li>
+<li><strong>1000 万日活用户（DAU, Daily Active Users）</strong></li>
+<li>信息流里包含文字、图片、视频</li>
+</ul>
+<p>这些数字看起来不大，但一旦开始算扇出（fan-out）的量，就会发现问题。</p>
+<p><strong>我们先算读取量。</strong> 假设每个用户每天刷新信息流 10 次：</p>
+<pre><code>日读取量 = 10,000,000 × 10 = 100,000,000 次
+平均读 QPS = 100,000,000 / 86,400 ≈ 1,157 QPS
+峰值读 QPS ≈ 1,157 × 3 ≈ 3,500 QPS
+</code></pre>
+<p><strong>再算写入量。</strong> 假设每个用户每天发 1 条动态，平均每人 200 个好友：</p>
+<pre><code>日发帖量 = 10,000,000 条
+日扇出写入量 = 10,000,000 × 200 = 2,000,000,000 次（20 亿次）
+平均扇出 QPS = 2,000,000,000 / 86,400 ≈ 23,000 QPS
+峰值扇出 QPS ≈ 23,000 × 3 ≈ 70,000 QPS
+</code></pre>
+<blockquote>
+<p><strong>注意这两个数字的不对称</strong>：读是 3500 QPS，扇出写是 70000 QPS——<strong>写入侧的负载是读取侧的 20 倍</strong>。
+这个不对称正是本章所有设计的出发点。单台 Redis 大约能扛 10 万次简单操作/秒，70,000 QPS 的峰值已经接近它的极限了，而且还只是&quot;平均情况&quot;，没算大 V。所以<strong>扇出必须能分片、能削峰、能选择性地放弃</strong>。</p>
+</blockquote>
+<h3 id="一个必须先想清楚的问题">一个必须先想清楚的问题</h3>
+<p>信息流系统的本质是<strong>一次多对多的聚合</strong>：你关注了 N 个人，系统要把这 N 个人最近的动态，按某个顺序合并成一条列表给你。</p>
+<p>这里立刻出现了一个分叉：</p>
+<ul>
+<li>我可以在<strong>别人发帖的时候</strong>，就把帖子塞进所有粉丝的信息流里（<strong>写的时候扩散</strong>）；</li>
+<li>也可以在<strong>我读的时候</strong>，才去把关注的人最近的帖子捞出来合并（<strong>读的时候扩散</strong>）。</li>
+</ul>
+<p>这两种选择，就是本章的核心。第 4 节会展开。</p>
+<hr />
+<h2 id="2-高层设计两条链路与-api">2. 高层设计：两条链路与 API</h2>
+<p>信息流系统可以拆成两条相对独立的链路。</p>
+<h3 id="21-两条链路">2.1 两条链路</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>链路</th>
+<th>触发</th>
+<th>做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>发布链路（Feed Publishing）</strong></td>
+<td>用户发帖</td>
+<td>存帖 + 传播到好友的信息流</td>
+</tr>
+<tr>
+<td><strong>读取链路（News Feed Building）</strong></td>
+<td>用户刷信息流</td>
+<td>聚合好友的帖子，按序返回</td>
+</tr>
+</tbody>
+</table></div>
+<p>两条链路的负载特征完全不同：<strong>发布是写密集且会放大</strong>，<strong>读取是读密集且要求低延迟</strong>。把它们分开设计，才能各自优化。</p>
+<h3 id="22-两个-api">2.2 两个 API</h3>
+<p>原笔记给出的 API 设计很简洁：</p>
+<p><strong>发布动态</strong></p>
+<pre><code>POST /v1/me/feed
+参数：
+  content     动态内容（文字、图片 URL 等）
+  auth_token  鉴权令牌
+</code></pre>
+<p><strong>获取信息流</strong></p>
+<pre><code>GET /v1/me/feed
+参数：
+  auth_token  鉴权令牌
+</code></pre>
+<blockquote>
+<p><strong>这里有个现代实践上的补充</strong>：真实的信息流 API 一定是<strong>基于游标（cursor）分页</strong>的，而不是 <code>offset</code> + <code>limit</code>。原因是信息流是<strong>持续变化</strong>的：你用 <code>offset=20</code> 翻到第二页，如果这期间有人发了新帖，第一页的内容会整体后移，你第二页就会看到第一页已经看过的内容（重复），或者漏掉内容。游标（比如&quot;上一页最后一条的时间戳/ID&quot;）能锚定一个稳定的位置。
+参数大概长这样：<code>GET /v1/me/feed?cursor=&lt;last_post_id&gt;&amp;limit=20</code>。</p>
+</blockquote>
+<h3 id="23-发布链路">2.3 发布链路</h3>
+<div align="center"><img src="./images/feed-publishing.png" alt="发布链路：用户发帖、负载均衡、Web 服务器、帖子服务、扇出服务、通知服务" width="520" loading="lazy" decoding="async"></div>
+<p>一条动态的发布流程：</p>
+<ol>
+<li><strong>用户</strong>通过发布 API 提交动态。</li>
+<li><strong>负载均衡器</strong>把请求分发到某台 Web 服务器。</li>
+<li><strong>Web 服务器</strong>校验 <code>auth_token</code>，把请求转发给后端服务。</li>
+<li>**帖子服务（Post Service）**把帖子写入数据库和缓存。</li>
+<li>**扇出服务（Fanout Service）**把帖子传播到好友的信息流缓存里。</li>
+<li>**通知服务（Notification Service）**给好友发通知。</li>
+</ol>
+<h3 id="24-读取链路">2.4 读取链路</h3>
+<div align="center"><img src="./images/news-feed-building.png" alt="读取链路：用户请求信息流、Web 服务器、信息流服务、从缓存取帖子 ID、从数据库取帖子详情" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li><strong>用户</strong>通过读取 API 请求信息流。</li>
+<li><strong>负载均衡器</strong>分发请求。</li>
+<li><strong>Web 服务器</strong>把请求转发给信息流服务。</li>
+<li><strong>信息流服务（News Feed Service）<strong>从信息流缓存里取出</strong>帖子 ID 列表</strong>，再根据这些 ID 去数据库或内容缓存里取完整的帖子详情，组装后返回。</li>
+</ol>
+<blockquote>
+<p><strong>为什么分两步取？</strong> 因为&quot;帖子 ID 列表&quot;很小、变化很快，适合放在缓存里；&quot;帖子详情&quot;（正文、图片 URL、作者信息）体积大、变化慢，适合放在另一层缓存或数据库。<strong>如果信息流缓存里直接存完整帖子，一条帖子被 200 个人引用就要存 200 份，内存会爆炸。</strong> 存 ID 是标准做法，这个细节在下一节会再出现。</p>
+</blockquote>
+<hr />
+<h2 id="3-发布链路深入扇出服务">3. 发布链路深入：扇出服务</h2>
+<h3 id="31-扇出服务的五个步骤">3.1 扇出服务的五个步骤</h3>
+<div align="center"><img src="./images/feed-publishing-deep-dive.png" alt="发布链路深入：Web 服务器与扇出服务" width="520" loading="lazy" decoding="async"></div>
+<p>原笔记给出的扇出流程是：</p>
+<ol>
+<li><strong>取好友 ID</strong>：从图数据库（Graph DB）里取出作者的好友列表。</li>
+<li><strong>按缓存过滤</strong>：读取用户设置，排除掉不该看到这条动态的人（比如被静音的好友、分组可见的例外）。</li>
+<li><strong>投递到消息队列</strong>：把&quot;过滤后的好友列表 + 新帖子 ID&quot;打包，投进消息队列。</li>
+<li><strong>扇出 worker 消费</strong>：worker 从队列里取任务，更新好友的信息流缓存。</li>
+<li><strong>写入信息流缓存</strong>：把新帖子 ID 追加到好友的缓存列表里。</li>
+</ol>
+<div align="center"><img src="./images/fanout-service.png" alt="扇出服务：好友列表过滤、消息队列、扇出 worker、信息流缓存" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>两个关键设计细节</strong>，原笔记提到了，值得展开：</p>
+<p><strong>① 缓存里存的是 <code>&lt;post_id, user_id&gt;</code> 映射，不是完整帖子对象。</strong> 原因上面说过——避免存储放大。一个 5000 好友的大 V 发帖，如果存完整帖子就是 5000 份副本；存 ID 只有 5000 个 8 字节的数字。</p>
+<p><strong>② 缓存列表有长度上限（configurable limit）。</strong> 每个用户的信息流缓存只保留最近 N 条（比如 500 条）。因为绝大多数用户只看最新的内容，保留更早的没有意义，反而会吃掉大量内存。实现上是 <code>LPUSH</code>（头插）+ <code>LTRIM</code>（保留前 N 个）。</p>
+</blockquote>
+<h3 id="32-为什么要用消息队列">3.2 为什么要用消息队列</h3>
+<p>扇出是一个<strong>天然的异步操作</strong>：用户发帖后，不需要等&quot;传播给所有好友&quot;完成才能看到&quot;发布成功&quot;。所以：</p>
+<pre><code>帖子服务（写库，立即返回&quot;发布成功&quot;）→ 消息队列 → 扇出 worker（慢慢传播）
+</code></pre>
+<p>好处和第 10 章通知系统一样：<strong>削峰、解耦、可独立扩展</strong>。大 V 发帖会产生巨大的扇出任务，先堆在队列里，worker 按自己的能力消费，不会把缓存集群打垮。</p>
+<hr />
+<h2 id="4-核心议题推模式拉模式与推拉结合">4. 核心议题：推模式、拉模式与推拉结合</h2>
+<p>这是本章最重要的一节。原笔记提到了这三种模式，但对比不够系统，这里补全。</p>
+<h3 id="41-三种模式是什么">4.1 三种模式是什么</h3>
+<p><strong>① 推模式（Fan-out on Write / 写扩散）</strong></p>
+<p>用户发帖时，<strong>立刻</strong>把帖子 ID 写进所有好友的信息流缓存。</p>
+<ul>
+<li>读的时候，直接读自己的缓存列表即可，O(1)。</li>
+<li>代价：写的时候要写 N 次（N = 好友数）。</li>
+</ul>
+<p><strong>② 拉模式（Fan-out on Read / 读扩散）</strong></p>
+<p>用户发帖时，<strong>只写自己的发件箱（outbox）</strong>。好友读信息流时，系统<strong>实时</strong>去拉取所有关注对象的发件箱，合并排序后返回。</p>
+<ul>
+<li>写的时候只写 1 次，O(1)。</li>
+<li>代价：读的时候要拉 M 次（M = 关注数）并合并排序。</li>
+</ul>
+<p><strong>③ 推拉结合（Hybrid）</strong></p>
+<p>对<strong>大部分用户</strong>用推模式（他们的粉丝少，写入放大可接受，读取快）；对**大 V（粉丝极多）**用拉模式（不推，等粉丝来读时再拉）。</p>
+<h3 id="42-完整对比表">4.2 完整对比表</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>推模式（Fan-out on Write）</th>
+<th>拉模式（Fan-out on Read）</th>
+<th>推拉结合（Hybrid）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>写入成本</strong></td>
+<td>高，O(粉丝数)，一条动态写 N 次</td>
+<td>低，O(1)，只写自己的发件箱</td>
+<td>中，普通用户 O(粉丝数)，大 V O(1)</td>
+</tr>
+<tr>
+<td><strong>读取成本</strong></td>
+<td>低，O(1)，直接读预计算好的列表</td>
+<td>高，O(关注数)，需实时拉取 + 归并排序</td>
+<td>中，普通部分 O(1)，大 V 部分 O(大 V 数)</td>
+</tr>
+<tr>
+<td><strong>读取延迟</strong></td>
+<td>低且稳定（毫秒级，一次缓存读）</td>
+<td>高且随关注数增长（要拉 M 个源再排序）</td>
+<td>低（大 V 数量通常只有几十到几百）</td>
+</tr>
+<tr>
+<td><strong>写入延迟</strong></td>
+<td>高（要等扇出完成才可见，或异步有延迟）</td>
+<td>低（写完自己发件箱即可）</td>
+<td>低</td>
+</tr>
+<tr>
+<td><strong>存储放大</strong></td>
+<td>高：一条动态存 N 份</td>
+<td>无：一条动态只存 1 份</td>
+<td>中</td>
+</tr>
+<tr>
+<td><strong>实时性</strong></td>
+<td>好（写完即扇出）</td>
+<td>取决于缓存，可能差</td>
+<td>好（大 V 的动态读取时现拉，反而更实时）</td>
+</tr>
+<tr>
+<td><strong>热点抗性</strong></td>
+<td><strong>差</strong>：大 V 发帖即风暴</td>
+<td><strong>好</strong>：大 V 发帖不影响任何人</td>
+<td>好</td>
+</tr>
+<tr>
+<td><strong>不活跃用户</strong></td>
+<td><strong>浪费</strong>：给从不登录的用户白写</td>
+<td><strong>友好</strong>：不登录就不产生读取成本</td>
+<td>友好（可对不活跃用户关闭推送）</td>
+</tr>
+<tr>
+<td><strong>实现复杂度</strong></td>
+<td>低</td>
+<td>中</td>
+<td>高</td>
+</tr>
+<tr>
+<td><strong>适合场景</strong></td>
+<td>粉丝少、活跃度高的社交关系</td>
+<td>粉丝多、或读少写多的场景</td>
+<td>大规模社交网络（Twitter / 微博 / Instagram）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="43-为什么最终都选推拉结合">4.3 为什么最终都选&quot;推拉结合&quot;</h3>
+<p>先看两个极端为什么都不行。</p>
+<p><strong>纯推模式的死穴是&quot;大 V&quot;。</strong> 一个 1000 万粉丝的用户发一条动态，就要写 1000 万次缓存——这个量级我们下一节会算，结论是<strong>单次发布就会压垮集群</strong>。而且这种负载是<strong>脉冲式</strong>的：大 V 往往在晚间发帖，几百万次写入会在几秒内砸下来。</p>
+<p><strong>纯拉模式的死穴是&quot;读取延迟&quot;。</strong> 如果每个用户关注了 500 个人，每次刷新信息流都要拉 500 个发件箱、做一次 500 路归并排序。虽然每个发件箱的读取都很快（Redis 单次约 0.1 毫秒），但 500 次就是 50 毫秒，再加上网络往返和排序，很容易突破 100 毫秒。而且<strong>这个成本是每个用户每次刷新都要付的</strong>——读取 QPS 是 3500，乘以 500 就是 175 万次缓存读/秒。<strong>读扩散把成本从&quot;少数人的写入&quot;转移到了&quot;所有人的每一次读取&quot;上，这在读多写少的社交场景里是更糟糕的交换。</strong></p>
+<p><strong>推拉结合是怎么做的？</strong></p>
+<pre><code>普通用户（粉丝 &lt; 阈值，比如 1 万）发帖 → 推模式：扇出给所有粉丝
+大 V（粉丝 ≥ 阈值）发帖        → 拉模式：只写自己的发件箱，不扇出
+</code></pre>
+<p>当<strong>你</strong>读信息流时：</p>
+<pre><code>① 读你自己的信息流缓存（里面是普通好友的动态，已预计算好）
+② 额外拉取你关注的所有大 V 的最近动态（通常只有几十个）
+③ 把 ①② 合并，按时间（或算法分数）排序，返回
+</code></pre>
+<p><strong>这个设计为什么成立？</strong> 关键在于两个统计事实：</p>
+<ol>
+<li><strong>大 V 的数量极少。</strong> 一个用户可能关注 500 个人，但其中粉丝过万的通常只有几十个。所以第 ② 步的拉取成本是 O(几十)，而不是 O(500)。</li>
+<li><strong>绝大多数用户是&quot;普通用户&quot;。</strong> 平台上的粉丝数分布是典型的<strong>幂律分布（Power Law）</strong>：头部 0.1% 的用户拥有 90% 的关注。所以推模式覆盖了 99.9% 的写入量，而写放大对这些人来说很小（平均 200 个粉丝）。</li>
+</ol>
+<blockquote>
+<p><strong>推拉结合的本质是&quot;按成本选择策略&quot;</strong>：谁的成本高（大 V），就用拉模式把成本延后、摊薄到读取时；谁的成本低（普通人），就用推模式换取读取时的低延迟。<strong>这是一个典型的&quot;把昂贵操作从热路径上移走&quot;的工程思路</strong>，你在缓存、索引、预计算里会反复见到它。</p>
+</blockquote>
+<blockquote>
+<p><strong>阈值该设多少？</strong> 这是一个纯工程经验值，没有标准答案。设低了（比如 1000 粉丝），会有大量用户走拉模式，读取成本上升；设高了（比如 100 万粉丝），会有更多用户走推模式，写入放大上升。实践中会<strong>根据集群负载动态调整</strong>，甚至做 A/B 测试。</p>
+</blockquote>
+<h3 id="44-原笔记没提的两个重要变体">4.4 原笔记没提的两个重要变体</h3>
+<p><strong>① 不活跃用户不推送（Inactive User Optimization）</strong></p>
+<p>如果某个用户已经 30 天没登录了，给他扇出就是纯浪费——他不会来看。做法是：</p>
+<ul>
+<li>维护一个&quot;活跃用户&quot;集合（登录时打点，比如用 Redis 的 bitmap 按天记录）；</li>
+<li>扇出时<strong>跳过不活跃用户</strong>；</li>
+<li>当不活跃用户下次登录时，<strong>临时按拉模式构建他的信息流</strong>（拉取所有关注对象的最近动态），构建完成后标记为活跃，之后恢复推送。</li>
+</ul>
+<p>在一个日活 1000 万、月活可能 5000 万的平台里，这意味着<strong>扇出量直接减少 80%</strong>。这是最划算的优化之一。</p>
+<p><strong>② 新用户 / 冷启动</strong></p>
+<p>新注册用户没有任何信息流缓存，第一次打开时要么是空的（体验差），要么需要按拉模式实时构建。通常的做法是：</p>
+<ul>
+<li>立即按拉模式构建一次（拉取关注对象的最近动态）；</li>
+<li>如果关注的人太少，混入一些&quot;热门内容&quot;或&quot;推荐内容&quot;填充，避免空白页。</li>
+</ul>
+<hr />
+<h2 id="5-大-v-问题的量化">5. 大 V 问题的量化</h2>
+<p>&quot;大 V 发帖会压垮系统&quot;这句话，只有算出来才有说服力。我们来算一遍。</p>
+<h3 id="51-场景">5.1 场景</h3>
+<p>一个 <strong>1000 万粉丝</strong>的用户（比如一个明星）发布一条动态。</p>
+<p><strong>如果走纯推模式</strong>，扇出服务需要：</p>
+<pre><code>1000 万次缓存写入（每次是一个 LPUSH + 一次 LTRIM）
+</code></pre>
+<h3 id="52-需要多久">5.2 需要多久</h3>
+<p><strong>单台 Redis 节点</strong>的处理能力（简单命令、pipeline 批量）大约是 <strong>10 万次操作/秒</strong>。但每次扇出实际上是 <code>LPUSH</code> + <code>LTRIM</code> 两个操作，所以有效吞吐约 <strong>5 万次/秒</strong>：</p>
+<pre><code>1000 万 / 5 万 = 200 秒 ≈ 3.3 分钟
+</code></pre>
+<p><strong>这是单线程 Redis 串行处理的理想值。</strong> 如果算上扇出 worker 的网络开销（每个 worker 每秒可能只能处理几千次写入），时间会更长。</p>
+<p><strong>分片之后呢？</strong> 如果我们有 100 个 Redis 分片（按 <code>user_id</code> 分片），每个分片只需要处理 10 万次写入：</p>
+<pre><code>每个分片 10 万次 / 5 万次每秒 = 2 秒
+</code></pre>
+<p>看起来很快了。但要注意：</p>
+<ul>
+<li><strong>这是峰值叠加的。</strong> 如果这个大 V 不是唯一的大 V，或者恰好赶上晚间高峰，多个大 V 同时发帖，写入量会叠加到同一个分片上（因为分片是按粉丝 <code>user_id</code> 分的，某个分片可能同时承载多个大 V 的粉丝）。</li>
+<li><strong>扇出 worker 本身是瓶颈。</strong> 1000 万次写入，即使每个 worker 每秒能写 1 万次，也需要 1000 个 worker 干 1 秒——而实际中 worker 还要做过滤、查图数据库等操作，真实吞吐会低得多。</li>
+<li><strong>这还只是&quot;一条动态&quot;。</strong> 如果一个明星一天发 10 条，就是 1 亿次写入。</li>
+</ul>
+<h3 id="53-存储放大">5.3 存储放大</h3>
+<p>每条信息流缓存条目大约 8–16 字节（帖子 ID + 一些元数据）。1000 万条：</p>
+<pre><code>1000 万 × 8 字节 ≈ 80 MB（每条动态）
+</code></pre>
+<p>如果这个明星一天发 10 条动态：</p>
+<pre><code>80 MB × 10 = 800 MB / 天（只为一个用户）
+</code></pre>
+<p>而一个 200 好友的普通用户，发 10 条动态只产生：</p>
+<pre><code>200 × 10 = 2,000 次写入 ≈ 16 KB
+</code></pre>
+<p><strong>两者的写入量相差 5 万倍。</strong> 这就是为什么必须对大 V 特殊处理。</p>
+<h3 id="54-拉模式下的成本对比">5.4 拉模式下的成本对比</h3>
+<p>改用拉模式后，这个大 V 发帖的成本是：</p>
+<pre><code>1 次写入（写自己的发件箱）
+</code></pre>
+<p>成本几乎为零。而代价被转移到了读取侧：<strong>每个关注他的粉丝，每次刷新信息流时多拉一次他的发件箱。</strong></p>
+<p>如果这个明星有 1000 万粉丝，其中 100 万是日活、每人每天刷新 10 次：</p>
+<pre><code>100 万 × 10 = 1000 万次额外读取 / 天
+平均 = 1000 万 / 86,400 ≈ 116 QPS
+</code></pre>
+<p><strong>116 QPS，而且是可以缓存、可以合并的</strong>（同一个大 V 的发件箱被 100 万粉丝读，完全可以加一层缓存）。</p>
+<p><strong>对比一下：写侧从 1000 万次脉冲式写入，变成了读侧 116 QPS 的平稳读取。</strong> 这就是推拉结合的价值——它把一个&quot;必然打垮系统&quot;的操作，换成了一个&quot;完全可控&quot;的操作。</p>
+<hr />
+<h2 id="6-读取链路深入五层缓存架构">6. 读取链路深入：五层缓存架构</h2>
+<div align="center"><img src="./images/cache-architecture.png" alt="缓存架构：信息流缓存、内容缓存、社交图谱缓存、动作缓存、计数缓存" width="520" loading="lazy" decoding="async"></div>
+<p>原笔记给出了五层缓存，每一层解决不同的问题：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>缓存层</th>
+<th>存什么</th>
+<th>解决什么问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>信息流缓存（News Feed Cache）</strong></td>
+<td>用户的帖子 ID 列表（<code>user_id → [post_id, ...]</code>）</td>
+<td>让&quot;读信息流&quot;变成一次 O(1) 的缓存读</td>
+</tr>
+<tr>
+<td><strong>内容缓存（Content Cache）</strong></td>
+<td>帖子详情（正文、图片 URL、作者信息），热点内容放热缓存（hot cache）</td>
+<td>避免为每个帖子 ID 都查一次数据库</td>
+</tr>
+<tr>
+<td><strong>社交图谱缓存（Social Graph Cache）</strong></td>
+<td>用户关系（关注、好友、拉黑）</td>
+<td>扇出时快速取好友列表；读取时判断可见性</td>
+</tr>
+<tr>
+<td><strong>动作缓存（Action Cache）</strong></td>
+<td>用户行为（点赞、回复、转发）</td>
+<td>快速渲染&quot;我是否点过赞&quot;这类个性化状态</td>
+</tr>
+<tr>
+<td><strong>计数缓存（Counter Cache）</strong></td>
+<td>点赞数、评论数、粉丝数</td>
+<td>高并发计数不能每次都写数据库</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="61-为什么计数要单独一层缓存">6.1 为什么计数要单独一层缓存</h3>
+<p>计数（点赞数、评论数）有一个特点：<strong>读极多、写极多、但精度要求不高</strong>。</p>
+<p>一条热门动态可能有 100 万人点赞，如果每次点赞都 <code>UPDATE posts SET like_count = like_count + 1</code>，数据库会被打爆（这是典型的<strong>热点行更新</strong>问题）。</p>
+<p>标准做法是<strong>在 Redis 里做原子计数</strong>（<code>INCR</code>），异步批量刷回数据库。用户看到的数字可能有一两秒的延迟，但完全可以接受。</p>
+<blockquote>
+<p><strong>注意&quot;计数缓存&quot;和&quot;业务数据&quot;的区别</strong>：计数是<strong>可推导的、容忍短暂不一致的</strong>；而&quot;这条评论是否被删除了&quot;是<strong>必须准确的</strong>。把两者混在一起设计，就会出现&quot;点赞数对但评论内容错了&quot;的诡异现象。所以计数要独立成一层。</p>
+</blockquote>
+<h3 id="62-缓存的失效顺序">6.2 缓存的失效顺序</h3>
+<p>一个容易被忽略的细节：<strong>五层缓存之间是有依赖的</strong>。</p>
+<p>比如用户删了一条动态，需要失效：</p>
+<ol>
+<li>内容缓存里的帖子详情；</li>
+<li>所有粉丝的信息流缓存里的那个 post_id（这个很贵，通常靠<strong>读取时过滤</strong>——取到 post_id 后发现帖子已删就跳过，而不是去遍历所有人的缓存删除）；</li>
+<li>相关计数。</li>
+</ol>
+<p><strong>这解释了为什么&quot;信息流缓存里存 ID 而不存完整帖子&quot;还有第二个好处</strong>：帖子被删或被修改时，只需要失效一份内容缓存，所有引用它的信息流会自动&quot;看到&quot;最新状态（或者发现帖子不存在而跳过）。</p>
+<hr />
+<h2 id="7-信息流排序从时间倒序到算法排序">7. 信息流排序：从时间倒序到算法排序</h2>
+<p>原笔记把&quot;按时间倒序&quot;当作一个简化假设。但<strong>现代信息流几乎全部是算法排序</strong>，这是本章最需要补充的内容。</p>
+<h3 id="71-为什么要从时间倒序转向算法排序">7.1 为什么要从时间倒序转向算法排序</h3>
+<p>按时间倒序的问题很简单：<strong>它假设&quot;最新的就是最相关的&quot;，但这不是事实。</strong></p>
+<ul>
+<li>你关注了 500 个人，其中 490 个是你不太关心的。如果按时间倒序，这 490 个人的碎碎念会淹没你真正想看的那 10 个人。</li>
+<li>时间倒序无法处理&quot;质量&quot;：一条精心写的长文和一句&quot;早安&quot;，在时间线上是平等的。</li>
+<li>时间倒序无法处理&quot;时效衰减&quot;：一条 3 天前的重磅新闻，应该比 3 秒前的一条无意义动态更靠前吗？这取决于内容。</li>
+</ul>
+<p>所以主流平台（Facebook、Instagram、Twitter、微博、抖音）都改成了<strong>算法排序</strong>。Facebook 早期叫 EdgeRank，公式大意是：</p>
+<pre><code>分数 = 亲和力（Affinity） × 内容权重（Weight） × 时间衰减（Time Decay）
+</code></pre>
+<ul>
+<li><strong>亲和力</strong>：你和作者的历史互动频率（你经常给他点赞评论，说明你关心他）。</li>
+<li><strong>内容权重</strong>：内容类型（视频 &gt; 图片 &gt; 文字？）、话题热度、是否包含链接。</li>
+<li><strong>时间衰减</strong>：越旧的内容分数越低。</li>
+</ul>
+<p>现代系统则用<strong>机器学习模型</strong>（GBDT、深度神经网络、多任务学习）来预测&quot;你会不会对这条内容产生互动（点击、点赞、评论、停留）&quot;，直接以预测的互动概率作为排序分数。</p>
+<h3 id="72-架构上要怎么支持">7.2 架构上要怎么支持</h3>
+<p>这是关键问题：<strong>算法排序需要一个完整的新子系统，而不是&quot;把 ORDER BY 换个字段&quot;。</strong></p>
+<p>标准的排序架构是**两阶段（Two-Stage）**的：</p>
+<pre><code>候选生成（Candidate Generation） → 排序（Ranking） → 策略过滤（Policy） → 返回
+</code></pre>
+<p><strong>① 候选生成（召回）</strong></p>
+<p>先从海量内容里挑出<strong>几百到几千个候选</strong>。来源包括：</p>
+<ul>
+<li>推模式预计算的信息流缓存（普通好友的动态）；</li>
+<li>拉模式拉取的大 V 动态；</li>
+<li>站外推荐（你没关注但可能感兴趣的内容）；</li>
+<li>广告、运营内容。</li>
+</ul>
+<p>目标是<strong>快速</strong>从几百万条降到几千条。这里用轻量模型或规则。</p>
+<p><strong>② 特征获取（Feature Fetching）</strong></p>
+<p>对每个候选，拉取排序所需的特征：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>特征类别</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户特征</td>
+<td>年龄、性别、活跃时段、长期兴趣标签</td>
+</tr>
+<tr>
+<td>作者特征</td>
+<td>粉丝数、历史互动率、内容质量分</td>
+</tr>
+<tr>
+<td>内容特征</td>
+<td>类型、长度、话题、情感、是否含媒体</td>
+</tr>
+<tr>
+<td>上下文特征</td>
+<td>当前时间、设备、网络、地理位置</td>
+</tr>
+<tr>
+<td><strong>交互特征</strong></td>
+<td>你和这个作者过去 30 天的互动次数、你对该话题的点击率</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>交互特征是最重要也最难的</strong>，它需要从行为日志里实时聚合。这通常由一个<strong>特征存储（Feature Store）<strong>来提供，要求毫秒级读取。这是算法信息流相比时间倒序</strong>新增的核心基础设施</strong>。</p>
+<p><strong>③ 排序（Ranking）</strong></p>
+<p>把特征喂给模型，得到每条候选的分数。<strong>这一步需要在线模型服务</strong>（如 TensorFlow Serving、Triton），要保证 P99 延迟在几十毫秒以内。</p>
+<blockquote>
+<p><strong>为什么必须两阶段？</strong> 因为用大模型给几百万条内容打分是不现实的。假设大模型单条打分需要 1 毫秒，几百万条就要几百万毫秒（几十分钟）。所以必须先用廉价手段把候选降到几千条，再用昂贵模型精排。</p>
+</blockquote>
+<p><strong>④ 策略过滤（Policy / Re-ranking）</strong></p>
+<p>模型分数不是最终结果，还要经过一系列业务规则：</p>
+<ul>
+<li><strong>去重与打散</strong>：不能连续出现 5 条同一个作者的内容；</li>
+<li><strong>已读过滤</strong>：你已经看过的内容不再展示（需要一个&quot;曝光记录&quot;，通常用 Redis 存近期已展示的 post_id，或布隆过滤器节省内存）；</li>
+<li><strong>多样性</strong>：不能全是同一话题，要保证内容多样性；</li>
+<li><strong>降权/屏蔽</strong>：违规内容、被拉黑作者、用户主动隐藏的话题；</li>
+<li><strong>广告插入</strong>：按固定位置插入广告，并且要保证广告和内容的相关性；</li>
+<li><strong>业务规则</strong>：比如&quot;用户刚注册，优先展示关注引导&quot;。</li>
+</ul>
+<h3 id="73-算法排序的代价">7.3 算法排序的代价</h3>
+<p>必须诚实地讲清楚代价，否则初学者会以为&quot;算法排序 = 更好&quot;：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>代价</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>几乎丧失缓存能力</strong></td>
+<td>时间倒序的信息流是<strong>所有人共享</strong>的（同一个作者的内容对所有人可见，排序一致），可以大量缓存。算法排序下<strong>每个用户的信息流都是独一无二的</strong>，缓存命中率骤降，计算成本大幅上升</td>
+</tr>
+<tr>
+<td><strong>需要实时特征基础设施</strong></td>
+<td>特征存储、实时计算（Flink）、在线模型服务，都是重量级组件</td>
+</tr>
+<tr>
+<td><strong>调试困难</strong></td>
+<td>&quot;我为什么看到这条？&quot;很难解释。需要可解释性工具和人工审核通道</td>
+</tr>
+<tr>
+<td><strong>信息茧房（Filter Bubble）</strong></td>
+<td>只推你喜欢的，会让你看不到不同观点。需要主动注入多样性和探索内容</td>
+</tr>
+<tr>
+<td><strong>A/B 实验基础设施</strong></td>
+<td>排序效果只能通过实验验证，需要完整的实验平台和指标埋点</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一句话总结</strong>：时间倒序是&quot;工程简单、产品平庸&quot;；算法排序是&quot;工程复杂、产品更优&quot;。<strong>面试时如果你能说出&quot;算法排序会破坏信息流的可缓存性&quot;这一点，基本就能和只背了名词的候选人区分开。</strong></p>
+</blockquote>
+<hr />
+<h2 id="8-扩展性可靠性与监控">8. 扩展性、可靠性与监控</h2>
+<p>原笔记的最后一部分。</p>
+<h3 id="81-扩展性">8.1 扩展性</h3>
+<ol>
+<li><strong>数据库扩展</strong>：
+<ul>
+<li><strong>水平分片（Sharding）</strong>：按 <code>user_id</code> 分片（保证同一用户的数据在同一片）。<strong>不要按时间分片</strong>——那样所有写入会集中在最新的分片（见第 1 章的分片键选择）。</li>
+<li><strong>读副本（Read Replica）</strong>：高流量查询走副本，主库只负责写。</li>
+</ul>
+</li>
+<li><strong>无状态 Web 层</strong>：Web 服务器不保存状态，才能自由增删（见第 1 章）。</li>
+</ol>
+<h3 id="82-缓存">8.2 缓存</h3>
+<ul>
+<li>把频繁访问的数据放内存；</li>
+<li>用多层缓存降低延迟和数据库压力（见第 6 节）。</li>
+</ul>
+<h3 id="83-可靠性">8.3 可靠性</h3>
+<ol>
+<li><strong>一致性哈希（Consistent Hashing）</strong>：用于<strong>数据分片</strong>——决定某个用户的信息流缓存在哪个节点。节点增减时只影响 1/N 的数据。</li>
+<li><strong>消息队列</strong>：解耦 + 削峰。</li>
+</ol>
+<blockquote>
+<p><strong>术语上的一个小澄清</strong>：原笔记把一致性哈希写在&quot;Reliability&quot;下面，表述为&quot;均匀分发请求&quot;。更准确的说法是：<strong>一致性哈希负责的是&quot;数据放哪&quot;，负载均衡器负责的是&quot;请求发给谁&quot;</strong>。两者解决的是不同层次的问题。一致性哈希用在缓存集群的分片上是标准做法，但把它的作用描述成&quot;分发请求&quot;容易让初学者和负载均衡混淆。</p>
+</blockquote>
+<h3 id="84-监控">8.4 监控</h3>
+<ul>
+<li>跟踪 <strong>QPS</strong> 和<strong>延迟</strong>（特别是 P99 尾延迟，平均值会掩盖问题）；</li>
+<li>监控<strong>缓存命中率</strong>，命中率下降是系统出问题的第一信号；</li>
+<li>队列积压量（驱动 worker 自动伸缩）。</li>
+</ul>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<h3 id="勘误-1按时间倒序不是现代信息流的主流做法">勘误 1：&quot;按时间倒序&quot;不是现代信息流的主流做法</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Sorting: Feeds are sorted in reverse chronological order for simplicity.</code></li>
+<li><strong>问题</strong>：作为<strong>教学简化</strong>这没问题，但如果把它当成真实系统的做法就会误导人。现代主流信息流（Facebook、Instagram、Twitter、微博、抖音）<strong>几乎全部采用算法排序</strong>，按时间倒序的反而成了少数（而且往往被用户当作一种可选功能提供）。</li>
+<li><strong>正确说法</strong>：时间倒序是&quot;默认假设&quot;，算法排序是&quot;生产现实&quot;。算法排序需要在架构上新增<strong>候选生成、特征存储、在线模型服务、策略过滤</strong>四个环节，并且会<strong>显著降低缓存命中率</strong>。详见第 7 节。</li>
+<li><strong>延伸</strong>：面试时如果只讲时间倒序，会被认为&quot;没做过真实系统&quot;。正确策略是：<strong>先用时间倒序把架构讲清楚（这是基础），再主动补充&quot;如果要算法排序，需要加什么&quot;</strong>——这样既显得思路清晰，又体现了深度。</li>
+</ul>
+<h3 id="勘误-2一致性哈希的定位被写偏了">勘误 2：一致性哈希的定位被写偏了</h3>
+<ul>
+<li><strong>原文说法</strong>：Reliability 一节 —— <code>Consistent Hashing: Distribute requests evenly across servers.</code></li>
+<li><strong>问题</strong>：一致性哈希解决的是<strong>数据分片</strong>问题（&quot;这个 key 应该放在哪个节点上&quot;），而不是<strong>请求分发</strong>问题（那是负载均衡器的职责）。把它描述成&quot;均匀分发请求&quot;，会让初学者误以为一致性哈希和负载均衡是同一类东西。</li>
+<li><strong>正确说法</strong>：一致性哈希用于<strong>缓存集群 / 存储集群的分片</strong>，它保证节点增减时只有 1/N 的数据需要迁移。请求分发是负载均衡器（或客户端侧的服务发现）负责的。两者是不同层次的机制。</li>
+<li><strong>延伸</strong>：一致性哈希的另一个常见误解是&quot;它能解决热点问题&quot;。<strong>不能</strong>——同一个 key 无论怎么哈希都在同一个节点上（详见第 1 章勘误 4）。</li>
+</ul>
+<h3 id="勘误-3推-拉模式的对比过于简略且缺少关键结论">勘误 3：推 / 拉模式的对比过于简略，且缺少关键结论</h3>
+<ul>
+<li><strong>原文说法</strong>：只列出了推模式的 pros/cons（实时、但对好友多的用户资源密集）和拉模式的 pros/cons（对不活跃用户高效、但读取慢），然后一句 <code>Hybrid Approach</code> 带过。</li>
+<li><strong>问题</strong>：没有给出<strong>系统的对比维度</strong>（写入成本、读取成本、延迟、存储放大），也没有解释<strong>为什么混合方案能成立</strong>（依赖于粉丝数的幂律分布）。初学者看完只知道&quot;有个混合方案&quot;，不知道&quot;为什么它可以，以及阈值怎么定&quot;。</li>
+<li><strong>正确说法</strong>：见第 4 节的完整对比表和&quot;为什么选推拉结合&quot;的论证。核心是<strong>粉丝数服从幂律分布</strong>——大 V 极少，所以&quot;给大 V 走拉模式&quot;的读取成本是 O(几十)，完全可控。</li>
+<li><strong>延伸</strong>：混合方案的阈值不是固定值，要根据集群负载动态调整。另外原笔记没提的两个重要变体是<strong>不活跃用户不推送</strong>和<strong>新用户冷启动</strong>，见第 4.4 节。</li>
+</ul>
+<h3 id="补充-1大-v-问题的量化">补充 1：大 V 问题的量化</h3>
+<p>原笔记只说推模式&quot;对好友多的用户资源密集&quot;，没有量化。详见第 5 节。<strong>核心数字</strong>：1000 万粉丝 × 一条动态 = 1000 万次缓存写入 ≈ 80 MB 存储；单台 Redis 串行处理需约 200 秒；改用拉模式后，写入侧成本降到 1 次，读取侧增加约 116 QPS（可缓存）。<strong>这是面试中非常有说服力的一组数字。</strong></p>
+<h3 id="补充-2信息流排序的架构支持">补充 2：信息流排序的架构支持</h3>
+<p>原笔记只说了&quot;按时间倒序&quot;。详见第 7 节。<strong>核心要点</strong>：算法排序需要两阶段架构（候选生成 → 精排），依赖特征存储和在线模型服务；<strong>它会破坏信息流的可缓存性</strong>（每个用户的流都不同），这是最容易被忽略的代价。</p>
+<h3 id="补充-3分页必须用游标不能用-offset">补充 3：分页必须用游标，不能用 offset</h3>
+<p>原笔记没有提分页。信息流是持续变化的，<code>offset</code> 分页会导致重复和漏项（详见第 2.2 节）。正确做法是<strong>基于游标（cursor）分页</strong>，用&quot;上一页最后一条的 ID/时间戳&quot;锚定位置。</p>
+<h3 id="补充-4不活跃用户优化与冷启动">补充 4：不活跃用户优化与冷启动</h3>
+<p>原笔记没提。详见第 4.4 节。<strong>不活跃用户不推送</strong>是投入产出比最高的优化之一——在一个日活远小于月活的平台里，能直接砍掉大部分扇出量。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>信息流就是&quot;把好友的帖子按时间排一下&quot;</td>
+<td>这是拉模式，读取成本是 O(关注数)，在 5000 好友的上限下延迟不可接受</td>
+<td>大规模系统用<strong>推拉结合</strong>：普通用户推、大 V 拉</td>
+</tr>
+<tr>
+<td>推模式一定比拉模式好</td>
+<td>推模式对大 V 是灾难：1000 万粉丝 = 1000 万次写入</td>
+<td>选择取决于<strong>粉丝数分布</strong>；幂律分布决定了必须混合</td>
+</tr>
+<tr>
+<td>拉模式一定更省资源</td>
+<td>拉模式把成本从&quot;少数人的写入&quot;转移到了&quot;所有人的每次读取&quot;，读多写少场景下更糟</td>
+<td>拉模式适合读少、或粉丝极多的场景</td>
+</tr>
+<tr>
+<td>信息流缓存里应该存完整帖子</td>
+<td>一条帖子被 200 人引用就要存 200 份，内存爆炸</td>
+<td>缓存里存 <code>post_id</code>，详情放内容缓存，读取时二次取</td>
+</tr>
+<tr>
+<td>缓存列表越长越好</td>
+<td>用户只看最新内容，保留更早的纯属浪费内存</td>
+<td>用 <code>LTRIM</code> 保留最近 N 条（比如 500 条）</td>
+</tr>
+<tr>
+<td>算法排序只是换个排序字段</td>
+<td>算法排序需要候选生成、特征存储、在线模型服务、策略过滤四套新组件</td>
+<td>它是一个完整的子系统，而且会<strong>破坏缓存命中率</strong></td>
+</tr>
+<tr>
+<td>一致性哈希能解决热点问题</td>
+<td>同一个 key 无论怎么哈希都在同一节点</td>
+<td>热点要靠缓存、key 加盐、独立分片</td>
+</tr>
+<tr>
+<td>分页用 <code>offset</code> + <code>limit</code> 就行</td>
+<td>信息流持续变化，<code>offset</code> 会导致重复和漏项</td>
+<td>用游标（cursor）分页锚定位置</td>
+</tr>
+<tr>
+<td>扇出失败无所谓，用户下次刷新就有了</td>
+<td>如果帖子没进任何人的缓存，就永远不会出现</td>
+<td>扇出要有重试和死信队列；同时保留&quot;读取时兜底&quot;的能力</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：信息流系统是一个<strong>把&quot;多对多聚合&quot;的昂贵操作，按用户成本分摊到写侧或读侧</strong>的系统；核心决策是推 / 拉 / 推拉结合的选择。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>两条链路</strong>：发布链路（写库 + 扇出）和读取链路（读缓存 + 组装），负载特征不同，要分开设计。</li>
+<li><strong>推拉结合</strong>：普通用户走推模式（写放大可接受、读取快），大 V 走拉模式（避免写入风暴）。依据是<strong>粉丝数服从幂律分布</strong>。</li>
+<li><strong>缓存存 ID 不存内容</strong>：信息流缓存存 <code>post_id</code> 列表 + 长度上限，避免存储放大。</li>
+<li><strong>扇出异步化</strong>：用消息队列解耦，削峰 + 可独立扩展。</li>
+<li><strong>五层缓存</strong>：信息流 / 内容 / 社交图谱 / 动作 / 计数，各司其职。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动给出<strong>大 V 问题的量化</strong>（1000 万粉丝 → 1000 万次写入 → 约 80 MB → 单机约 200 秒）。</li>
+<li>主动指出<strong>算法排序会破坏信息流的可缓存性</strong>，并说明两阶段排序架构。</li>
+<li>主动提出<strong>不活跃用户不推送</strong>（能砍掉大部分扇出量）。</li>
+<li>主动指出<strong>分页必须用游标</strong>，并解释 <code>offset</code> 分页为什么会重复/漏项。</li>
+<li>主动说明<strong>阈值要动态调整</strong>，而不是一个固定值。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;大 V 发帖会怎样？&quot;</em>
+→ 纯推模式下产生 1000 万次缓存写入的脉冲，会打垮集群。解决：大 V 走拉模式，只写自己的发件箱；粉丝读取时现拉（通常只关注几十个大 V，成本可控）。进一步可以对大 V 的发件箱加缓存。</li>
+<li><em>&quot;怎么判断一个用户该推还是该拉？&quot;</em>
+→ 按粉丝数阈值（经验值，如 1 万）动态判定；阈值根据集群负载调整。另外可以叠加&quot;活跃度&quot;判断：不活跃用户一律不推，登录时按拉模式重建。</li>
+<li><em>&quot;为什么信息流缓存里存 ID 而不是帖子内容？&quot;</em>
+→ 避免存储放大（一条帖子被 N 个人引用）；另外帖子被删改时只需失效一份内容缓存，所有引用者自动看到最新状态（或跳过已删帖子）。</li>
+<li><em>&quot;算法排序要加什么组件？&quot;</em>
+→ 候选生成（召回）→ 特征获取（特征存储 + 实时聚合）→ 排序（在线模型服务）→ 策略过滤（去重、打散、已读过滤、多样性、广告插入）。代价是缓存命中率大幅下降、需要 A/B 实验平台。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://about.fb.com/news/2018/01/news-feed-fyi-bringing-people-closer-together/" target="_blank" rel="noopener noreferrer">Facebook：News Feed 排序原理</a> — 算法排序的官方解释</li>
+<li><a href="https://instagram-engineering.com/" target="_blank" rel="noopener noreferrer">Instagram Engineering：Feed 排序</a> — 工业界实践</li>
+<li><a href="https://redis.io/docs/data-types/lists/" target="_blank" rel="noopener noreferrer">Redis 官方文档：List 与 LPUSH / LTRIM</a> — 信息流缓存的基础数据结构</li>
+<li><a href="https://flink.apache.org/" target="_blank" rel="noopener noreferrer">Apache Flink 官方文档</a> — 实时特征计算</li>
+<li><a href="https://feast.dev/" target="_blank" rel="noopener noreferrer">Feature Store 概念综述（Feast）</a> — 特征存储的工业实现</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../10/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">通知系统</span></a><a class="next" href="../12/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">聊天系统</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求与规模">1. 需求与规模</a>
+<a class="lv3" href="#功能需求">功能需求</a>
+<a class="lv3" href="#规模估算">规模估算</a>
+<a class="lv3" href="#一个必须先想清楚的问题">一个必须先想清楚的问题</a>
+<a class="lv2" href="#2-高层设计两条链路与-api">2. 高层设计：两条链路与 API</a>
+<a class="lv3" href="#21-两条链路">2.1 两条链路</a>
+<a class="lv3" href="#22-两个-api">2.2 两个 API</a>
+<a class="lv3" href="#23-发布链路">2.3 发布链路</a>
+<a class="lv3" href="#24-读取链路">2.4 读取链路</a>
+<a class="lv2" href="#3-发布链路深入扇出服务">3. 发布链路深入：扇出服务</a>
+<a class="lv3" href="#31-扇出服务的五个步骤">3.1 扇出服务的五个步骤</a>
+<a class="lv3" href="#32-为什么要用消息队列">3.2 为什么要用消息队列</a>
+<a class="lv2" href="#4-核心议题推模式拉模式与推拉结合">4. 核心议题：推模式、拉模式与推拉结合</a>
+<a class="lv3" href="#41-三种模式是什么">4.1 三种模式是什么</a>
+<a class="lv3" href="#42-完整对比表">4.2 完整对比表</a>
+<a class="lv3" href="#43-为什么最终都选推拉结合">4.3 为什么最终都选&quot;推拉结合&quot;</a>
+<a class="lv3" href="#44-原笔记没提的两个重要变体">4.4 原笔记没提的两个重要变体</a>
+<a class="lv2" href="#5-大-v-问题的量化">5. 大 V 问题的量化</a>
+<a class="lv3" href="#51-场景">5.1 场景</a>
+<a class="lv3" href="#52-需要多久">5.2 需要多久</a>
+<a class="lv3" href="#53-存储放大">5.3 存储放大</a>
+<a class="lv3" href="#54-拉模式下的成本对比">5.4 拉模式下的成本对比</a>
+<a class="lv2" href="#6-读取链路深入五层缓存架构">6. 读取链路深入：五层缓存架构</a>
+<a class="lv3" href="#61-为什么计数要单独一层缓存">6.1 为什么计数要单独一层缓存</a>
+<a class="lv3" href="#62-缓存的失效顺序">6.2 缓存的失效顺序</a>
+<a class="lv2" href="#7-信息流排序从时间倒序到算法排序">7. 信息流排序：从时间倒序到算法排序</a>
+<a class="lv3" href="#71-为什么要从时间倒序转向算法排序">7.1 为什么要从时间倒序转向算法排序</a>
+<a class="lv3" href="#72-架构上要怎么支持">7.2 架构上要怎么支持</a>
+<a class="lv3" href="#73-算法排序的代价">7.3 算法排序的代价</a>
+<a class="lv2" href="#8-扩展性可靠性与监控">8. 扩展性、可靠性与监控</a>
+<a class="lv3" href="#81-扩展性">8.1 扩展性</a>
+<a class="lv3" href="#82-缓存">8.2 缓存</a>
+<a class="lv3" href="#83-可靠性">8.3 可靠性</a>
+<a class="lv3" href="#84-监控">8.4 监控</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1按时间倒序不是现代信息流的主流做法">勘误 1：&quot;按时间倒序&quot;不是现代信息流的主流做法</a>
+<a class="lv3" href="#勘误-2一致性哈希的定位被写偏了">勘误 2：一致性哈希的定位被写偏了</a>
+<a class="lv3" href="#勘误-3推-拉模式的对比过于简略且缺少关键结论">勘误 3：推 / 拉模式的对比过于简略，且缺少关键结论</a>
+<a class="lv3" href="#补充-1大-v-问题的量化">补充 1：大 V 问题的量化</a>
+<a class="lv3" href="#补充-2信息流排序的架构支持">补充 2：信息流排序的架构支持</a>
+<a class="lv3" href="#补充-3分页必须用游标不能用-offset">补充 3：分页必须用游标，不能用 offset</a>
+<a class="lv3" href="#补充-4不活跃用户优化与冷启动">补充 4：不活跃用户优化与冷启动</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

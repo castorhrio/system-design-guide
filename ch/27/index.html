@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 27 章：数字钱包 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item active" href="./"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-27-章数字钱包">第 27 章：数字钱包</h1>
+<blockquote>
+<p>原章节：Digital Wallet · 原项目路径 <code>27.  Digital Wallet/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>你在微信里给朋友转 100 块钱。你这边余额立刻少了 100，朋友那边余额立刻多了 100——整个过程不到一秒，而且<strong>不可能出现&quot;我扣了钱、他没收到&quot;这种情况</strong>。</p>
+<p>这个&quot;不可能&quot;，就是本章的全部难点。</p>
+<p>一个钱包看起来简单到不像一道系统设计题：两个账户，一加一减而已。但当你把这两个账户放到<strong>不同的服务器、不同的数据库</strong>上，还要一秒处理上百万笔转账时，&quot;一加一减必须同时成功或同时失败&quot;就变成了分布式系统里最棘手的问题之一。更麻烦的是，钱包是<strong>要审计的</strong>——三年后有人问&quot;我在 2026 年 3 月 5 日 14:23 的余额是多少&quot;，你必须能答出来，而且要能证明这个数字没被篡改过。</p>
+<p>这一章会带你从零开始，走完一条完整的推理链：为什么一个本地数据库事务不够用？2PC、TC/C、Saga 分别在解决什么问题、代价是什么、什么时候该用哪个？为什么最后这套系统会用&quot;事件溯源&quot;把整个账本重建成一条不可篡改的事件流？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>为什么&quot;跨库转账&quot;没有本地事务可用，以及&quot;只成功一半&quot;会造成什么后果</li>
+<li>两阶段提交（2PC）、三阶段提交（3PC）、TC/C（Try-Confirm/Cancel）、Saga 四种分布式事务方案的原理、代价与适用场景</li>
+<li>TC/C 的三种经典失败模式：Confirm 失败、空回滚、悬挂，以及如何用&quot;阶段状态表&quot;化解</li>
+<li>幂等性为什么是分布式事务的生命线，以及不幂等会怎样重复扣款</li>
+<li>事件溯源（Event Sourcing）如何把&quot;余额&quot;从一个可被覆盖的数字，变成一条只能追加的事件流</li>
+<li>CQRS 与快照（Snapshot）如何解决事件溯源的查询慢和重放贵两个问题</li>
+<li>钱包的硬约束——余额不能为负——在并发下如何保证</li>
+<li>钱包余额与银行流水如何对账</li>
+</ul>
+<hr />
+<h2 id="1-需求澄清与量级估算">1. 需求澄清与量级估算</h2>
+<h3 id="先问清楚边界">先问清楚边界</h3>
+<p>系统设计题的第一件事永远不是画架构图，而是<strong>问清楚要做什么</strong>。原文记录了一段面试官（I）和候选人（C）的对话，我们把关键结论提炼出来：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>支持哪些操作？</td>
+<td>只做<strong>钱包之间的转账</strong></td>
+</tr>
+<tr>
+<td>吞吐量要求？</td>
+<td>假设 <strong>100 万 TPS</strong>（每秒百万笔交易）</td>
+</tr>
+<tr>
+<td>正确性怎么保证？</td>
+<td>允许用<strong>事务</strong>保证；但光靠&quot;对账&quot;只能发现问题，不能给出根因</td>
+</tr>
+<tr>
+<td>可重现性？</td>
+<td><strong>必须支持</strong>——要能从头重放数据、重建历史</td>
+</tr>
+<tr>
+<td>可用性？</td>
+<td><strong>99.99%</strong></td>
+</tr>
+<tr>
+<td>要不要考虑外汇？</td>
+<td>不要，超出范围</td>
+</tr>
+</tbody>
+</table></div>
+<p>其中有一条特别值得琢磨：面试官说&quot;我们可以通过对账（reconciliation）来证明正确性，但<strong>对账只能发现差异，不能告诉你差异是怎么产生的</strong>。所以我们希望系统能从头重放数据、重建历史。&quot;</p>
+<p>这句话是整章的伏笔。它提前告诉你：<strong>最终的方案不会是普通的&quot;余额表 + UPDATE&quot;，而是一套可重放的事件系统</strong>。</p>
+<h3 id="量级估算粗略估算-back-of-the-envelope">量级估算（粗略估算 / Back-of-the-envelope）</h3>
+<p>原文给了一个关键假设：<strong>一个云上配置好的传统关系型数据库，大约能支撑 1000 TPS。</strong></p>
+<p>于是：</p>
+<ul>
+<li>要扛 100 万 TPS，就需要 <code>1,000,000 / 1,000 = 1,000</code> 个数据库节点。</li>
+<li>但一笔转账有<strong>两条腿（two legs）</strong>——A 扣一次、C 加一次。所以系统实际要处理的是 <code>100 万 × 2 = 200 万 TPS</code>。</li>
+</ul>
+<p>原文给了一张表，说明&quot;提升单节点 TPS&quot;能省掉多少节点：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>单节点 TPS</th>
+<th>需要的节点数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100</td>
+<td>20,000</td>
+</tr>
+<tr>
+<td>1,000</td>
+<td>2,000</td>
+</tr>
+<tr>
+<td>10,000</td>
+<td>200</td>
+</tr>
+</tbody>
+</table></div>
+<p>这张表按 <strong>200 万 TPS</strong> 计算，我们验算一下：</p>
+<ul>
+<li><code>2,000,000 / 100 = 20,000</code> ✓</li>
+<li><code>2,000,000 / 1,000 = 2,000</code> ✓</li>
+<li><code>2,000,000 / 10,000 = 200</code> ✓</li>
+</ul>
+<p>数字是对的。这张表传达的核心信息是：<strong>单节点性能每提升一个数量级，集群规模就下降一个数量级</strong>。所以后面所有的性能优化，目标都是&quot;让一台机器扛更多&quot;，而不是&quot;无脑加机器&quot;——因为 2000 个数据库节点的运维成本、跨节点事务成本，都是灾难。</p>
+<blockquote>
+<p><strong>关于&quot;1000 TPS&quot;这个数字</strong>
+这是原文给出的<strong>量级假设</strong>，不是精确基准。现代服务器上，一个简单的单行 UPDATE 事务跑到每秒几千甚至上万 TPS 是可能的；但钱包转账事务通常包含：多条记录更新、写 WAL、<code>fsync</code> 落盘、可能的同步复制确认——这些都会把 TPS 拉低到千级。所以&quot;1000 TPS&quot;作为一个<strong>保守的量级估算</strong>是站得住的，你不需要纠结它的绝对值。面试时如果被追问，你可以说：&quot;这个数取决于事务复杂度和持久化级别，我给的是一个保守量级。&quot;</p>
+</blockquote>
+<blockquote>
+<p><strong>关于&quot;100 万 TPS&quot;这个目标</strong>
+这个数字<strong>远超现实世界的支付峰值</strong>。真实的大型支付系统（比如电商大促的支付峰值）在几十万笔/秒的量级。原文设定 100 万 TPS 是为了把设计压力拉满，逼出&quot;必须分片 + 必须分布式事务 + 必须优化单机性能&quot;这一整套方案。理解这一点很重要：<strong>这是设计目标，不是行业参照</strong>。面试时你可以主动点破这一点，这反而是加分项。</p>
+</blockquote>
+<hr />
+<h2 id="2-高层设计从内存分片方案说起">2. 高层设计：从内存分片方案说起</h2>
+<div align="center"><img src="./images/digital-wallet.png" alt="数字钱包：用户在应用内存储资金，可提现、消费或转账" width="520" loading="lazy" decoding="async"></div>
+<h3 id="api-设计">API 设计</h3>
+<p>面试范围内只需要一个端点：</p>
+<pre><code>POST /v1/wallet/balance_transfer
+</code></pre>
+<p>请求参数：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>from_account</code></td>
+<td>转出账户</td>
+</tr>
+<tr>
+<td><code>to_account</code></td>
+<td>转入账户</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td>金额。<strong>用字符串（string）而不是浮点数</strong></td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>币种</td>
+</tr>
+<tr>
+<td><code>transaction_id</code></td>
+<td>幂等键（idempotency key）</td>
+</tr>
+</tbody>
+</table></div>
+<p>响应示例：</p>
+<pre><code class="language-json">{
+    &quot;status&quot;: &quot;success&quot;,
+    &quot;transaction_id&quot;: &quot;01589980-2664-11ec-9621-0242ac130002&quot;
+}
+</code></pre>
+<p>这里有两个细节，初学者很容易忽略，但都是真实工程中的硬性要求：</p>
+<p><strong>第一，金额为什么用字符串？</strong></p>
+<p>因为浮点数（float / double）<strong>不能精确表示大多数十进制小数</strong>。经典例子：在 IEEE 754 双精度下，<code>0.1 + 0.2 != 0.3</code>（结果是 <code>0.30000000000000004</code>）。对钱包来说，这种误差是不可接受的——一分钱都不能错。所以金额要用<strong>字符串</strong>或**整数（以最小货币单位计，比如&quot;分&quot;）**来表示。原文选择了字符串，并明确注明&quot;string to not lose precision&quot;（用字符串以免丢失精度）。</p>
+<p><strong>第二，<code>transaction_id</code> 为什么必须传？</strong></p>
+<p>它是<strong>幂等键</strong>。客户端超时重试时，会带着同一个 <code>transaction_id</code> 再发一次。服务端靠它判断：&quot;这笔转账我已经处理过了，直接返回上次的结果，不要再扣一次钱。&quot;没有它，网络重试就会变成重复扣款。</p>
+<h3 id="内存分片方案">内存分片方案</h3>
+<p>钱包应用需要为每个账户维护余额。一个很自然的数据结构是：</p>
+<pre><code>map&lt;user_id, balance&gt;
+</code></pre>
+<p>它可以用内存型 Redis 来实现。但一台 Redis 扛不住 100 万 TPS，所以要把 Redis 集群**分片（partition）**成多个节点。</p>
+<p>原文给的示例分片算法：</p>
+<pre><code class="language-java">String accountID = &quot;A&quot;;
+Int partitionNumber = 7;
+Int myPartition = accountID.hashCode() % partitionNumber;
+</code></pre>
+<p>分片数量和各 Redis 节点的地址，可以放在 <strong>ZooKeeper</strong> 里，因为它是一个高可用的配置存储。</p>
+<p>最后，钱包服务本身是一个<strong>无状态服务（stateless service）</strong>，只负责执行转账逻辑，因此可以轻松水平扩展：</p>
+<div align="center"><img src="./images/wallet-service.png" alt="无状态的钱包服务 + 分片的 Redis 集群 + ZooKeeper 配置中心" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>这段示例代码有一个真实的坑</strong>
+<code>accountID.hashCode() % partitionNumber</code> 在 Java 里<strong>可能返回负数</strong>。Java 的 <code>%</code> 运算符对负数操作数返回负结果，而 <code>String.hashCode()</code> 完全可能是负数（例如 <code>&quot;polygenelubricants&quot;.hashCode()</code> 就是 <code>Integer.MIN_VALUE</code>）。一旦返回负数，<code>myPartition</code> 就是负数，作为分片下标是非法的。
+正确写法应该是先取绝对值（并特殊处理 <code>Integer.MIN_VALUE</code>），或者用 <code>Math.floorMod(hash, partitionNumber)</code>。
+更重要的是：<strong>用取模做分片，一旦 <code>partitionNumber</code> 变了，几乎所有 key 的归属都会变</strong>——扩容时等于全量数据迁移。生产环境要么用<strong>一致性哈希（Consistent Hashing）</strong>，要么预先划分远多于物理节点数的<strong>逻辑分片</strong>（详见勘误 2）。</p>
+</blockquote>
+<h3 id="这个方案的致命缺陷">这个方案的致命缺陷</h3>
+<p>原文说得很直接：内存分片方案解决了扩展性问题，<strong>但它没法原子地执行转账</strong>。</p>
+<ul>
+<li>内存（Redis）不是持久化存储，宕机就丢数据；</li>
+<li>A 和 C 在不同 Redis 节点上，没有任何机制保证&quot;两个操作要么都成功、要么都失败&quot;。</li>
+</ul>
+<p>于是问题正式浮出水面：<strong>跨库/跨服务的转账，怎么做成一个原子操作？</strong></p>
+<hr />
+<h2 id="3-分布式事务问题到底出在哪">3. 分布式事务：问题到底出在哪</h2>
+<h3 id="先把问题说清楚">先把问题说清楚</h3>
+<p>一次转账，本质上要做两件事：</p>
+<pre><code>A 的余额 -= 100
+C 的余额 += 100
+</code></pre>
+<p>这两件事<strong>必须同时成功，或者同时失败</strong>。任何&quot;只成功一半&quot;的结果都是灾难：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>结果</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A 扣了，C 没加</td>
+<td><strong>钱凭空消失</strong>（用户会投诉，且这是资金损失）</td>
+</tr>
+<tr>
+<td>C 加了，A 没扣</td>
+<td><strong>钱凭空产生</strong>（系统在偷偷印钞）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="为什么本地事务不够">为什么本地事务不够</h3>
+<p>如果 A 和 C 在<strong>同一个数据库</strong>里，这根本不是问题：</p>
+<pre><code class="language-sql">BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 'A';
+UPDATE accounts SET balance = balance + 100 WHERE account_id = 'C';
+COMMIT;
+</code></pre>
+<p>数据库的 <strong>ACID</strong> 特性（原子性 Atomicity、一致性 Consistency、隔离性 Isolation、持久性 Durability）保证了这个事务要么全做、要么全不做。这就是<strong>本地事务（local transaction）</strong>。</p>
+<p>但我们的系统有两个硬约束，把本地事务彻底废掉了：</p>
+<ol>
+<li><strong>数据必须分片</strong>。100 万 TPS 单库扛不住，A 和 C 极可能落在<strong>不同的数据库实例</strong>上。</li>
+<li><strong>跨库没有本地事务</strong>。数据库的 ACID 只在<strong>单个数据库实例内部</strong>成立。一旦跨越实例边界，数据库就管不了你了——没有任何一个数据库能对另一个数据库说&quot;你回滚&quot;。</li>
+</ol>
+<blockquote>
+<p><strong>一句话记住</strong>：分布式事务的全部复杂度，都来自&quot;跨库之后，原子性这个免费午餐没有了&quot;。</p>
+</blockquote>
+<p>所以我们需要一套<strong>跨库的原子性协议</strong>。下面按&quot;从老到新、从阻塞到补偿&quot;的顺序，逐个讲清楚。</p>
+<h3 id="方案一两阶段提交2pc">方案一：两阶段提交（2PC）</h3>
+<div align="center"><img src="./images/distributed-transactions-relational-dbs.png" alt="基于分片关系型数据库的两阶段提交架构" width="520" loading="lazy" decoding="async"></div>
+<p>最直接的思路是：<strong>在多个分片关系型数据库之上，叠加一个两阶段提交协议。</strong></p>
+<p>两阶段提交（Two-Phase Commit，2PC）引入两个角色：</p>
+<ul>
+<li><strong>协调者（Coordinator）</strong>：在我们的场景里就是钱包服务。它负责指挥全局。</li>
+<li><strong>参与者（Participant）</strong>：各个数据库。它们负责执行具体操作。</li>
+</ul>
+<div align="center"><img src="./images/2pc-protocol.png" alt="2PC 协议：先 Prepare 投票，再 Commit 或 Abort" width="520" loading="lazy" decoding="async"></div>
+<p>协议流程：</p>
+<ol>
+<li><strong>准备阶段（Prepare / Vote）</strong>：协调者先在各个数据库上执行读写操作，然后<strong>要求所有数据库&quot;准备&quot;这个事务</strong>。每个数据库把事务日志写盘、<strong>锁住涉及的数据</strong>，但<strong>先不提交</strong>，然后回复&quot;可以（yes）&quot;或&quot;不行（no）&quot;。</li>
+<li><strong>提交阶段（Commit / Abort）</strong>：
+<ul>
+<li>如果<strong>所有</strong>数据库都回复 yes，协调者通知所有数据库<strong>提交（commit）</strong>。</li>
+<li>只要<strong>有一个</strong>回复 no（或者超时），协调者通知所有数据库<strong>中止（abort）</strong>。</li>
+</ul>
+</li>
+</ol>
+<p><strong>2PC 的代价（原文列了两条）：</strong></p>
+<ul>
+<li><strong>性能差，因为锁竞争（lock contention）</strong>。从 Prepare 到 Commit 之间，数据是被锁住的。在高并发下，其他事务只能排队等——而 2PC 的这个窗口里包含了<strong>至少一轮网络往返</strong>，在高吞吐场景下锁持有时间会被放大成严重的瓶颈。</li>
+<li><strong>协调者是单点故障（single point of failure）</strong>。如果协调者在&quot;已经发出部分 Commit 指令&quot;之后挂了，就会有一些参与者提交了、另一些还在等——数据库进入 <strong>in-doubt（结果未定）</strong> 状态，可能一直持锁，直到协调者恢复。这期间数据可能不一致。</li>
+</ul>
+<blockquote>
+<p><strong>2PC 什么时候还值得用？</strong>
+当参与方少、事务频率低、能容忍秒级延迟时，2PC 依然是可靠且实现简单的选择。传统企业系统里的 <strong>XA 事务</strong>（MySQL 的 XA、PostgreSQL 的 prepared transactions）就是 2PC 的工业实现。它的问题不是&quot;错&quot;，而是&quot;<strong>扛不住高并发</strong>&quot;——而我们的目标是 100 万 TPS，所以必须继续往下找。</p>
+</blockquote>
+<hr />
+<h2 id="4-三阶段提交3pc一个几乎没人用的改良版">4. 三阶段提交（3PC）：一个几乎没人用的改良版</h2>
+<p>原文没有讲 3PC，但它是理解&quot;2PC 为什么阻塞&quot;的最好对照，所以我们在这里补上。</p>
+<p><strong>2PC 最大的问题</strong>是：参与者在 Prepare 之后、Commit 之前，<strong>既不能提交也不能回滚</strong>——它必须等协调者的最终指令。这段时间它锁着资源、什么都不干。这叫<strong>阻塞（blocking）</strong>。</p>
+<p><strong>三阶段提交（Three-Phase Commit，3PC）</strong> 的思路是：在&quot;准备&quot;和&quot;提交&quot;之间<strong>插入一个 PreCommit 阶段</strong>，让参与者提前知道&quot;大家大概率都会同意&quot;，从而减少阻塞。</p>
+<p>三个阶段：</p>
+<ol>
+<li><strong>CanCommit（询问）</strong>：协调者问所有参与者&quot;你们能不能做？&quot;参与者只做一个<strong>轻量检查</strong>，回复 yes/no。<strong>不锁资源。</strong></li>
+<li><strong>PreCommit（预提交）</strong>：如果全体 yes，协调者让参与者<strong>执行事务并写日志、锁资源</strong>（相当于 2PC 的 Prepare）。参与者回复 ACK。</li>
+<li><strong>DoCommit（正式提交）</strong>：协调者让参与者<strong>提交</strong>。</li>
+</ol>
+<p><strong>3PC 的两个改进</strong>：</p>
+<ul>
+<li>如果参与者在 PreCommit 阶段超时（没收到协调者的 DoCommit），它<strong>可以自行提交</strong>——因为它已经知道&quot;大家都通过了 CanCommit&quot;。这打破了 2PC 的永久阻塞。</li>
+<li>如果参与者在 CanCommit 之后超时，它可以直接中止，不需要等待。</li>
+</ul>
+<p><strong>但 3PC 有个致命前提</strong>：它假设<strong>网络不会分区（no network partition）</strong>，并且节点只会&quot;崩溃停止&quot;、不会&quot;变慢或发疯&quot;。</p>
+<blockquote>
+<p><strong>为什么工业界基本不用 3PC？</strong>
+因为真实网络的**分区（network partition）**是常态，不是例外。一旦发生分区，3PC 会退化得比 2PC 更糟：一部分节点自行提交、另一部分自行中止，<strong>直接导致数据不一致</strong>。而 2PC 虽然阻塞，但至少不会产生不一致（它宁可停下来等）。
+3PC 还多了一轮网络往返，延迟更高。所以它的处境很尴尬：<strong>延迟比 2PC 高，正确性比 2PC 弱</strong>。
+<strong>结论</strong>：知道 3PC 存在、知道它想解决什么、知道它为什么失败，就足够了。不要在生产系统里用它。</p>
+</blockquote>
+<hr />
+<h2 id="5-tcctry-confirmcancel本章的重点">5. TC/C（Try-Confirm/Cancel）：本章的重点</h2>
+<h3 id="先厘清一个术语混乱">先厘清一个术语混乱</h3>
+<p>原文把这一节叫 <strong>&quot;Distributed transaction using Try-Confirm/Cancel (TC/C)&quot;</strong>，并称它是&quot;2PC 协议的一个变体，配合补偿事务工作&quot;。</p>
+<p>这里有一个<strong>术语问题必须澄清</strong>：</p>
+<blockquote>
+<p><strong>业界标准名称是 TCC（Try-Confirm-Cancel）</strong>。原文写的 <strong>TC/C</strong> 和 <strong>TCC</strong> 是<strong>同一个东西</strong>，只是写法不同。面试时请用 <strong>TCC</strong>。</p>
+<p>另外，&quot;TCC 是 2PC 的变体&quot;这个说法<strong>不够准确</strong>。TCC 确实借用了&quot;两个阶段&quot;的结构（第一阶段 Try，第二阶段 Confirm 或 Cancel），但它和 2PC 有一个<strong>本质区别</strong>：</p>
+<ul>
+<li><strong>2PC 是一个跨库的事务</strong>，参与者在 Prepare 之后<strong>锁着资源不提交</strong>，等协调者统一裁决。</li>
+<li><strong>TCC 是两个（或更多）独立的本地事务</strong>：Try 阶段每个库<strong>各自提交一个本地事务</strong>；Confirm/Cancel 阶段再各自提交另一个本地事务。</li>
+</ul>
+<p>所以 TCC <strong>不依赖数据库的 XA 协议</strong>，也<strong>不长时间持有数据库锁</strong>。它属于**补偿型事务（Compensating Transaction）**家族——和 Saga 是同一族，而不是 2PC 的直系亲属。原文自己也点出了这个关键区别：&quot;2PC performs a single transaction, whereas in TC/C, there are two independent transactions.&quot;（2PC 执行的是一个事务，而 TC/C 执行的是两个独立的事务。）</p>
+</blockquote>
+<h3 id="tcc-的三个阶段">TCC 的三个阶段</h3>
+<p>标准 TCC 的语义是：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>做什么</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Try</strong></td>
+<td><strong>预留资源</strong>——把资源&quot;冻住&quot;，但不动用</td>
+<td>订酒店时先&quot;锁房&quot;，钱还没付</td>
+</tr>
+<tr>
+<td><strong>Confirm</strong></td>
+<td><strong>确认执行</strong>——把预留的资源真正扣掉</td>
+<td>入住时真正付款</td>
+</tr>
+<tr>
+<td><strong>Cancel</strong></td>
+<td><strong>取消预留</strong>——把冻结的资源释放掉</td>
+<td>取消订单，释放锁房</td>
+</tr>
+</tbody>
+</table></div>
+<p>用一个生活化的类比：<strong>你订机票</strong>。</p>
+<ul>
+<li><strong>Try</strong>：下单占座。座位被标记为&quot;为你保留&quot;，别人订不到了，但航司还没收到钱。</li>
+<li><strong>Confirm</strong>：付款成功。座位正式归你。</li>
+<li><strong>Cancel</strong>：超时未付款，座位释放，别人可以订。</li>
+</ul>
+<p><strong>关键在于 Try 只&quot;冻结&quot;，不&quot;扣减&quot;。</strong> 这一点非常容易被搞错，我们用 A 转 100 元给 C 来具体化：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>A 账户</th>
+<th>C 账户</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Try</strong></td>
+<td>冻结 100（<code>frozen += 100</code>，可用余额 <code>-100</code>）</td>
+<td>什么都不做（或记录一条预留）</td>
+</tr>
+<tr>
+<td><strong>Confirm</strong></td>
+<td>把冻结的 100 真正扣掉（<code>balance -= 100</code>，<code>frozen -= 100</code>）</td>
+<td><code>balance += 100</code></td>
+</tr>
+<tr>
+<td><strong>Cancel</strong></td>
+<td>解冻（<code>frozen -= 100</code>，可用余额 <code>+100</code>）</td>
+<td>释放预留（如果有）</td>
+</tr>
+</tbody>
+</table></div>
+<p>注意 Try 阶段 A 的<strong>总资产没有变</strong>——钱还在 A 名下，只是从&quot;可用&quot;挪到了&quot;冻结&quot;。这就保证了：<strong>在 Try 和 Confirm 之间的任何时刻，钱都不会凭空消失</strong>。</p>
+<h3 id="原文的-tcc-用的是另一种变体">原文的 TC/C 用的是另一种变体</h3>
+<p>原文表格里的 Try 阶段是 <strong>A 直接 <code>-$1</code></strong>（真实扣减，不是冻结）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Operation</th>
+<th>A</th>
+<th>C</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Try</td>
+<td>Balance change: -$1</td>
+<td>Do nothing</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Confirm</td>
+<td>Do nothing</td>
+<td>Balance change: +$1</td>
+</tr>
+<tr>
+<td></td>
+<td>Cancel</td>
+<td>Balance change: +$1</td>
+<td>Do Nothing</td>
+</tr>
+</tbody>
+</table></div>
+<div align="center"><img src="./images/try-phase.png" alt="Try 阶段：A 的余额扣减 1 元，C 收到 NOP 空操作" width="520" loading="lazy" decoding="async"></div>
+<p>原文的 Try 阶段：协调者在 A 的数据库里<strong>开启一个本地事务</strong>，把 A 的余额减少 1 元并提交；C 的数据库收到一条 <strong>NOP（No Operation，空操作）</strong> 指令，什么都不做。</p>
+<div align="center"><img src="./images/confirm-phase.png" alt="Confirm 阶段：A 收到 NOP，C 的余额增加 1 元" width="520" loading="lazy" decoding="async"></div>
+<p>如果两个数据库都回复&quot;yes&quot;，进入 Confirm 阶段：A 收到 NOP，C 的数据库被指示把余额增加 1 元（同样是一个本地事务）。</p>
+<div align="center"><img src="./images/cancel-phase.png" alt="Cancel 阶段：A 的余额回补 1 元，C 收到 NOP" width="520" loading="lazy" decoding="async"></div>
+<p>如果第一阶段有任何操作失败，进入 Cancel 阶段：A 的数据库被指示把余额回补 1 元，C 收到 NOP。</p>
+<p><strong>这是&quot;先扣减、后增加&quot;的变体。</strong> 它和标准 TCC 的&quot;冻结&quot;语义不同，但同样是一种合法设计。我们对比一下：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>变体</th>
+<th>Try 做什么</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>标准 TCC（冻结）</strong></td>
+<td>冻结资源</td>
+<td>Try 期间钱还在账户名下，语义清晰</td>
+<td>需要额外的&quot;冻结金额&quot;字段和逻辑</td>
+</tr>
+<tr>
+<td><strong>原文的 TC/C（直接扣减）</strong></td>
+<td>真实扣减</td>
+<td>实现更简单，且<strong>绝不会透支</strong>（钱先离开 A）</td>
+<td>Try 与 Confirm 之间钱处于&quot;在途&quot;状态，既不在 A 也不在 C</td>
+</tr>
+</tbody>
+</table></div>
+<p>原文明确选择了后者，理由是**&quot;always executing deductions prior to additions&quot;（永远先执行扣减，再执行增加）**——只要钱先离开 A，就不可能发生&quot;钱还没扣就先花掉&quot;的问题。</p>
+<p><strong>但你要理解这个选择的代价</strong>：在 Try 和 Confirm 之间，这 100 元<strong>处于&quot;悬空&quot;状态</strong>。原文专门用一张图说明了这个短暂的&quot;不平衡状态&quot;：</p>
+<div align="center"><img src="./images/unbalanced-state.png" alt="分布式事务执行期间账户之间的短暂不一致状态" width="520" loading="lazy" decoding="async"></div>
+<p>原文说：这没问题，<strong>只要我们能从这个状态恢复，并且用户无法使用这笔在途的钱</strong>。而&quot;用户无法使用&quot;正是靠&quot;先扣减、后增加&quot;保证的。</p>
+<p>原文还用一张表说明了 Try 阶段的选择：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Try 阶段的选择</th>
+<th>A 账户</th>
+<th>C 账户</th>
+<th>是否合法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>选择 1</td>
+<td>-$1</td>
+<td>NOP</td>
+<td><strong>合法</strong></td>
+</tr>
+<tr>
+<td>选择 2</td>
+<td>NOP</td>
+<td>+$1</td>
+<td>非法</td>
+</tr>
+<tr>
+<td>选择 3</td>
+<td>-$1</td>
+<td>+$1</td>
+<td>非法</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么选择 3 非法？</strong> 原文解释得很清楚：选择 3 需要<strong>跨数据库的原子执行</strong>——这恰恰是我们不依赖 2PC 就做不到的事。所以 Try 阶段只能动一个账户。</p>
+<h3 id="2pc-与-tcc-的本质对比">2PC 与 TC/C 的本质对比</h3>
+<p>原文给了一张非常精炼的对比表，这是本节的核心：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>第一阶段</th>
+<th>第二阶段：成功</th>
+<th>第二阶段：失败</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2PC</strong></td>
+<td>事务<strong>还没完成</strong>（锁着资源，未提交）</td>
+<td>提交/取消所有事务</td>
+<td>取消所有事务</td>
+</tr>
+<tr>
+<td><strong>TC/C</strong></td>
+<td>所有事务<strong>已经完成</strong>——要么已提交，要么已取消</td>
+<td>如有需要，执行<strong>新的事务</strong></td>
+<td><strong>逆转</strong>已经提交的事务</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>这张表是理解 TCC 的钥匙。</strong> 请仔细体会&quot;第一阶段&quot;这一行：</p>
+<ul>
+<li>2PC 的第一阶段结束时，事务<strong>悬而未决</strong>——资源被锁，谁也不知道最终结果。</li>
+<li>TCC 的第一阶段结束时，事务<strong>已经尘埃落定</strong>——A 的钱确实扣掉了，这是一个已提交的事实。所以第二阶段要么&quot;再补一刀&quot;（Confirm，给 C 加钱），要么&quot;把那一刀补回来&quot;（Cancel，给 A 退钱）。</li>
+</ul>
+<p><strong>这就是为什么 TCC 不阻塞、性能好</strong>：它没有&quot;锁着资源等裁决&quot;的阶段。代价是它把复杂度从数据库层搬到了<strong>业务逻辑层</strong>。</p>
+<p>原文列出的 TCC 的另外两个性质：</p>
+<ul>
+<li><strong>与数据库无关（database agnostic）</strong>：只要数据库支持本地事务就行，不需要 XA。</li>
+<li><strong>分布式事务的细节和复杂度由业务逻辑承担</strong>。</li>
+</ul>
+<h3 id="幂等性tcc-的生命线">幂等性：TCC 的生命线</h3>
+<p>在讲失败模式之前，必须先讲透一个概念：<strong>幂等性（Idempotency）</strong>。</p>
+<p><strong>定义</strong>：同一个操作执行一次和执行多次，<strong>结果相同</strong>。</p>
+<p>为什么 TCC 必须幂等？因为在分布式系统里，<strong>网络超时是常态</strong>：</p>
+<pre><code>协调者 → Try 请求 → A 的数据库
+        ← 超时，没收到响应（但 A 其实已经执行了！）
+协调者 → 重试 Try 请求 → A 的数据库
+</code></pre>
+<p>如果 Try 不幂等，A 就被扣了两次钱。<strong>这不是小概率事件</strong>，而是分布式系统的日常。</p>
+<p><strong>怎么实现幂等？</strong></p>
+<p>用一个<strong>全局唯一的事务 ID</strong> + 一张<strong>去重表</strong>：</p>
+<pre><code class="language-sql">-- Try 阶段，先尝试插入事务记录
+INSERT INTO tcc_transactions (transaction_id, status)
+VALUES ('01589980-2664-11ec-9621-0242ac130002', 'TRYING');
+
+-- 如果主键冲突，说明这个事务已经处理过了，直接返回上次的结果
+-- 如果插入成功，才真正执行冻结/扣减逻辑
+</code></pre>
+<p>关键在于：<strong>&quot;插入去重记录&quot;和&quot;执行业务操作&quot;必须在同一个本地事务里</strong>。这样要么两者都成功，要么都回滚，不会出现&quot;记录了但没执行&quot;或&quot;执行了但没记录&quot;。</p>
+<blockquote>
+<p><strong>一句话记住</strong>：<strong>TCC 的三个阶段（Try / Confirm / Cancel）都必须幂等</strong>。任何一个不幂等，重试就会造成资金错误。这是 TCC 实现中最容易出错、也最致命的地方。</p>
+</blockquote>
+<hr />
+<h2 id="6-tcc-的失败模式三个经典难题">6. TC/C 的失败模式：三个经典难题</h2>
+<p>TCC 的性能优势是拿&quot;业务复杂度&quot;换来的。这笔账的&quot;利息&quot;，就是三个经典失败模式。原文提到了&quot;failure modes&quot;并给出了&quot;阶段状态表&quot;和&quot;乱序标志&quot;两个机制，但没有系统地把它们讲全。我们在这里讲透。</p>
+<h3 id="61-协调者中途挂掉阶段状态表">6.1 协调者中途挂掉：阶段状态表</h3>
+<p>如果协调者在执行到一半时挂了，它必须能<strong>恢复自己的中间状态</strong>，否则就不知道&quot;哪些 Try 发出去了、哪些没发出去&quot;。</p>
+<p>原文的解法是：<strong>维护阶段状态表（phase status tables），在各个数据库分片内原子更新。</strong></p>
+<div align="center"><img src="./images/phase-status-tables.png" alt="阶段状态表：记录分布式事务的各个阶段状态" width="520" loading="lazy" decoding="async"></div>
+<p>这张表包含（原文列出的字段）：</p>
+<ul>
+<li>分布式事务的 <strong>ID 和内容</strong></li>
+<li><strong>Try 阶段的状态</strong>：未发送 / 已发送 / 已收到响应</li>
+<li><strong>第二阶段的名称</strong>：Confirm 还是 Cancel</li>
+<li><strong>第二阶段的状态</strong></li>
+<li><strong>乱序标志（out-of-order flag）</strong>（后面解释）</li>
+</ul>
+<p>有了这张表，协调者重启后就能<strong>扫描所有处于中间状态的事务</strong>，判断该继续 Confirm 还是该 Cancel。</p>
+<h3 id="62-失败模式一confirm-失败了怎么办">6.2 失败模式一：Confirm 失败了怎么办？</h3>
+<p><strong>场景</strong>：Try 阶段全部成功，进入 Confirm 阶段。协调者通知 A 提交（NOP，无所谓），通知 C 加钱。<strong>但 C 的数据库此刻挂了/网络不通。</strong></p>
+<p><strong>这时候能回滚吗？不能。</strong></p>
+<p>因为 Try 阶段已经<strong>提交</strong>了 A 的扣款（在原文的变体里），在标准 TCC 里也冻结了资源。这是一个<strong>已经发生的事实</strong>，没有&quot;回滚&quot;这个选项——你不能把 A 的钱退回去，因为 C 可能其实已经收到钱了（只是响应丢了）。</p>
+<p><strong>唯一的出路是：不断重试，直到成功。</strong></p>
+<pre><code>Confirm 失败 → 重试 → 失败 → 重试 → 失败 → 重试 → ... → 成功
+</code></pre>
+<p>这意味着两件事：</p>
+<ol>
+<li><strong>Confirm 必须幂等</strong>——如果 C 其实已经加过钱了，只是响应丢了，重试不能再加一次。</li>
+<li><strong>系统必须有可靠的重试机制</strong>——通常是把待重试的事务放进一张表，由一个后台任务（定时轮询或消息队列）持续重试，直到明确成功。</li>
+</ol>
+<blockquote>
+<p><strong>这是 TCC 最反直觉的一点</strong>：<strong>Confirm 阶段没有&quot;失败&quot;这个终态，只有&quot;还没成功&quot;</strong>。一旦进入 Confirm，就必须成功。这就是为什么 TCC 要求 Confirm 逻辑尽可能简单、可靠、且绝对幂等——它是一条<strong>不能回头的路</strong>。</p>
+</blockquote>
+<h3 id="63-失败模式二空回滚empty-rollback">6.3 失败模式二：空回滚（Empty Rollback）</h3>
+<p><strong>场景</strong>：协调者发出了 Try 请求，但请求<strong>在网络上丢了</strong>（或者协调者在发出 Try 之后、A 执行之前就挂了）。A 从来没有执行过 Try。</p>
+<p>随后，协调者（或者恢复流程）判断这个事务失败了，发出 <strong>Cancel</strong>。</p>
+<p><strong>Cancel 到了 A，但 A 根本没 Try 过。</strong> 如果 Cancel 的逻辑是&quot;把冻结的钱解冻&quot;，那它会把一个<strong>根本没冻结过的账户</strong>解冻——凭空给用户加了钱。</p>
+<p><strong>正确做法</strong>：Cancel 到达时，先检查这个事务 ID 是否存在。</p>
+<ul>
+<li>如果<strong>存在</strong>（Try 执行过）→ 正常执行解冻。</li>
+<li>如果<strong>不存在</strong>（Try 从没来过）→ 什么都不做，但<strong>必须插入一条&quot;已空回滚&quot;的记录</strong>。</li>
+</ul>
+<p><strong>为什么必须记录？</strong> 因为要防止下一个问题——</p>
+<h3 id="64-失败模式三悬挂suspension-hanging">6.4 失败模式三：悬挂（Suspension / Hanging）</h3>
+<p><strong>场景</strong>：这是&quot;空回滚&quot;的后续。Cancel 先到了（此时 Try 还没来），Cancel 执行完，什么都没做。<strong>然后，那个在网络里迷路了很久的 Try 请求，终于到了。</strong></p>
+<p>Try 一看：&quot;这个事务我没处理过啊&quot;，于是<strong>老老实实冻结了用户的 100 元</strong>。</p>
+<p><strong>结果</strong>：这笔钱被<strong>永久冻结</strong>。因为 Cancel 已经执行过了（并且被记录为&quot;空回滚&quot;），系统不会再发第二次 Cancel，这个冻结永远不会被解除。这就是<strong>悬挂</strong>。</p>
+<p>原文正是用这张图描述这个问题的：</p>
+<div align="center"><img src="./images/out-of-order-execution.png" alt="乱序执行：Cancel 操作在 Try 之前到达数据库" width="520" loading="lazy" decoding="async"></div>
+<p>原文的解法是：<strong>在阶段状态表里加一个&quot;乱序标志（out-of-order flag）&quot;。当收到 Try 操作时，先检查这个标志是否已置位；如果已置位，直接返回失败，不执行冻结。</strong></p>
+<p>这个&quot;乱序标志&quot;，本质上就是<strong>空回滚记录</strong>。所以两个问题的解法是统一的：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>Cancel 先到</th>
+<th>Try 后到</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>空回滚</strong></td>
+<td>Cancel 发现没有对应 Try → 插入&quot;空回滚&quot;记录，不做事</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>悬挂</strong></td>
+<td>—</td>
+<td>Try 发现已有&quot;空回滚/取消&quot;记录 → <strong>拒绝执行</strong>，返回失败</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一句话记住</strong>：<strong>空回滚是&quot;Cancel 早到了不能乱动&quot;，悬挂是&quot;Try 晚到了不能乱冻&quot;。</strong> 两者的统一解法是<strong>用事务 ID 做状态判断 + 阶段状态表持久化</strong>。</p>
+<p>这三个失败模式（Confirm 必重试、空回滚、悬挂）是 TCC 面试的高频考点。能主动讲出这三个，说明你真的实现过、或者至少认真想过 TCC。</p>
+</blockquote>
+<hr />
+<h2 id="7-saga补偿事务">7. Saga（补偿事务）</h2>
+<h3 id="思路把大事务拆成一串小事务">思路：把大事务拆成一串小事务</h3>
+<p>Saga 是另一个主流方案，也是微服务架构下实现分布式事务的<strong>标准模式</strong>。</p>
+<p>它的思路很朴素：</p>
+<ol>
+<li><strong>把一个大事务拆成一串有序的小操作</strong>，每个操作在自己的数据库里是<strong>独立的本地事务</strong>。</li>
+<li><strong>按顺序从第一个执行到最后一个。</strong></li>
+<li><strong>任何一步失败，就从这个位置开始，用&quot;补偿操作（compensating operations）&quot;逆序回滚，一直回到起点。</strong></li>
+</ol>
+<div align="center"><img src="./images/saga.png" alt="Saga：正向执行 T1→T2→T3，失败时逆序补偿 C2→C1" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>Saga 的出处</strong>：这个模式最早由 Hector Garcia-Molina 和 Kenneth Salem 在 1987 年的论文《Sagas》中提出，原本是为了解决&quot;长事务（long-lived transaction）持锁太久&quot;的问题。它比 TCC 更&quot;老&quot;，但直到微服务时代才真正流行起来。</p>
+</blockquote>
+<h3 id="两种协调方式">两种协调方式</h3>
+<p>原文列了两种：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>英文</th>
+<th>做法</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>协同式</strong></td>
+<td>Choreography</td>
+<td>每个服务<strong>订阅相关事件</strong>，自己决定该做什么</td>
+<td>去中心化，没有单点</td>
+<td>业务逻辑分散在多个服务里，异步通信，<strong>很难追踪和调试</strong></td>
+</tr>
+<tr>
+<td><strong>编排式</strong></td>
+<td>Orchestration</td>
+<td><strong>一个中心协调器</strong>按正确顺序指挥所有服务</td>
+<td>复杂逻辑集中，<strong>好维护、好调试</strong></td>
+<td>协调器可能成为单点（需要自己做高可用）</td>
+</tr>
+</tbody>
+</table></div>
+<p>原文的结论：<strong>协同式的挑战在于业务逻辑被拆散到多个服务、通过异步通信协作；而编排式能很好地处理复杂度，所以在数字钱包系统里通常更受青睐。</strong></p>
+<h3 id="tcc-与-saga-的对比">TC/C 与 Saga 的对比</h3>
+<p>原文给了一张对比表，这张表值得逐行读：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>TC/C</th>
+<th>Saga</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>补偿动作在哪</strong></td>
+<td>Cancel 阶段</td>
+<td>回滚阶段</td>
+</tr>
+<tr>
+<td><strong>中心协调</strong></td>
+<td>有</td>
+<td>有（orchestration 模式）</td>
+</tr>
+<tr>
+<td><strong>操作执行顺序</strong></td>
+<td><strong>任意</strong></td>
+<td><strong>线性</strong></td>
+</tr>
+<tr>
+<td><strong>能否并行执行</strong></td>
+<td><strong>可以</strong></td>
+<td>不可以（线性执行）</td>
+</tr>
+<tr>
+<td><strong>是否可能看到部分不一致状态</strong></td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td><strong>逻辑放在应用层还是数据库层</strong></td>
+<td>应用层</td>
+<td>应用层</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>核心差异只有一条：TCC 可以并行，Saga 只能线性。</strong></p>
+<p>这条差异直接决定了选型：<strong>如果对延迟敏感，选 TCC</strong>——因为 TCC 的两个分支（给 A 扣、给 C 加）可以并行发出，而 Saga 必须一步一步来。原文的原话：&quot;The main difference is that TC/C is parallelizable, so our decision is based on the latency requirement - if we need to achieve low latency, we should go for the TC/C approach.&quot;</p>
+<p><strong>但无论选哪个，都还有一件事必须做</strong>：原文最后强调——&quot;Regardless of the approach we take, we still need to support auditing and replaying history to recover from failed states.&quot;（无论采用哪种方案，我们仍然需要支持审计和历史重放，以便从失败状态中恢复。）</p>
+<p><strong>这句话把本章的下半场引出来了：事件溯源。</strong></p>
+<hr />
+<h2 id="8-事件溯源event-sourcing钱包为什么需要它">8. 事件溯源（Event Sourcing）：钱包为什么需要它</h2>
+<h3 id="从一个审计问题说起">从一个审计问题说起</h3>
+<p>原文说：现实中的数字钱包<strong>会被审计</strong>，所以我们必须能回答三个问题：</p>
+<ol>
+<li><strong>任意给定时刻，账户余额是多少？</strong></li>
+<li><strong>我们怎么知道历史余额和当前余额是正确的？</strong></li>
+<li><strong>改完代码之后，怎么证明系统逻辑还是对的？</strong></li>
+</ol>
+<p>传统做法（一张 <code>accounts</code> 表，存着当前余额）<strong>一个都答不上来</strong>。因为 <code>UPDATE balance = 850</code> 这个操作是<strong>破坏性的</strong>——它把旧值覆盖掉了。你只知道&quot;现在是多少&quot;，永远不知道&quot;当时是多少&quot;，更没法验证&quot;这个数字是不是算错了&quot;。</p>
+<p><strong>事件溯源（Event Sourcing）就是为回答这三个问题而生的技术。</strong></p>
+<h3 id="四个核心概念">四个核心概念</h3>
+<p>事件溯源由四个概念组成（原文的划分）：</p>
+<p><strong>① 命令（Command）</strong></p>
+<p>来自现实世界的<strong>意图</strong>，比如&quot;从 A 转 1 元到 B&quot;。</p>
+<ul>
+<li>命令需要一个<strong>全局顺序</strong>，所以它们被放进一个 <strong>FIFO（先进先出）队列</strong>。</li>
+<li><strong>命令和事件不同，命令是会失败的</strong>，也可能包含随机性（比如依赖外部 IO、依赖当前状态是否合法）。</li>
+<li>一条命令可以产生 <strong>0 个或多个</strong>事件（比如转账失败就产生 0 个事件）。</li>
+<li><strong>命令的生成过程可能包含随机性</strong>（比如读外部 IO）——这一点后面很关键。</li>
+</ul>
+<p><strong>② 事件（Event）</strong></p>
+<p>系统内部<strong>已经发生的历史事实</strong>，比如&quot;已从 A 转出 1 元给 B&quot;。</p>
+<ul>
+<li><strong>和命令不同，事件是事实</strong>——它已经发生了，不会失败，不能被撤销。</li>
+<li>和命令一样，事件也需要顺序，所以也放进 FIFO 队列。</li>
+</ul>
+<p><strong>③ 状态（State）</strong></p>
+<p>事件导致的结果。比如一个&quot;账户 → 余额&quot;的键值存储。</p>
+<p><strong>④ 状态机（State Machine）</strong></p>
+<p>驱动整个事件溯源流程的组件。它主要负责：<strong>校验命令</strong>、<strong>把事件应用到状态上</strong>。</p>
+<ul>
+<li><strong>状态机必须是确定性的（deterministic）</strong>——它不应该读外部 IO，也不应该依赖随机数。</li>
+</ul>
+<div align="center"><img src="./images/event-sourcing.png" alt="事件溯源的四个概念：命令、事件、状态、状态机" width="520" loading="lazy" decoding="async"></div>
+<p>原文还给了一张动态视图，展示命令如何流动成事件、再更新状态：</p>
+<div align="center"><img src="./images/dynamic-event-sourcing.png" alt="事件溯源的动态视图：命令队列 → 状态机 → 事件 → 状态更新" width="520" loading="lazy" decoding="async"></div>
+<h3 id="在钱包里怎么落地">在钱包里怎么落地</h3>
+<p>对钱包服务来说，<strong>命令就是转账请求</strong>。我们可以把它们放进一个 FIFO 队列，比如 <strong>Kafka</strong>：</p>
+<div align="center"><img src="./images/command-queue.png" alt="命令队列：转账请求进入 Kafka 这样的 FIFO 队列" width="520" loading="lazy" decoding="async"></div>
+<p>完整的流程：</p>
+<div align="center"><img src="./images/wallet-service-state-macghine.png" alt="钱包服务状态机的完整流程" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li>状态机从<strong>命令队列</strong>读取命令；</li>
+<li>从数据库读取<strong>余额状态</strong>；</li>
+<li><strong>校验命令</strong>。如果合法，为<strong>两个账户各生成一个事件</strong>；</li>
+<li>读取下一个事件并<strong>应用</strong>它——更新数据库里的余额（状态）。</li>
+</ol>
+<h3 id="最大的价值可重现性reproducibility">最大的价值：可重现性（Reproducibility）</h3>
+<p>原文的原话：&quot;The main advantage of using event sourcing is its reproducibility.&quot;</p>
+<p>在这个设计里，<strong>所有状态更新操作都被保存为一份不可变的、包含全部余额变化的历史</strong>。</p>
+<p>于是：</p>
+<ul>
+<li><strong>历史余额可以随时通过从头重放事件来重建。</strong></li>
+<li><strong>因为事件列表不可变、状态机是确定性的，重放任何中间状态都保证会成功。</strong></li>
+</ul>
+<div align="center"><img src="./images/historical-states.png" alt="通过重放事件重建任意历史时刻的状态" width="520" loading="lazy" decoding="async"></div>
+<p>现在回头看开头的三个审计问题，答案全都出来了（原文的三条回答）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>审计问题</th>
+<th>事件溯源如何回答</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任意时刻的余额是多少？</td>
+<td>从头重放事件，直到你关心的那个时间点</td>
+</tr>
+<tr>
+<td>怎么知道历史余额和当前余额是正确的？</td>
+<td>从头重新计算所有事件来验证</td>
+</tr>
+<tr>
+<td>改代码后怎么证明逻辑还是对的？</td>
+<td>用<strong>不同版本的代码</strong>跑<strong>同一批事件</strong>，比对结果是否完全一致</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>第三条是事件溯源的&quot;隐藏超能力&quot;</strong>：它让你可以在<strong>生产数据</strong>上验证代码改动的正确性，而不用等到出事故。这在金融系统里价值极高。</p>
+</blockquote>
+<h3 id="cqrs解决查询的问题">CQRS：解决&quot;查询&quot;的问题</h3>
+<p>客户端要查余额，不能让每个查询都去重放几百万条事件——太慢了。原文的解法是 <strong>CQRS（Command Query Responsibility Segregation，命令查询职责分离）</strong>：</p>
+<blockquote>
+<p>可以有<strong>多个只读状态机</strong>，它们基于那份不可变的事件列表，专门负责<strong>查询历史状态</strong>。</p>
+</blockquote>
+<div align="center"><img src="./images/cqrs-architecture.png" alt="CQRS 架构：写模型处理命令，只读状态机处理查询" width="520" loading="lazy" decoding="async"></div>
+<p>CQRS 的核心思想是：<strong>读和写用两套不同的模型</strong>。</p>
+<ul>
+<li><strong>写模型（命令侧）</strong>：接收命令、校验、生成事件、维护权威状态。为了正确性，走的是&quot;重放 + 严格顺序&quot;的路径，<strong>慢但准</strong>。</li>
+<li><strong>读模型（查询侧）</strong>：订阅事件流，把事件&quot;投影（project）&quot;成方便查询的<strong>物化视图（Materialized View）</strong>——比如一张 <code>user_id → balance</code> 的表，甚至是一张预先算好的报表。<strong>快，但不是权威数据源</strong>。</li>
+</ul>
+<p>为什么非要拆开？因为这两个场景的诉求是<strong>矛盾的</strong>：</p>
+<ul>
+<li>写侧要的是<strong>正确性和可审计性</strong>——必须保留完整事件、严格顺序。</li>
+<li>读侧要的是<strong>低延迟和高吞吐</strong>——它只想快速拿到一个数字。</li>
+</ul>
+<p>如果硬要用一套模型，你就会陷入两难：要么为了查询性能而牺牲事件的完整性（就退化成普通的余额表了），要么为了事件完整性而让每次查询都慢得不可接受。CQRS 让两边各取所需。</p>
+<p><strong>代价</strong>：引入了<strong>最终一致性（Eventual Consistency）</strong>。读模型是异步从事件流更新的，所以用户刚转完账，立刻查余额可能还是旧值。这在钱包场景里是<strong>必须正面处理</strong>的问题——本章第 11 节会讲怎么解决。</p>
+<hr />
+<h2 id="9-深入设计高性能事件溯源">9. 深入设计：高性能事件溯源</h2>
+<p>前面解决了&quot;正确性&quot;，但我们的目标是 <strong>100 万 TPS</strong>。原文在这一节讲了一系列性能优化。</p>
+<h3 id="优化一把日志存到本地磁盘">优化一：把日志存到本地磁盘</h3>
+<p><strong>第一个优化</strong>：把命令和事件存到<strong>本地磁盘存储</strong>，而不是 Kafka 这样的外部存储。</p>
+<p>好处：</p>
+<ul>
+<li><strong>省掉网络延迟</strong>。写本地磁盘不需要网络往返。</li>
+<li><strong>只做追加写（append-only）</strong>。对磁盘来说，顺序追加是最快的写模式——即使是机械硬盘（HDD）也很快，因为不需要寻道。</li>
+</ul>
+<h3 id="优化二把最近的日志缓存在内存">优化二：把最近的日志缓存在内存</h3>
+<p><strong>第二个优化</strong>：把最近用到的命令和事件<strong>缓存在内存</strong>里，省掉从磁盘回读的时间。</p>
+<h3 id="实现手段mmap">实现手段：mmap</h3>
+<p>在底层，上面两个优化可以<strong>用一个系统调用同时实现</strong>：<strong><code>mmap</code>（内存映射）</strong>。它把本地磁盘上的文件映射到进程的内存空间，于是你<strong>既得到了落盘，也得到了内存缓存</strong>。</p>
+<div align="center"><img src="./images/mmap-optimization.png" alt="mmap 优化：文件同时存在于磁盘和内存页缓存中" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>mmap 到底是什么？</strong>
+<code>mmap</code> 是一个 UNIX 系统调用，它把磁盘上的一个文件&quot;映射&quot;到进程的虚拟地址空间。之后你对这段内存的读写，由操作系统自动同步到文件。读的时候如果数据在内存里就直接读（快），不在就触发缺页中断从磁盘加载；写的时候先写内存，内核在后台刷盘。
+<strong>它之所以快</strong>，是因为数据<strong>不经过用户态缓冲区</strong>，也省掉了 <code>read</code>/<code>write</code> 系统调用的开销。<strong>但要注意</strong>：mmap 写入后，数据要真正落盘需要内核刷页（或显式 <code>msync</code>），所以&quot;写了 mmap&quot;不等于&quot;已持久化&quot;。对钱包这种场景，关键路径上的持久化点仍然需要明确的 <code>fsync</code> 语义。</p>
+</blockquote>
+<h3 id="优化三状态也存本地用-lsm-树">优化三：状态也存本地，用 LSM 树</h3>
+<p><strong>第三个优化</strong>：把<strong>状态</strong>也存到本地文件系统，用一个文件型本地关系数据库，比如 <strong>SQLite</strong>。<strong>RocksDB</strong> 也是一个很好的选择。</p>
+<p>原文的选择是 <strong>RocksDB</strong>，理由是：<strong>它使用 LSM 树（Log-Structured Merge-Tree），针对写操作做了优化；读性能则通过缓存来优化。</strong></p>
+<div align="center"><img src="./images/rocks-db-approach.png" alt="RocksDB 方案：状态存储在本地 LSM 树存储引擎中" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>为什么 LSM 树适合这个场景？</strong>
+传统数据库（如 MySQL 的 InnoDB）用的是 <strong>B+ 树</strong>，更新是&quot;原地修改&quot;——要找到那一页、改它、再写回去，<strong>随机写</strong>。而 <strong>LSM 树</strong>把写操作先在内存里攒着（MemTable），攒满了一批<strong>顺序追加</strong>到一个新文件（SSTable）里，后台再慢慢合并。
+事件溯源的工作负载特点是<strong>写多、且都是追加</strong>——这和 LSM 树的设计完美契合。代价是<strong>读会变慢</strong>（数据可能分散在多个 SSTable 里，需要层层查找），所以要用<strong>缓存</strong>来补。原文说&quot;读性能通过缓存优化&quot;，说的就是这个。</p>
+</blockquote>
+<h3 id="优化四快照snapshot">优化四：快照（Snapshot）</h3>
+<p><strong>第四个优化</strong>：为了优化可重现性，<strong>定期把快照（snapshot）存到磁盘</strong>，这样就不必每次都从最开头重放。</p>
+<p>快照可以当作<strong>大二进制文件</strong>，存到 HDFS 这类<strong>分布式文件存储</strong>里：</p>
+<div align="center"><img src="./images/snapshot-approach.png" alt="快照方案：定期保存状态快照到分布式文件存储" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>快照解决了什么具体问题？</strong>
+想象一个跑了三年的钱包，事件列表有 <strong>100 亿条</strong>。现在要重放，从第 1 条跑到第 100 亿条，可能要跑好几个小时。但如果你在第 99 亿条处存了一个快照，重放就只需要：<strong>加载快照（秒级）+ 重放最后 1 亿条</strong>。
+这是一个<strong>时间换空间</strong>的经典权衡：快照占存储，但把恢复时间从&quot;小时级&quot;压到&quot;分钟级&quot;。
+<strong>工程上要注意</strong>：快照必须和事件列表的某个**确定位置（offset/sequence）**绑定，否则&quot;快照 + 后续事件&quot;拼不出正确的状态。</p>
+</blockquote>
+<hr />
+<h2 id="10-可靠的高性能事件溯源引入复制">10. 可靠的高性能事件溯源：引入复制</h2>
+<h3 id="一个绕不开的副作用">一个绕不开的副作用</h3>
+<p>原文说得很诚实：&quot;All the optimizations done so far are great, but they make our service <strong>stateful</strong>.&quot;</p>
+<p>前面所有优化（本地磁盘、mmap、RocksDB、快照）都很好，<strong>但它们让服务变成了有状态的</strong>。有状态就意味着<strong>单点</strong>——那台机器挂了，数据就没了。所以必须引入<strong>复制（replication）</strong>。</p>
+<h3 id="先想清楚什么数据需要高可靠">先想清楚：什么数据需要高可靠？</h3>
+<p>原文有一段非常精彩的推理，值得完整复述，因为它是&quot;分清主次&quot;的典范：</p>
+<ol>
+<li><strong>状态和快照</strong> 都可以通过重放事件列表<strong>重新生成</strong>。所以<strong>不需要</strong>单独保证它们的可靠性——只要事件列表还在，它们随时能重建。</li>
+<li><strong>有人可能会想</strong>：&quot;事件列表也能从命令列表重新生成吧？&quot;——<strong>这是错的</strong>，因为<strong>命令是非确定性的</strong>（命令可能失败、可能依赖外部 IO）。</li>
+<li><strong>结论</strong>：<strong>我们只需要保证事件列表的高可靠性。</strong></li>
+</ol>
+<blockquote>
+<p><strong>这一步推理是本章最重要的思维训练之一。</strong>
+为什么事件可以从命令重放，但命令不能从命令重放？因为命令是<strong>非确定性的</strong>——同一条命令，在不同的时间、不同的外部状态下，可能产生不同的事件（甚至失败）。而事件是<strong>已经确定的事实</strong>，它重放出来的结果永远一样。
+<strong>这就是为什么&quot;事件列表&quot;必须被持久化、被复制，而&quot;命令列表&quot;不需要</strong>——命令一旦被执行，它的&quot;历史使命&quot;就完成了，它的产物（事件）才是真相。</p>
+</blockquote>
+<h3 id="复制事件列表">复制事件列表</h3>
+<p>要保证事件列表的高可靠，需要把它复制到多个节点，并且必须保证两件事（原文）：</p>
+<ol>
+<li><strong>不丢数据</strong>；</li>
+<li><strong>日志文件内数据的相对顺序，在所有副本之间保持一致。</strong></li>
+</ol>
+<p><strong>注意第二条</strong>——&quot;顺序一致&quot;和&quot;不丢数据&quot;同样重要。如果两个副本的事件顺序不一样，它们重放出来的状态就会<strong>分叉</strong>（这是第 28 章&quot;确定性&quot;要展开的核心问题）。</p>
+<p><strong>实现手段：共识算法（consensus algorithm），比如 Raft。</strong></p>
+<div align="center"><img src="./images/raft-replication.png" alt="Raft 复制：leader 主动工作，followers 被动跟随" width="520" loading="lazy" decoding="async"></div>
+<p>Raft 的模型（原文）：</p>
+<ul>
+<li>有一个 <strong>leader（领导者）</strong>，它是<strong>主动的</strong>；</li>
+<li>有若干 <strong>follower（跟随者）</strong>，它们是<strong>被动的</strong>；</li>
+<li>如果 leader 挂了，<strong>其中一个 follower 会顶上</strong>；</li>
+<li><strong>只要超过半数（majority）的节点存活，系统就能继续运行。</strong></li>
+</ul>
+<p>在这个方案里，<strong>所有节点都基于事件列表更新自己的状态</strong>，而 <strong>Raft 保证 leader 和 followers 拥有完全相同的事件列表</strong>。</p>
+<blockquote>
+<p><strong>为什么用&quot;超过半数&quot;而不是&quot;全部&quot;？</strong>
+因为要求全部节点都确认，只要有一台机器挂了整个系统就停了——可用性太差。而&quot;超过半数&quot;保证了两件事：<strong>(1) 任意两个多数派必然有交集</strong>，所以新 leader 一定能看到已提交的日志；<strong>(2) 容忍少数节点故障</strong>。这是**法定人数（Quorum）**思想的经典应用，代价是延迟取决于&quot;多数派中最慢的那个节点&quot;。</p>
+</blockquote>
+<hr />
+<h2 id="11-分布式事件溯源分片cqrs-与实时性">11. 分布式事件溯源：分片、CQRS 与实时性</h2>
+<p>到这里，我们已经做出了一个<strong>单节点性能高、且可靠</strong>的系统。但它还有两个限制（原文）：</p>
+<ol>
+<li><strong>单个 Raft 组的容量是有限的</strong>。到了一定规模，必须**分片（shard）**数据，并实现分布式事务。</li>
+<li><strong>CQRS 架构下请求/响应流程很慢</strong>。客户端必须**定期轮询（poll）**系统，才能知道自己的钱包有没有被更新。</li>
+</ol>
+<h3 id="问题轮询不实时还会压垮系统">问题：轮询不实时，还会压垮系统</h3>
+<p><strong>轮询不是实时的</strong>，所以用户要过一会儿才能知道余额变了。而且，<strong>如果轮询频率太高，会压垮查询服务</strong>：</p>
+<div align="center"><img src="./images/polling-approach.png" alt="轮询方案：客户端反复轮询查询服务，造成负载" width="520" loading="lazy" decoding="async"></div>
+<h3 id="缓解一反向代理">缓解一：反向代理</h3>
+<p>为了减轻系统负载，可以引入一个<strong>反向代理（reverse proxy）</strong>，它<strong>代表用户发送命令，并代表用户轮询响应</strong>：</p>
+<div align="center"><img src="./images/reverse-proxy.png" alt="反向代理：代替用户发送命令并轮询响应" width="520" loading="lazy" decoding="async"></div>
+<p>原文说：这能缓解系统负载，因为<strong>我们可以用一次请求拉取多个用户的数据</strong>，但它<strong>仍然没有解决&quot;实时收到结果&quot;的要求</strong>。</p>
+<h3 id="缓解二让只读状态机主动推送">缓解二：让只读状态机主动推送</h3>
+<p><strong>最后一个改动</strong>：让<strong>只读状态机在响应就绪时，主动把结果推回给反向代理</strong>。这样用户就会感觉更新是实时的：</p>
+<div align="center"><img src="./images/push-state-machines.png" alt="推送方案：只读状态机主动推送结果给反向代理" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>从&quot;轮询&quot;到&quot;推送&quot;，这是一个通用模式。</strong>
+轮询（polling）的问题是：<strong>你要么查得太勤（浪费），要么查得太懒（不实时）</strong>。推送（push）把&quot;谁来决定什么时候查&quot;从客户端转移到了服务端——服务端知道什么时候有结果，让它来通知你，天然就是最优时机。
+这个思路在工程里反复出现：WebSocket 替代 HTTP 轮询、消息队列的推送消费、CDC（变更数据捕获）等。<strong>面试时如果被问到&quot;如何实现实时通知&quot;，从&quot;轮询 vs 推送&quot;的角度切入，是一个很好的回答框架。</strong></p>
+</blockquote>
+<h3 id="最终形态分片的-raft-组">最终形态：分片的 Raft 组</h3>
+<p>要更进一步扩展，就把系统<strong>分片成多个 Raft 组</strong>，然后在它们之上用**编排器（orchestrator）**通过 <strong>TCC 或 Saga</strong> 实现分布式事务：</p>
+<div align="center"><img src="./images/sharded-raft-groups.png" alt="分片 Raft 组：多个 Raft 组通过编排器实现分布式事务" width="520" loading="lazy" decoding="async"></div>
+<p><strong>注意这里形成了一个漂亮的闭环</strong>：</p>
+<ul>
+<li><strong>组内</strong>（一个 Raft 组内部）用<strong>共识算法</strong>保证一致性和可靠性；</li>
+<li><strong>组间</strong>（跨 Raft 组）用<strong>分布式事务</strong>（TCC / Saga）保证原子性。</li>
+</ul>
+<p>这就把第 3～7 节讲的分布式事务，和第 10 节讲的 Raft，<strong>各用在最适合它的层级上</strong>。</p>
+<h3 id="一次转账请求的完整生命周期">一次转账请求的完整生命周期</h3>
+<p>原文给了最终系统里一次转账的完整生命周期，我们逐条拆解：</p>
+<ol>
+<li>用户 A 向 Saga 编排器发送一个分布式事务，包含两个操作：<code>A-1</code> 和 <code>C+1</code>。</li>
+<li>Saga 编排器在<strong>阶段状态表</strong>里创建一条记录，用来追踪这个事务的状态。</li>
+<li>编排器确定需要把命令发到<strong>哪些分片（partition）</strong>。</li>
+<li><strong>分片 1 的 Raft leader</strong> 收到 <code>A-1</code> 命令，<strong>校验</strong>它，把它<strong>转换成一个事件</strong>，并在 Raft 组内<strong>复制</strong>到其他节点。</li>
+<li>事件结果被<strong>同步到只读状态机</strong>，状态机把响应<strong>推回</strong>给编排器。</li>
+<li>编排器创建一条记录，标明该操作成功，然后继续执行下一个操作 <code>C+1</code>。</li>
+<li>第二个操作与第一个类似：确定分片 → 发送命令 → 执行 → 只读状态机推回响应。</li>
+<li>编排器创建一条记录，标明操作 2 也成功了，最后把结果通知客户端。</li>
+</ol>
+<p><strong>请把这条链路和前面的知识点对应起来</strong>：</p>
+<ul>
+<li>第 2、6、8 步 → <strong>阶段状态表</strong>（第 6.1 节），用于故障恢复；</li>
+<li>第 3 步 → <strong>分片</strong>（第 2 节）；</li>
+<li>第 4 步 → <strong>确定性校验 + 事件生成 + Raft 复制</strong>（第 8、10 节）；</li>
+<li>第 5、7 步 → <strong>CQRS 只读状态机 + 推送</strong>（第 8、11 节）；</li>
+<li>整个 1～8 步的编排 → <strong>Saga / TCC</strong>（第 5、7 节）。</li>
+</ul>
+<hr />
+<h2 id="12-完整设计回顾">12. 完整设计回顾</h2>
+<p>原文的收尾总结了一条清晰的演进路线，我们按&quot;每一步解决了什么、又暴露了什么新问题&quot;来重述：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>方案</th>
+<th>解决了什么</th>
+<th>暴露了什么新问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>内存 Redis</td>
+<td>简单、快</td>
+<td><strong>不是持久化存储</strong>，宕机丢数据；无法原子转账</td>
+</tr>
+<tr>
+<td>2</td>
+<td>分片关系型数据库 + 分布式事务（2PC / TCC / Saga）</td>
+<td>持久化 + 跨库原子性</td>
+<td>单库性能扛不住 100 万 TPS</td>
+</tr>
+<tr>
+<td>3</td>
+<td>引入事件溯源</td>
+<td>所有操作<strong>可审计</strong>、可重放</td>
+<td>存到外部数据库和队列，<strong>性能不够</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>数据改存本地文件，利用<strong>追加写</strong>的性能，并用<strong>缓存</strong>优化读路径</td>
+<td>单机性能大幅提升</td>
+<td>服务变成<strong>有状态</strong>的，<strong>不是可靠的</strong>（单点）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>引入 <strong>Raft 共识 + 复制</strong></td>
+<td>消除单点故障</td>
+<td>CQRS 的请求/响应流程慢（轮询）</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>CQRS + 反向代理</strong>，代表用户管理事务生命周期</td>
+<td>减轻轮询负载，接近实时</td>
+<td>单个 Raft 组容量有限</td>
+</tr>
+<tr>
+<td>7</td>
+<td>把数据<strong>分片</strong>到多个 Raft 组，用**分布式事务（TCC / Saga）**编排</td>
+<td>可水平扩展</td>
+<td>——</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>这张表本身就是一道面试题的答案。</strong>
+如果面试官问&quot;你怎么设计一个数字钱包&quot;，一个高分回答的结构就是这条演进链：<strong>每一步都是被上一步的问题逼出来的</strong>。不要一上来就抛出&quot;事件溯源 + Raft + 分片&quot;，那样面试官会认为你在背答案。<strong>正确的姿势是：先说最简单的方案，然后自己指出它的问题，再引出改进</strong>——这正是原文 Step 1 → Step 4 的叙事方式。</p>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>本节逐条指出原笔记中不准确、过时或缺失的地方。原笔记本章整体质量很高（尤其是事件溯源和 CQRS 部分），但有几处术语、代码和表述需要修正。</p>
+</blockquote>
+<h3 id="勘误-1tcc-应写作-tcc且它不是-2pc-的变体">勘误 1：<code>TC/C</code> 应写作 <code>TCC</code>，且它不是 2PC 的&quot;变体&quot;</h3>
+<ul>
+<li><strong>原文说法</strong>：原文使用 <code>TC/C</code>（Try-Confirm/Cancel），并称它是&quot;a variation of the 2PC protocol&quot;（2PC 协议的一个变体）。</li>
+<li><strong>问题</strong>：
+<ol>
+<li><strong>术语不规范</strong>。业界标准名称是 <strong>TCC（Try-Confirm-Cancel）</strong>。原文的 <code>TC/C</code> 写法在面试和文档中会显得生僻。</li>
+<li><strong>分类不准确</strong>。TCC 确实有&quot;两个阶段&quot;的结构，但它和 2PC 有本质区别，原文自己也指出了：&quot;2PC performs a single transaction, whereas in TC/C, there are two independent transactions.&quot;（2PC 执行一个事务，TCC 执行两个独立事务）。既然 TCC 的第一阶段就已经<strong>提交了本地事务</strong>，它就不属于&quot;两阶段提交&quot;这个协议族，而属于**补偿型事务（Compensating Transaction）**族——和 Saga 是同一族。</li>
+</ol>
+</li>
+<li><strong>正确说法</strong>：<strong>TCC 是一种基于补偿的分布式事务模式，它借用&quot;两阶段&quot;的形式，但不依赖 XA、不长期持有数据库锁。</strong> 它和 2PC 的对比关系应该是&quot;<strong>替代方案</strong>&quot;，而不是&quot;变体&quot;。</li>
+<li><strong>延伸</strong>：工业界最有影响力的 TCC 实现是蚂蚁金服（现蚂蚁集团）在支付宝体系内发展出来的，开源实现为 <strong>Apache Seata</strong>（其 TCC 模式）。面试时提到 Seata 会显得你了解工业实践。</li>
+</ul>
+<h3 id="勘误-2分片示例代码存在负数取模的隐患">勘误 2：分片示例代码存在负数取模的隐患</h3>
+<ul>
+<li><strong>原文说法</strong>：<pre><code class="language-java">Int myPartition = accountID.hashCode() % partitionNumber;
+</code></pre>
+</li>
+<li><strong>问题</strong>：Java 的 <code>%</code> 运算符对负数操作数<strong>返回负结果</strong>（这一点和 Python 不同）。<code>String.hashCode()</code> 完全可能是负数，例如 <code>&quot;polygenelubricants&quot;.hashCode()</code> 就等于 <code>Integer.MIN_VALUE</code>。一旦为负，<code>myPartition</code> 就是负数，作为分片下标非法，会导致 <code>ArrayIndexOutOfBoundsException</code> 或路由到错误节点。</li>
+<li><strong>正确说法</strong>：应使用 <code>Math.floorMod(accountID.hashCode(), partitionNumber)</code>，它能保证结果非负。或者先取绝对值并特殊处理 <code>Integer.MIN_VALUE</code>。</li>
+<li><strong>延伸</strong>：<strong>这个例子还暴露了一个更大的设计问题</strong>——用 <code>% partitionNumber</code> 做分片，一旦分片数从 7 变成 8，<strong>几乎所有 key 的归属都会改变</strong>，等于全量数据迁移。生产环境要么用<strong>一致性哈希</strong>，要么<strong>预先划分远多于物理节点数的逻辑分片</strong>（比如 1024 个逻辑分片映射到 8 台物理机，扩容时搬整个逻辑分片即可）。详见第 1 章第 12 节的讨论。</li>
+</ul>
+<h3 id="勘误-3本地磁盘方案不-durable的表述不准确">勘误 3：&quot;本地磁盘方案不 durable&quot;的表述不准确</h3>
+<ul>
+<li><strong>原文说法</strong>：在 Wrap Up 里，原文说 &quot;The previous approach, although performant, wasn't durable. Hence, we introduced Raft consensus with replication to avoid single points of failure.&quot;</li>
+<li><strong>问题</strong>：这个表述把<strong>持久性（Durability）<strong>和</strong>可用性/可靠性（Availability / Reliability）<strong>混在一起了。第 4 步的方案（本地磁盘 + mmap + RocksDB）<strong>在持久性上是合格的</strong>——数据确实落到了磁盘，进程崩溃也不会丢。它真正缺的是</strong>冗余</strong>：那台机器的磁盘坏了，数据就没了。原文紧接着的&quot;to avoid single points of failure&quot;（为了避免单点故障）说的其实是<strong>可用性</strong>问题。</li>
+<li><strong>正确说法</strong>：第 4 步的短板是<strong>没有副本、存在单点故障</strong>，因此需要复制。<strong>持久性 ≠ 高可用</strong>：
+<ul>
+<li><strong>持久性（Durability）</strong>：数据写下去之后，进程崩溃/重启不会丢。</li>
+<li><strong>可用性（Availability）</strong>：系统在部分组件故障时仍能对外服务。</li>
+<li><strong>可靠性（Reliability）</strong>：数据在硬件故障（磁盘损坏）后仍不丢失。</li>
+</ul>
+</li>
+<li><strong>延伸</strong>：这三个词在面试中经常被混用，而面试官很爱抓这个。一个单机数据库是<strong>持久的</strong>（进程重启不丢），但<strong>不可用</strong>（机器挂了就停）也不<strong>可靠</strong>（磁盘坏了就丢）。加副本同时解决可用性和可靠性，代价是复杂度和写延迟。</li>
+</ul>
+<h3 id="补充-1三阶段提交3pc">补充 1：三阶段提交（3PC）</h3>
+<p>原笔记完全没有提到 3PC。它是理解&quot;2PC 为什么阻塞&quot;的最好对照，正文第 4 节已完整讲解。<strong>记住结论即可：3PC 假设网络不会分区，这个假设在真实网络中不成立，所以工业界基本不用。</strong></p>
+<h3 id="补充-2tcc-的三种失败模式">补充 2：TC/C 的三种失败模式</h3>
+<p>原笔记提到了&quot;failure modes&quot;、阶段状态表和乱序标志，但<strong>没有把三个经典难题讲全</strong>。正文第 6 节补齐了：</p>
+<ol>
+<li><strong>Confirm 失败</strong> → 无法回滚，只能<strong>不断重试直到成功</strong>（因此 Confirm 必须幂等）；</li>
+<li><strong>空回滚（Empty Rollback）</strong> → Cancel 先于 Try 到达，Cancel 必须记录&quot;已空回滚&quot;而不做实际操作；</li>
+<li><strong>悬挂（Suspension）</strong> → Cancel 先到、Try 后到，Try 必须检查标志并<strong>拒绝执行</strong>，否则资源被永久冻结。</li>
+</ol>
+<p><strong>这三个是 TCC 面试的高频考点。</strong> 原笔记只覆盖了第 3 个的一半（乱序标志），前两个完全缺失。</p>
+<h3 id="补充-3幂等性的实现方式">补充 3：幂等性的实现方式</h3>
+<p>原笔记把 <code>transaction_id</code> 称为&quot;idempotency key&quot;，但没有讲<strong>怎么用它实现幂等</strong>。正文第 5 节给出了具体做法：<strong>用唯一事务 ID 建去重表，把&quot;插入去重记录&quot;和&quot;执行业务操作&quot;放在同一个本地事务里</strong>。这是分布式事务实现中最基础、也最容易写错的一环。</p>
+<h3 id="补充-4余额不能为负并发下如何保证">补充 4：余额不能为负，并发下如何保证</h3>
+<p>原笔记没有讨论这个钱包的<strong>硬约束</strong>。但它极其重要——<strong>余额为负就意味着系统在凭空放贷</strong>。</p>
+<p>有四种常见做法，按推荐程度排列：</p>
+<p><strong>① 条件更新（推荐，最简单可靠）</strong></p>
+<pre><code class="language-sql">UPDATE accounts
+SET balance = balance - 100
+WHERE account_id = 'A' AND balance &gt;= 100;
+</code></pre>
+<p>然后检查<strong>影响行数</strong>：</p>
+<ul>
+<li>如果 <code>affected_rows == 1</code>，说明扣款成功；</li>
+<li>如果 <code>affected_rows == 0</code>，说明余额不足（或账户不存在），<strong>整个事务回滚</strong>。</li>
+</ul>
+<p><strong>为什么这个方法好？</strong> 因为&quot;检查余额&quot;和&quot;扣减余额&quot;在<strong>同一条 SQL、同一个数据库锁的保护下</strong>完成，是<strong>原子</strong>的。不存在&quot;检查时够、扣的时候不够&quot;的窗口（那叫 <strong>TOCTOU 问题</strong>：Time-Of-Check to Time-Of-Use）。</p>
+<p><strong>② 乐观锁（Optimistic Locking）</strong></p>
+<p>给账户加一个 <code>version</code> 字段：</p>
+<pre><code class="language-sql">UPDATE accounts
+SET balance = balance - 100, version = version + 1
+WHERE account_id = 'A' AND version = 7;
+</code></pre>
+<p>如果 <code>affected_rows == 0</code>，说明在读取之后有别人改过（版本对不上），<strong>重试整个流程</strong>。适合<strong>冲突少</strong>的场景；冲突多时重试会拖垮性能。</p>
+<p><strong>③ 悲观锁（Pessimistic Locking）</strong></p>
+<pre><code class="language-sql">SELECT balance FROM accounts WHERE account_id = 'A' FOR UPDATE;
+</code></pre>
+<p>先把行锁住，再读、再算、再写。<strong>简单，但在高并发下锁竞争严重</strong>，而且如果应用层处理不当（比如在锁内做 RPC 调用），会长时间持锁。这就是 2PC 性能差的同一个根源。</p>
+<p><strong>④ 数据库约束（最后一道防线）</strong></p>
+<pre><code class="language-sql">ALTER TABLE accounts ADD CONSTRAINT chk_balance_non_negative CHECK (balance &gt;= 0);
+</code></pre>
+<p><strong>这个不能作为主要手段</strong>，但<strong>必须加</strong>。它是一道<strong>兜底</strong>：如果应用层的逻辑有 bug，数据库会直接拒绝，而不是默默地产生负余额。这在资金系统里是标配——<strong>永远不要相信应用层的正确性，让数据库守住底线。</strong></p>
+<blockquote>
+<p><strong>TCC 的&quot;冻结&quot;语义恰好天然满足了这条约束</strong>：Try 阶段冻结时，可用余额 = 总余额 - 冻结额，冻结额本身就限制了可用余额不能小于 0。这也是为什么标准 TCC 用&quot;冻结&quot;而不是&quot;直接扣减&quot;。</p>
+</blockquote>
+<h3 id="补充-5对账reconciliation与审计">补充 5：对账（Reconciliation）与审计</h3>
+<p>原笔记在需求澄清里提到了&quot;reconciliation&quot;，但没有展开。<strong>对账是资金系统的生命线</strong>，必须讲清楚。</p>
+<p><strong>什么是对账？</strong> 把系统内部的账目，和外部的权威账目（银行流水、清算所记录）<strong>逐笔比对</strong>，找出不一致的地方。</p>
+<p><strong>为什么要对账？</strong> 因为<strong>再好的分布式事务也挡不住所有意外</strong>：代码 bug、人工误操作、极端故障场景下的补偿失败。对账是<strong>最后一道防线</strong>——它假设&quot;系统一定会有错&quot;，并保证&quot;错误一定会被发现&quot;。</p>
+<p><strong>对账的层次</strong>（从内到外）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>层次</th>
+<th>对什么</th>
+<th>频率</th>
+<th>发现什么问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>内部一致性</strong></td>
+<td>所有用户余额之和 vs 事件流累加之和</td>
+<td>实时/每小时</td>
+<td>状态机计算错误、事件丢失</td>
+</tr>
+<tr>
+<td><strong>内部账实相符</strong></td>
+<td>系统记录 vs 冻结/在途资金</td>
+<td>每小时</td>
+<td>TCC 悬挂、补偿失败</td>
+</tr>
+<tr>
+<td><strong>外部对账</strong></td>
+<td>系统余额 vs 银行/清算所流水</td>
+<td><strong>T+1（次日）</strong></td>
+<td>资金差错、重复/漏单</td>
+</tr>
+<tr>
+<td><strong>监管报送</strong></td>
+<td>按监管要求生成报表</td>
+<td>按周期</td>
+<td>合规问题</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>对账的核心工具是&quot;双式记账（Double-Entry Bookkeeping）&quot;</strong>：每一笔资金变动都记录为<strong>借贷两条腿</strong>，且<strong>所有分录的借贷总和必须为零</strong>。这是复式记账法（已有几百年历史）在软件里的直接应用。事件溯源天然适配它——<strong>每一个&quot;转账事件&quot;就是一对借贷分录</strong>，只要事件流完整，账永远是平的。</p>
+<p><strong>发现差异怎么办？</strong> 差异分两类：</p>
+<ul>
+<li><strong>可自动修复的</strong>（比如状态机重算后对上了）→ 自动重算、自动冲正。</li>
+<li><strong>不可自动修复的</strong>（比如真的少了一笔钱）→ <strong>生成差异工单，人工介入</strong>。系统绝不能&quot;自动抹平&quot;差异——那是在掩盖问题。</li>
+</ul>
+<blockquote>
+<p><strong>面试加分点</strong>：主动提到&quot;对账&quot;，并说清楚&quot;对账只能发现差异、不能定位根因，所以还需要事件溯源来重放定位&quot;，这正好呼应了原文 Step 1 里面试官的那句话。<strong>能把&quot;对账&quot;和&quot;事件溯源&quot;的关系讲清楚，说明你理解资金系统的完整闭环。</strong></p>
+</blockquote>
+<h3 id="补充-6现实参照100-万-tps-意味着什么">补充 6：现实参照——100 万 TPS 意味着什么</h3>
+<p>原笔记设定 100 万 TPS 作为设计目标，没有说明这个数字在现实中的位置。为了避免初学者误以为&quot;支付系统都在这个量级&quot;，这里补充一个参照：</p>
+<ul>
+<li>真实世界的大型支付系统，峰值在<strong>每秒几十万笔</strong>的量级（通常是电商大促期间的瞬时峰值，且全年只有几个这样的时刻）。</li>
+<li>100 万 TPS 已经<strong>超过了绝大多数真实支付系统的峰值</strong>。</li>
+</ul>
+<p><strong>这不是说原笔记错了</strong>——系统设计面试本就会刻意放大规模来逼出方案。但你要能区分&quot;<strong>设计目标</strong>&quot;和&quot;<strong>行业常态</strong>&quot;。面试时如果主动指出这一点（&quot;我们假设 100 万 TPS，这其实已经超过了现实中主流支付系统的峰值，所以方案要足够激进&quot;），会显得你对行业有感觉，而不是只会背架构。</p>
+<h3 id="补充-7zookeeper-之外的配置存储选择">补充 7：ZooKeeper 之外的配置存储选择</h3>
+<p>原笔记用 ZooKeeper 存放分片数量和 Redis 节点地址。这在 2010 年代是标准做法，但今天 <strong>etcd</strong> 和 <strong>Consul</strong> 更常见——它们更轻量、运维更简单，且 etcd 是 Kubernetes 的底层存储，生态更主流。ZooKeeper 依然可用（Kafka 曾长期依赖它），但它正在被逐步替代（Kafka 从 2.8 起支持 <strong>KRaft</strong> 模式，不再需要 ZooKeeper）。这不算原笔记的错误，只是<strong>时代在变</strong>。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跨库转账可以用数据库事务搞定</td>
+<td>数据库的 ACID 只在<strong>单个实例内部</strong>成立，跨实例没有任何机制能保证原子性</td>
+<td>跨库必须用分布式事务方案（2PC / TCC / Saga），没有&quot;免费&quot;的原子性</td>
+</tr>
+<tr>
+<td>TCC 就是 2PC</td>
+<td>TCC 的第一阶段就<strong>提交了本地事务</strong>，不长期持锁；2PC 第一阶段<strong>锁住资源不提交</strong>，等协调者裁决</td>
+<td>TCC 属于<strong>补偿型事务</strong>族，不是 2PC 的变体。两者的性能和失败模式完全不同</td>
+</tr>
+<tr>
+<td>TCC 的 Try 阶段就是扣钱</td>
+<td>标准 TCC 的 Try 是<strong>冻结资源</strong>，不是扣减。冻结保证了 Try 与 Confirm 之间钱不会凭空消失</td>
+<td>Try = 预留（冻结），Confirm = 真正扣减，Cancel = 解冻。原文用的是&quot;直接扣减&quot;的变体，代价是出现&quot;在途资金&quot;</td>
+</tr>
+<tr>
+<td>Confirm 失败了就回滚</td>
+<td>Confirm 阶段已经没有&quot;回滚&quot;这个选项了——Try 已经提交，你无法撤销</td>
+<td>Confirm <strong>必须重试到成功</strong>。这就是为什么 Confirm 必须<strong>幂等</strong>，且必须有可靠的重试机制</td>
+</tr>
+<tr>
+<td>网络超时 = 操作失败</td>
+<td>超时只说明<strong>你没收到响应</strong>，操作可能已经成功执行了</td>
+<td>分布式系统里<strong>必须假设&quot;结果未知&quot;</strong>，所有操作都要靠幂等 + 重试来处理</td>
+</tr>
+<tr>
+<td>事件溯源就是把操作记日志</td>
+<td>记日志是&quot;辅助信息&quot;，事件溯源是<strong>把事件当作唯一真相来源（source of truth）</strong>，状态是从事件算出来的</td>
+<td>事件列表是<strong>权威数据</strong>，状态表只是<strong>物化视图</strong>，随时可以从事件重建</td>
+</tr>
+<tr>
+<td>有事件溯源就不需要数据库了</td>
+<td>重放 100 亿条事件要几个小时，查询根本扛不住</td>
+<td>必须有 <strong>CQRS</strong>：写侧保留事件，读侧维护物化视图。两者通过事件流同步，接受<strong>最终一致性</strong></td>
+</tr>
+<tr>
+<td>有了分布式事务就不会有资金差错</td>
+<td>再好的协议也挡不住代码 bug、误操作和极端故障</td>
+<td>必须有<strong>对账</strong>作为最后防线。对账负责<strong>发现</strong>差异，事件溯源负责<strong>定位</strong>根因</td>
+</tr>
+<tr>
+<td>余额检查用 <code>SELECT</code> 再 <code>UPDATE</code> 就行</td>
+<td>在并发下会出现 <strong>TOCTOU</strong>：检查时余额够，写入时已经被别人花掉了</td>
+<td>用<strong>条件更新</strong>（<code>WHERE balance &gt;= amount</code> 并检查影响行数）把检查和扣减合并成原子操作</td>
+</tr>
+<tr>
+<td>100 万 TPS 是支付系统的常态</td>
+<td>真实大型支付系统的峰值在每秒几十万笔的量级</td>
+<td>100 万 TPS 是<strong>面试用来放大压力的设计目标</strong>，不是行业参照</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：数字钱包的本质是&quot;<strong>用分布式事务保证转账的原子性，用事件溯源保证账本的可审计和可重放</strong>&quot;，其余所有设计（分片、Raft、CQRS、快照）都是为了在 100 万 TPS 下同时满足这两条。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>跨库没有本地事务</strong>，所以必须引入分布式事务；2PC 的问题是<strong>锁竞争 + 协调者单点</strong>，所以改用 <strong>TCC 或 Saga</strong>。</li>
+<li><strong>TCC 的三个阶段（Try 冻结 / Confirm 扣减 / Cancel 解冻）都必须幂等</strong>，且 Confirm <strong>只能重试不能回滚</strong>。</li>
+<li><strong>事件溯源</strong>是钱包的核心：事件列表是唯一真相，状态和快照都可以重建，因此<strong>只需要保证事件列表的高可靠</strong>。</li>
+<li><strong>Raft 复制事件列表</strong>保证不丢数据且顺序一致；<strong>跨 Raft 组</strong>用 TCC/Saga 编排。</li>
+<li><strong>CQRS</strong> 分离读写，用只读状态机 + 推送解决查询性能与实时性问题。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动讲出 TCC 的<strong>三种失败模式</strong>（Confirm 必重试、空回滚、悬挂）和统一的解法（阶段状态表 + 事务 ID）。</li>
+<li>主动区分<strong>持久性 / 可用性 / 可靠性</strong>，并说明为什么本地磁盘方案&quot;持久但不可靠&quot;。</li>
+<li>主动提到<strong>余额非负</strong>用条件更新（<code>WHERE balance &gt;= amount</code>）保证，并用数据库 CHECK 约束兜底。</li>
+<li>主动提到<strong>对账</strong>是最后防线，且对账只能发现差异、事件溯源才能定位根因。</li>
+<li>主动指出 <strong>100 万 TPS 是设计目标而非行业常态</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;为什么不用 2PC 而用 TCC？&quot;</em>
+→ 2PC 在 Prepare 到 Commit 之间<strong>锁住资源</strong>，高并发下锁竞争是致命瓶颈，且协调者是单点。TCC 把每个阶段拆成独立的本地事务，<strong>不长期持锁</strong>，且可并行执行，延迟更低。代价是复杂度从数据库层转移到了业务层。</li>
+<li><em>&quot;TCC 的 Try 阶段已经扣了钱，如果 Confirm 一直失败怎么办？&quot;</em>
+→ Confirm <strong>不能回滚</strong>，只能<strong>幂等重试直到成功</strong>。需要把待重试事务落库，由后台任务持续重试，并配合告警。这也是为什么 Confirm 的逻辑必须尽可能简单、可靠。</li>
+<li><em>&quot;为什么事件列表必须持久化，命令列表却不用？&quot;</em>
+→ 因为<strong>命令是非确定性的</strong>（可能失败、可能依赖外部 IO），无法从命令重放出确定的事件；而<strong>事件是已确定的事实</strong>，重放结果永远一致。所以事件列表是真相来源。</li>
+<li><em>&quot;用户刚转完账立刻查余额，为什么可能是旧值？&quot;</em>
+→ 因为 <strong>CQRS 的读模型是异步从事件流更新的</strong>，存在<strong>最终一致性</strong>窗口。解决方案：<strong>写后读走权威状态机</strong>、<strong>推送替代轮询</strong>、或让客户端等待到指定的事件序列号。</li>
+<li><em>&quot;为什么单个 Raft 组不够，还要分片？&quot;</em>
+→ 单个 Raft 组的<strong>吞吐和存储都有上限</strong>（所有写都要经过 leader 并复制到多数派）。要突破上限必须分片，而分片之后跨组的原子性又需要<strong>分布式事务</strong>（TCC/Saga）来保证——于是形成&quot;组内共识、组间补偿&quot;的两层结构。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://martinfowler.com/eaaDev/EventSourcing.html" target="_blank" rel="noopener noreferrer">Martin Fowler：Event Sourcing</a> — 事件溯源的经典定义与讨论</li>
+<li><a href="https://martinfowler.com/bliki/CQRS.html" target="_blank" rel="noopener noreferrer">Martin Fowler：CQRS</a> — CQRS 模式的权威说明</li>
+<li><a href="https://www.cs.cornell.edu/andru/cs711/2002fa/reading/sagas.pdf" target="_blank" rel="noopener noreferrer">Garcia-Molina &amp; Salem, &quot;Sagas&quot; (1987)</a> — Saga 模式的原始论文</li>
+<li><a href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol" target="_blank" rel="noopener noreferrer">Two-phase commit protocol（Wikipedia）</a> — 2PC 与 3PC 的协议细节对比</li>
+<li><a href="https://seata.apache.org/" target="_blank" rel="noopener noreferrer">Apache Seata</a> — 开源的分布式事务框架，含 TCC 与 Saga 模式实现</li>
+<li><a href="http://rocksdb.org/" target="_blank" rel="noopener noreferrer">RocksDB</a> — LSM 树存储引擎，本设计中用于本地状态存储</li>
+<li><a href="https://raft.github.io/" target="_blank" rel="noopener noreferrer">Raft 共识算法官网</a> — 含论文、可视化演示和各类语言实现</li>
+<li><a href="https://etcd.io/" target="_blank" rel="noopener noreferrer">etcd</a> — 现代高可用配置存储，ZooKeeper 的主流替代</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../26/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">支付系统</span></a><a class="next" href="../28/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">股票交易所</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求澄清与量级估算">1. 需求澄清与量级估算</a>
+<a class="lv3" href="#先问清楚边界">先问清楚边界</a>
+<a class="lv3" href="#量级估算粗略估算-back-of-the-envelope">量级估算（粗略估算 / Back-of-the-envelope）</a>
+<a class="lv2" href="#2-高层设计从内存分片方案说起">2. 高层设计：从内存分片方案说起</a>
+<a class="lv3" href="#api-设计">API 设计</a>
+<a class="lv3" href="#内存分片方案">内存分片方案</a>
+<a class="lv3" href="#这个方案的致命缺陷">这个方案的致命缺陷</a>
+<a class="lv2" href="#3-分布式事务问题到底出在哪">3. 分布式事务：问题到底出在哪</a>
+<a class="lv3" href="#先把问题说清楚">先把问题说清楚</a>
+<a class="lv3" href="#为什么本地事务不够">为什么本地事务不够</a>
+<a class="lv3" href="#方案一两阶段提交2pc">方案一：两阶段提交（2PC）</a>
+<a class="lv2" href="#4-三阶段提交3pc一个几乎没人用的改良版">4. 三阶段提交（3PC）：一个几乎没人用的改良版</a>
+<a class="lv2" href="#5-tcctry-confirmcancel本章的重点">5. TC/C（Try-Confirm/Cancel）：本章的重点</a>
+<a class="lv3" href="#先厘清一个术语混乱">先厘清一个术语混乱</a>
+<a class="lv3" href="#tcc-的三个阶段">TCC 的三个阶段</a>
+<a class="lv3" href="#原文的-tcc-用的是另一种变体">原文的 TC/C 用的是另一种变体</a>
+<a class="lv3" href="#2pc-与-tcc-的本质对比">2PC 与 TC/C 的本质对比</a>
+<a class="lv3" href="#幂等性tcc-的生命线">幂等性：TCC 的生命线</a>
+<a class="lv2" href="#6-tcc-的失败模式三个经典难题">6. TC/C 的失败模式：三个经典难题</a>
+<a class="lv3" href="#61-协调者中途挂掉阶段状态表">6.1 协调者中途挂掉：阶段状态表</a>
+<a class="lv3" href="#62-失败模式一confirm-失败了怎么办">6.2 失败模式一：Confirm 失败了怎么办？</a>
+<a class="lv3" href="#63-失败模式二空回滚empty-rollback">6.3 失败模式二：空回滚（Empty Rollback）</a>
+<a class="lv3" href="#64-失败模式三悬挂suspension-hanging">6.4 失败模式三：悬挂（Suspension / Hanging）</a>
+<a class="lv2" href="#7-saga补偿事务">7. Saga（补偿事务）</a>
+<a class="lv3" href="#思路把大事务拆成一串小事务">思路：把大事务拆成一串小事务</a>
+<a class="lv3" href="#两种协调方式">两种协调方式</a>
+<a class="lv3" href="#tcc-与-saga-的对比">TC/C 与 Saga 的对比</a>
+<a class="lv2" href="#8-事件溯源event-sourcing钱包为什么需要它">8. 事件溯源（Event Sourcing）：钱包为什么需要它</a>
+<a class="lv3" href="#从一个审计问题说起">从一个审计问题说起</a>
+<a class="lv3" href="#四个核心概念">四个核心概念</a>
+<a class="lv3" href="#在钱包里怎么落地">在钱包里怎么落地</a>
+<a class="lv3" href="#最大的价值可重现性reproducibility">最大的价值：可重现性（Reproducibility）</a>
+<a class="lv3" href="#cqrs解决查询的问题">CQRS：解决&quot;查询&quot;的问题</a>
+<a class="lv2" href="#9-深入设计高性能事件溯源">9. 深入设计：高性能事件溯源</a>
+<a class="lv3" href="#优化一把日志存到本地磁盘">优化一：把日志存到本地磁盘</a>
+<a class="lv3" href="#优化二把最近的日志缓存在内存">优化二：把最近的日志缓存在内存</a>
+<a class="lv3" href="#实现手段mmap">实现手段：mmap</a>
+<a class="lv3" href="#优化三状态也存本地用-lsm-树">优化三：状态也存本地，用 LSM 树</a>
+<a class="lv3" href="#优化四快照snapshot">优化四：快照（Snapshot）</a>
+<a class="lv2" href="#10-可靠的高性能事件溯源引入复制">10. 可靠的高性能事件溯源：引入复制</a>
+<a class="lv3" href="#一个绕不开的副作用">一个绕不开的副作用</a>
+<a class="lv3" href="#先想清楚什么数据需要高可靠">先想清楚：什么数据需要高可靠？</a>
+<a class="lv3" href="#复制事件列表">复制事件列表</a>
+<a class="lv2" href="#11-分布式事件溯源分片cqrs-与实时性">11. 分布式事件溯源：分片、CQRS 与实时性</a>
+<a class="lv3" href="#问题轮询不实时还会压垮系统">问题：轮询不实时，还会压垮系统</a>
+<a class="lv3" href="#缓解一反向代理">缓解一：反向代理</a>
+<a class="lv3" href="#缓解二让只读状态机主动推送">缓解二：让只读状态机主动推送</a>
+<a class="lv3" href="#最终形态分片的-raft-组">最终形态：分片的 Raft 组</a>
+<a class="lv3" href="#一次转账请求的完整生命周期">一次转账请求的完整生命周期</a>
+<a class="lv2" href="#12-完整设计回顾">12. 完整设计回顾</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1tcc-应写作-tcc且它不是-2pc-的变体">勘误 1：TC/C 应写作 TCC，且它不是 2PC 的&quot;变体&quot;</a>
+<a class="lv3" href="#勘误-2分片示例代码存在负数取模的隐患">勘误 2：分片示例代码存在负数取模的隐患</a>
+<a class="lv3" href="#勘误-3本地磁盘方案不-durable的表述不准确">勘误 3：&quot;本地磁盘方案不 durable&quot;的表述不准确</a>
+<a class="lv3" href="#补充-1三阶段提交3pc">补充 1：三阶段提交（3PC）</a>
+<a class="lv3" href="#补充-2tcc-的三种失败模式">补充 2：TC/C 的三种失败模式</a>
+<a class="lv3" href="#补充-3幂等性的实现方式">补充 3：幂等性的实现方式</a>
+<a class="lv3" href="#补充-4余额不能为负并发下如何保证">补充 4：余额不能为负，并发下如何保证</a>
+<a class="lv3" href="#补充-5对账reconciliation与审计">补充 5：对账（Reconciliation）与审计</a>
+<a class="lv3" href="#补充-6现实参照100-万-tps-意味着什么">补充 6：现实参照——100 万 TPS 意味着什么</a>
+<a class="lv3" href="#补充-7zookeeper-之外的配置存储选择">补充 7：ZooKeeper 之外的配置存储选择</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

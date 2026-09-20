@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 28 章：股票交易所 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item active" href="./"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-28-章股票交易所">第 28 章：股票交易所</h1>
+<blockquote>
+<p>原章节：Stock Exchange · 原项目路径 <code>28. Stock Exchange/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>你挂了一个委托：以 100 元买入 1 手某只股票。三毫秒后，成交回报回来了。</p>
+<p>在这三毫秒里，系统做了这些事：验证你的身份、检查你的资金够不够、检查这笔单子有没有超过风控限额、把它送进撮合引擎、在几十万个等待中的订单里找到对手方、生成两笔成交记录（你一笔、对手一笔）、把结果推给你和对手、同时更新行情、写入报送库——而且<strong>全球有成千上万的人在同一时刻做同样的事</strong>，价格在不停地跳。</p>
+<p>本章的核心问题是：<strong>一个每秒要处理几十万笔订单、要求微秒级响应、且绝对不能算错的系统，应该怎么设计？</strong></p>
+<p>答案会有些反直觉：现代交易所的关键组件，往往<strong>不是</strong>跑在几百台机器上的分布式集群，而是<strong>跑在一台机器、甚至一个 CPU 核上</strong>。为什么？这就是本章要讲清楚的事。</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>交易所的业务基础：限价单 / 市价单、买价 / 卖价、L1/L2/L3 行情分级、K 线图、FIX 协议</li>
+<li>交易所的三条数据流：交易流（关键路径）、行情数据流、报送流，以及它们的延迟要求为什么完全不同</li>
+<li>撮合引擎（Matching Engine）与订单簿（Order Book）的数据结构：为什么用红黑树 / 跳表而不是普通数组</li>
+<li>价格优先、时间优先的撮合规则，连续竞价与集合竞价的区别，以及部分成交（partial fill）怎么处理</li>
+<li>为什么不能用普通数据库做撮合：磁盘 IO、锁竞争、GC 都会制造尾延迟毛刺</li>
+<li>为什么撮合引擎必须是<strong>确定性的（deterministic）</strong>，以及怎么做到</li>
+<li>高可用方案：主备（Primary-Standby）、热备 + 输入日志重放、序列号保证不丢不重</li>
+<li>为什么交易所不用 Raft/Paxos 来做撮合，而是用主备 + 日志复制</li>
+<li>机房托管（Colocation）与公平性、行情组播（Multicast）分发、风控（Risk Check）在链路中的位置</li>
+</ul>
+<hr />
+<h2 id="1-需求澄清与非功能需求">1. 需求澄清与非功能需求</h2>
+<div align="center"><img src="./images/world-stock-exchanges.png" alt="全球主要证券交易所" width="520" loading="lazy" decoding="async"></div>
+<p>本章要设计的是一个<strong>电子股票交易所（Electronic Stock Exchange）</strong>，基本职能是<strong>高效地撮合买方和卖方</strong>。现实中的代表是纽约证券交易所（NYSE）和纳斯达克（NASDAQ）。</p>
+<h3 id="先问清楚边界">先问清楚边界</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>交易哪些证券？</td>
+<td><strong>只做股票</strong>（简化起见）</td>
+</tr>
+<tr>
+<td>支持哪些订单类型？</td>
+<td>支持<strong>下单</strong>和<strong>撤单</strong>；订单类型<strong>只考虑限价单（limit order）</strong></td>
+</tr>
+<tr>
+<td>支持盘后交易吗？</td>
+<td>不支持，只做正常交易时段</td>
+</tr>
+<tr>
+<td>基本功能是什么？</td>
+<td>客户端可以下单/撤单，<strong>实时</strong>收到成交回报，并且能<strong>实时</strong>看到订单簿</td>
+</tr>
+<tr>
+<td>规模多大？</td>
+<td>同时<strong>数万</strong>用户交易、约 <strong>100</strong> 个标的、<strong>每天数十亿笔订单</strong>；还需要<strong>风控（risk check）</strong></td>
+</tr>
+<tr>
+<td>风控具体指什么？</td>
+<td>简化处理，比如<strong>限制一个用户一天最多交易 100 万股苹果股票</strong></td>
+</tr>
+<tr>
+<td>资金怎么处理？</td>
+<td>下单前要确认客户<strong>资金充足</strong>；<strong>挂单占用的资金要冻结，直到订单终结</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="非功能需求">非功能需求</h3>
+<p>原文列了四条，我们逐条展开，并说明它们对架构的影响：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>需求</th>
+<th>指标</th>
+<th>对架构的影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>可用性（Availability）</strong></td>
+<td>至少 <strong>99.99%</strong>。宕机会损害声誉</td>
+<td>关键组件必须有备份，故障转移要快</td>
+</tr>
+<tr>
+<td><strong>容错（Fault tolerance）</strong></td>
+<td>需要容错和<strong>快速恢复机制</strong>，把生产事故的影响控制住</td>
+<td>主备复制 + 快速切换 + 演练</td>
+</tr>
+<tr>
+<td><strong>延迟（Latency）</strong></td>
+<td>往返延迟在<strong>毫秒级</strong>，重点关注 <strong>99 分位（p99）</strong></td>
+<td>关键路径必须极简；关注<strong>尾延迟</strong>而不是平均值</td>
+</tr>
+<tr>
+<td><strong>安全（Security）</strong></td>
+<td>账户管理系统；合规上要支持 <strong>KYC（Know Your Customer，了解你的客户）</strong>；公开资源要防 <strong>DDoS</strong></td>
+<td>引入网关鉴权、限流、公私隔离</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>注意&quot;关注 99 分位&quot;这句话。</strong>
+原文说得很准：&quot;Persistently high 99p latency causes bad experience for a handful of users.&quot;（持续偏高的 p99 延迟会让少数用户体验很差。）
+<strong>为什么交易所关心 p99 而不是平均值？</strong> 因为交易是<strong>对时间极度敏感</strong>的。如果你的平均延迟是 50 微秒，但每 100 笔里有 1 笔要 10 毫秒，那这 1% 的人就是在<strong>用旧价格成交</strong>——对他们来说这是真金白银的损失。所以交易系统优化的是<strong>尾延迟（Tail Latency）</strong>，不是平均延迟。
+这也是本章反复出现的主题：<strong>平均值掩盖问题，尾部才暴露问题。</strong></p>
+</blockquote>
+<h3 id="关于延迟指标的澄清">关于延迟指标的澄清</h3>
+<p>原文在非功能需求里写&quot;往返延迟在毫秒级&quot;，但后面深入设计里又说&quot;我们想达到<strong>几十微秒</strong>&quot;（tens of microseconds）。这两处看似矛盾，其实是<strong>不同范围</strong>的指标：</p>
+<ul>
+<li><strong>毫秒级</strong>：整个系统的<strong>端到端</strong>往返（客户端 → 网关 → 风控 → 撮合 → 回报 → 客户端），包含网络、序列化、队列等多个环节。</li>
+<li><strong>几十微秒</strong>：<strong>撮合引擎内部</strong>处理一笔订单的时间（内存里的订单簿操作）。</li>
+</ul>
+<p><strong>现代主流交易所的撮合引擎内部延迟通常在微秒级</strong>，而端到端（含托管机房内网络）在几十微秒到亚毫秒级。理解这个区分很重要——面试时如果你把&quot;撮合 10 微秒&quot;和&quot;端到端 10 微秒&quot;混为一谈，会露怯。</p>
+<hr />
+<h2 id="2-量级估算">2. 量级估算</h2>
+<p>原文的估算过程：</p>
+<ul>
+<li><strong>100 个标的，每天 10 亿笔订单</strong>；</li>
+<li><strong>正常交易时段 09:30 ~ 16:00，共 6.5 小时</strong>；</li>
+<li><strong>QPS = 10 亿 / 6.5 / 3600 = 43,000</strong>；</li>
+<li><strong>峰值 QPS = 5 × QPS = 215,000</strong>；</li>
+<li><strong>开盘时交易量显著高于其他时段</strong>。</li>
+</ul>
+<p>我们验算一遍：</p>
+<pre><code>每天交易秒数 = 6.5 × 3600 = 23,400 秒
+平均 QPS     = 1,000,000,000 / 23,400 ≈ 42,735 ≈ 43,000   ✓
+峰值 QPS     = 43,000 × 5 = 215,000                        ✓
+</code></pre>
+<p>数字是对的。原文特别强调&quot;<strong>开盘时交易量显著更高</strong>&quot;，这是市场的真实特征：<strong>开盘和收盘时段订单量会爆发</strong>，因为大量策略在开盘时集中下单。所以&quot;峰值 = 平均值 × 5&quot;这个 5 倍系数是必要的——<strong>任何按平均值做容量规划的系统，都会在开盘那一刻崩掉。</strong></p>
+<blockquote>
+<p><strong>再往下拆一层：这些订单怎么分布到 100 个标的上？</strong>
+如果均匀分布，每个标的的峰值 QPS = <code>215,000 / 100 = 2,150</code>。但现实中<strong>绝不均匀</strong>——最热门的几个标的（比如苹果、特斯拉）会占据绝大部分订单量，冷门标的可能一整天只有几笔。这就是<strong>热点问题</strong>，它直接决定了撮合引擎要不要按标的做<strong>并行化</strong>（详见第 9 节）。</p>
+</blockquote>
+<blockquote>
+<p><strong>单核能扛 21.5 万 QPS 吗？</strong>
+能，而且绰绰有余。一个精心优化的<strong>单线程</strong>撮合引擎，每秒处理<strong>数百万笔</strong>订单是现实可达的（LMAX 的 Disruptor 架构就公开宣称单线程可达每秒数百万笔订单量级）。<strong>这正是本章&quot;单线程撮合&quot;方案成立的根本原因</strong>——现代 CPU 快到你不需要多线程，就能处理一个交易所的订单流。
+这个数字很关键：<strong>它不是&quot;理论上够用&quot;，而是&quot;有大量余量&quot;</strong>。所以单线程带来的确定性收益，远远超过了它放弃的并行度。</p>
+</blockquote>
+<hr />
+<h2 id="3-业务基础订单报价与行情分级">3. 业务基础：订单、报价与行情分级</h2>
+<p>在讲架构之前，得先懂业务。原文用了一节 &quot;Business Knowledge 101&quot;，我们完整保留并补充。</p>
+<h3 id="经纪商broker">经纪商（Broker）</h3>
+<p><strong>经纪商</strong>是交易所和终端用户之间的中介，比如 Robinhood、Fidelity。散户不直接连交易所，而是通过经纪商下单。</p>
+<p><strong>机构客户（Institutional clients）</strong> 用专门的交易软件进行<strong>大额交易</strong>，需要特殊处理。原文举的例子是：<strong>在大额交易时做订单拆分（order splitting），避免冲击市场</strong>。</p>
+<blockquote>
+<p><strong>为什么大单要拆？</strong>
+假设你想买 100 万股。如果你一次挂出去，会瞬间吃掉订单簿上所有卖单，把价格从 100 元一路推到 105 元——<strong>你自己把价格买贵了</strong>。这就是<strong>市场冲击成本（market impact）</strong>。所以机构会把大单拆成很多小单，在一段时间内慢慢成交。这是一个经典的**算法交易（Algorithmic Trading）**问题，也是交易所需要支持&quot;机构客户&quot;这条业务线的原因。</p>
+</blockquote>
+<h3 id="订单类型">订单类型</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>含义</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>限价单（Limit Order）</strong></td>
+<td>以<strong>指定价格</strong>买入或卖出</td>
+<td>可能<strong>立刻成交</strong>、可能<strong>部分成交</strong>、也可能<strong>一直挂着不成交</strong></td>
+</tr>
+<tr>
+<td><strong>市价单（Market Order）</strong></td>
+<td><strong>不指定价格</strong>，按当前市场价<strong>立即执行</strong></td>
+<td>一定成交，但成交价不确定（可能很差）</td>
+</tr>
+</tbody>
+</table></div>
+<p>原文明确说：<strong>我们的设计只支持限价单。</strong></p>
+<h3 id="价格">价格</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>买价（Bid）</strong></td>
+<td>买方<strong>愿意出的最高价</strong></td>
+</tr>
+<tr>
+<td><strong>卖价（Ask）</strong></td>
+<td>卖方<strong>愿意接受的最低价</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>买价 &lt; 卖价</strong> 时，市场存在<strong>价差（Spread）</strong>，即 <code>Ask - Bid</code>。一旦 <strong>买价 ≥ 卖价</strong>，就发生了<strong>交叉（cross）</strong>，可以撮合成交。</p>
+<blockquote>
+<p><strong>价差是市场的&quot;流动性&quot;指标</strong>：价差越小，说明买卖双方越接近，交易成本越低；价差越大，说明流动性差，你想成交就得接受更差的价格。</p>
+</blockquote>
+<h3 id="行情分级l1-l2-l3">行情分级：L1 / L2 / L3</h3>
+<p>美国市场把报价数据分为三个层级。原文说&quot;美国市场有三个层级&quot;，我们补充说明：<strong>这套分级其实是行业通用约定，不是美国独有。</strong></p>
+<p><strong>L1：最优买卖价和数量</strong></p>
+<div align="center"><img src="./images/l1-price.png" alt="L1 行情：最优买价/卖价及数量" width="520" loading="lazy" decoding="async"></div>
+<p>L1 只包含<strong>最优买价、最优卖价</strong>以及它们各自的数量。这是最基础、数据量最小的一级。</p>
+<p><strong>L2：更多价格档位</strong></p>
+<div align="center"><img src="./images/l2-price.png" alt="L2 行情：多个价格档位的聚合买卖量" width="520" loading="lazy" decoding="async"></div>
+<p>L2 包含<strong>多个价格档位</strong>的<strong>聚合</strong>买卖量（比如&quot;买一到买十&quot;、&quot;卖一到卖十&quot;），但不显示每一档里具体是哪些订单。</p>
+<p><strong>L3：每个档位的排队明细</strong></p>
+<div align="center"><img src="./images/l3-price.png" alt="L3 行情：每个价格档位下的逐笔订单排队情况" width="520" loading="lazy" decoding="async"></div>
+<p>L3 展示每个档位的<strong>档位信息和排队数量</strong>——也就是**逐笔订单（order-by-order）**的明细。数据量最大，通常只有交易所会员才能拿到。</p>
+<blockquote>
+<p><strong>这三级的区别可以用一句话概括</strong>：<strong>L1 看价格，L2 看深度，L3 看排队。</strong>
+想判断&quot;我这一单挂进去要排多久才能成交&quot;，你需要 L3——因为只有 L3 能告诉你前面排了多少手。</p>
+</blockquote>
+<h3 id="k-线图candlestick">K 线图（Candlestick）</h3>
+<p>K 线图展示<strong>给定时间区间</strong>内的<strong>开盘价（open）、收盘价（close）、最高价（high）、最低价（low）</strong>：</p>
+<div align="center"><img src="./images/candlestick.png" alt="K 线图：开盘价、收盘价、最高价、最低价" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>K 线的本质是&quot;降采样&quot;</strong>：原始数据是每一笔成交，K 线是把一段时间（比如 1 分钟）的所有成交<strong>聚合成 4 个数字</strong>。这样既能大幅压缩数据量，又保留了最重要的信息。代价是<strong>丢失了区间内的细节</strong>——你只知道这一分钟最高到过 105 元，但不知道是第几秒到的。</p>
+</blockquote>
+<h3 id="fix-协议">FIX 协议</h3>
+<p><strong>FIX（Financial Information eXchange）</strong> 是证券交易信息交换的<strong>标准协议</strong>，绝大多数厂商都在用。原文给了一个示例报文：</p>
+<pre><code>8=FIX.4.2 | 9=176 | 35=8 | 49=PHLX | 56=PERS | 52=20071123-05:30:00.000 | 11=ATOMNOCCC9990900 | 20=3 | 150=E | 39=E | 55=MSFT | 167=CS | 54=1 | 38=15 | 40=2 | 44=15 | 58=PHLX EQUITY TESTING | 59=0 | 47=C | 32=0 | 31=0 | 151=15 | 14=0 | 6=0 | 10=128 |
+</code></pre>
+<p>这个格式叫 <strong>Tag=Value</strong>（标签=值）：每个字段由<strong>标签号</strong>和<strong>值</strong>组成，用 <code>|</code>（实际协议里是 <code>\x01</code>）分隔。几个关键标签：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>标签</th>
+<th>含义</th>
+<th>本例中的值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>8</code></td>
+<td>协议版本</td>
+<td>FIX.4.2</td>
+</tr>
+<tr>
+<td><code>35</code></td>
+<td>消息类型</td>
+<td>8（执行报告 Execution Report）</td>
+</tr>
+<tr>
+<td><code>55</code></td>
+<td>标的代码</td>
+<td>MSFT（微软）</td>
+</tr>
+<tr>
+<td><code>54</code></td>
+<td>买卖方向</td>
+<td>1（买入）</td>
+</tr>
+<tr>
+<td><code>38</code></td>
+<td>订单数量</td>
+<td>15</td>
+</tr>
+<tr>
+<td><code>40</code></td>
+<td>订单类型</td>
+<td>2（限价单）</td>
+</tr>
+<tr>
+<td><code>44</code></td>
+<td>价格</td>
+<td>15</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>为什么用 Tag=Value 这种&quot;啰嗦&quot;的格式？</strong>
+因为它是<strong>自描述、可扩展</strong>的——新增字段只要加一个新标签号，老系统会自动忽略不认识的标签。<strong>代价是冗余</strong>：每条消息都要带标签号，报文比二进制协议大得多，解析也更慢。
+所以在本章的设计里，<strong>FIX 用在客户端网关和经纪商之间</strong>（外部接口，兼容性优先），而<strong>交易所内部组件之间用自定义的二进制协议</strong>（内部接口，性能优先）。这个&quot;<strong>外部用标准、内部用极致</strong>&quot;的分层思路，是高性能系统的常见做法。</p>
+</blockquote>
+<hr />
+<h2 id="4-高层设计三条数据流">4. 高层设计：三条数据流</h2>
+<div align="center"><img src="./images/high-level-design.png" alt="股票交易所高层设计：交易流、行情数据流、报送流" width="520" loading="lazy" decoding="async"></div>
+<p>交易所里有<strong>三条数据流</strong>，它们的延迟要求<strong>完全不同</strong>：</p>
+<h3 id="交易流trading-flow-关键路径">交易流（Trading flow）—— 关键路径</h3>
+<ol>
+<li>客户端通过交易界面下单；</li>
+<li><strong>经纪商（Broker）</strong> 把订单发到交易所；</li>
+<li>订单通过<strong>客户端网关（Client Gateway）</strong> 进入交易所——网关负责<strong>校验、限流、鉴权</strong>等，然后把订单转发给<strong>订单管理器（Order Manager）</strong>；</li>
+<li>订单管理器根据<strong>风控管理器（Risk Manager）</strong> 设定的规则执行<strong>风控检查</strong>；</li>
+<li>通过风控后，订单管理器<strong>核实钱包里的资金是否充足</strong>；</li>
+<li>订单被送到<strong>撮合引擎（Matching Engine）</strong>。找到匹配时，撮合引擎<strong>发出两笔成交（execution，也叫 fill）</strong>——买方一笔、卖方一笔。两笔订单都会被<strong>定序（sequenced）</strong>，以保证<strong>确定性</strong>；</li>
+<li>成交回报返回给客户端。</li>
+</ol>
+<h3 id="行情数据流market-data-flowm1m3">行情数据流（Market data flow，M1–M3）</h3>
+<ul>
+<li>撮合引擎产生一个<strong>成交流（stream of executions）</strong>，发给<strong>行情发布器（Market Data Publisher）</strong>；</li>
+<li>行情发布器<strong>构建 K 线图</strong>，发给<strong>数据服务（Data Service）</strong>；</li>
+<li>行情数据被存进<strong>专门的存储</strong>用于实时分析。经纪商连接数据服务获取及时的行情。</li>
+</ul>
+<h3 id="报送流reporter-flowr1r2">报送流（Reporter flow，R1–R2）</h3>
+<ul>
+<li><strong>报送器（Reporter）</strong> 从订单和成交里收集所有必要的报送字段，写入数据库；</li>
+<li>报送字段包括：<code>client_id</code>、<code>price</code>、<code>quantity</code>、<code>order_type</code>、<code>filled_quantity</code>、<code>remaining_quantity</code>。</li>
+</ul>
+<h3 id="关键区别只有交易流在关键路径上">关键区别：只有交易流在关键路径上</h3>
+<p>原文的原话：&quot;Trading flow is on the critical path, whereas the rest of the flows are not, hence, latency requirements differ between them.&quot;</p>
+<p><strong>这是理解整章架构的钥匙。</strong> 三条流的诉求完全不同：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>数据流</th>
+<th>延迟要求</th>
+<th>优先级</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>交易流</strong></td>
+<td><strong>微秒级</strong></td>
+<td>极致的性能</td>
+<td>每一微秒都直接影响成交价格和公平性</td>
+</tr>
+<tr>
+<td><strong>行情数据流</strong></td>
+<td>毫秒级（近实时）</td>
+<td>及时 + 公平</td>
+<td>所有订阅者必须<strong>同时</strong>收到（见第 15 节）</td>
+</tr>
+<tr>
+<td><strong>报送流</strong></td>
+<td><strong>不敏感</strong></td>
+<td><strong>准确性 + 合规性</strong></td>
+<td>用于交易历史、税务、合规、清算，晚几秒甚至几分钟都无所谓</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>&quot;不是所有东西都要优化&quot;是系统设计中最重要的判断力之一。</strong>
+初学者常犯的错误是：听说&quot;交易所要微秒级&quot;，就把报送、监控、日志全都按微秒级要求去做——结果是把复杂度推到了极限，收益却为零。
+<strong>正确的做法是：先画清楚哪条路径是关键的，然后对关键路径做到极致，对非关键路径做到&quot;够用、正确、可维护&quot;</strong>。原文把报送流从关键路径上<strong>剥离</strong>出去，这个动作本身就是最重要的设计决策之一。</p>
+</blockquote>
+<hr />
+<h2 id="5-交易链路深入撮合引擎定序器订单管理器客户端网关">5. 交易链路深入：撮合引擎、定序器、订单管理器、客户端网关</h2>
+<p>原文说：&quot;The trading flow is on the critical path, hence, it should be highly optimized for low latency.&quot; 我们来逐个拆解关键路径上的四个组件。</p>
+<h3 id="51-撮合引擎matching-engine">5.1 撮合引擎（Matching Engine）</h3>
+<p>撮合引擎是交易链路的<strong>心脏</strong>，也叫<strong>交叉引擎（Cross Engine）</strong>。它的主要职责（原文）：</p>
+<ol>
+<li><strong>为每个标的维护订单簿（Order Book）</strong>——一个标的的买单和卖单列表；</li>
+<li><strong>撮合买单和卖单</strong>——一次撮合产生<strong>两笔成交（fills）</strong>，买卖双方各一笔。这个功能必须<strong>又快又准</strong>；</li>
+<li><strong>把成交流分发出去</strong>作为行情数据；</li>
+<li><strong>撮合必须以确定性的顺序产生</strong>——这是<strong>高可用性的基础</strong>。</li>
+</ol>
+<h3 id="52-定序器sequencer">5.2 定序器（Sequencer）</h3>
+<div align="center"><img src="./images/sequencer.png" alt="定序器：为入站订单和出站成交打上序列号" width="520" loading="lazy" decoding="async"></div>
+<p><strong>定序器是让撮合引擎变得确定性的关键组件。</strong> 它给每一个<strong>入站订单（inbound order）<strong>和每一个</strong>出站成交（outbound fill）<strong>打上</strong>序列号（sequence ID）</strong>。</p>
+<p>原文列了打序列号的三个原因：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>原因</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>及时性与公平性（timeliness and fairness）</strong></td>
+<td>&quot;谁先到&quot;必须有一个<strong>客观、唯一</strong>的判定标准</td>
+</tr>
+<tr>
+<td><strong>快速恢复/重放（fast recovery / replay）</strong></td>
+<td>备份节点只要按同样的序列号重放输入，就能得到完全相同的状态</td>
+</tr>
+<tr>
+<td><strong>精确一次（exactly-once）保证</strong></td>
+<td>靠序列号去重，保证不丢不重</td>
+</tr>
+</tbody>
+</table></div>
+<p>原文还提到：&quot;概念上我们可以用 Kafka 做定序器，因为它本质上就是一个入站和出站的消息队列。<strong>但我们会自己实现它，以达到更低的延迟。</strong>&quot;</p>
+<blockquote>
+<p><strong>为什么 Kafka 不行？</strong>
+Kafka 的延迟在<strong>毫秒级</strong>（因为要批量攒消息、可能还要 <code>fsync</code> 落盘、经过网络往返）。而我们要的是<strong>微秒级</strong>。差了三到四个数量级，完全不是一个量级的东西。
+<strong>这不是说 Kafka 不好</strong>，而是说它被设计来解决<strong>吞吐量和持久性</strong>问题，而不是<strong>极限延迟</strong>问题。定序器需要的是&quot;<strong>在同一个进程/同一台机器内，用一个单调递增的计数器给消息编号</strong>&quot;——这件事根本不需要一个分布式消息队列来做。</p>
+</blockquote>
+<blockquote>
+<p><strong>序列号为什么是&quot;精确一次&quot;的基础？</strong>
+因为网络会重传。同一条订单可能被送达两次。接收方只要检查&quot;这个序列号我处理过没有&quot;，就能安全地去重。<strong>没有序列号，重传就会变成重复下单</strong>——这和我们第 27 章讲的<strong>幂等性</strong>是同一个问题，只是解法从&quot;事务 ID&quot;换成了&quot;单调递增序列号&quot;。</p>
+</blockquote>
+<h3 id="53-订单管理器order-manager">5.3 订单管理器（Order Manager）</h3>
+<p>订单管理器管理<strong>订单状态</strong>，并与撮合引擎交互（发订单、收成交）。它的职责（原文）：</p>
+<ol>
+<li><strong>把订单送去风控检查</strong>——比如核实用户的交易量是否小于 100 万股；</li>
+<li><strong>对照用户钱包检查订单</strong>，确认资金足够执行；</li>
+<li><strong>把订单发给定序器</strong>，再传给撮合引擎。<strong>为了减少带宽，只把必要的订单信息传给撮合引擎</strong>；</li>
+<li><strong>从定序器收回成交（fills）</strong>，再通过客户端网关发给经纪商。</li>
+</ol>
+<p>原文指出：&quot;实现订单管理器的主要挑战是<strong>状态转换管理（state transition management）</strong>。<strong>事件溯源</strong>是一个可行的方案（详见深入设计）。&quot;</p>
+<h3 id="54-客户端网关client-gateway">5.4 客户端网关（Client Gateway）</h3>
+<div align="center"><img src="./images/client-gateway.png" alt="客户端网关的职责" width="520" loading="lazy" decoding="async"></div>
+<p>客户端网关接收用户订单，发给订单管理器。原文强调：<strong>&quot;因为客户端网关在关键路径上，它应该保持轻量（lightweight）。&quot;</strong></p>
+<p>可以有<strong>多个客户端网关</strong>服务不同的客户端。原文举了一个例子：<strong>colo engine（托管引擎）</strong> 是经纪商在交易所数据中心里<strong>租用</strong>的交易引擎服务器：</p>
+<div align="center"><img src="./images/client-gateways.png" alt="多个客户端网关：不同经纪商各有自己的接入方式" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>&quot;保持轻量&quot;意味着什么？</strong>
+意味着网关<strong>不能</strong>做这些事：写数据库、调用外部服务、做复杂的业务逻辑、打日志到磁盘。它只能做：解析协议、鉴权、限流、转发。
+<strong>任何一个&quot;顺手加一下&quot;的功能，都会变成关键路径上的延迟。</strong> 这是高性能系统设计的一条铁律：<strong>关键路径上的每一个操作，都必须能证明它值得那一微秒。</strong></p>
+</blockquote>
+<h3 id="55-风控risk-check在链路中的位置">5.5 风控（Risk Check）在链路中的位置</h3>
+<p>这是本章一个非常重要、也非常容易答错的考点。原文的流程里，风控出现在<strong>订单管理器的第 1 步</strong>，也就是<strong>在订单被送进撮合引擎之前</strong>。</p>
+<p><strong>风控必须在撮合之前。为什么？</strong></p>
+<p>因为撮合的<strong>结果是不可逆的</strong>。一旦两笔订单匹配成功，那就是一个<strong>已经发生的成交</strong>——你不能因为事后发现&quot;这个用户资金不够&quot;就把成交撤销掉。撤销一笔已经成交的交易，意味着要<strong>回溯修改双方的持仓和资金</strong>，还会牵涉到已经推送出去的行情数据。这在真实市场里是<strong>不可接受的</strong>（会造成市场混乱和法律责任）。</p>
+<p>所以顺序必须是：</p>
+<pre><code>下单 → 网关鉴权/限流 → 风控检查 → 资金/持仓检查 → 定序 → 撮合 → 成交
+                          ↑
+                    必须在撮合之前！
+</code></pre>
+<p><strong>风控检查什么？</strong> 原文只给了简化版（限制单日交易量），我们把真实交易所的风控维度补齐：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>检查项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>资金/持仓充足性</strong></td>
+<td>买单要冻结资金，卖单要冻结持仓（原文特别提到：&quot;Funds meant for pending orders need to be withheld until order is finalized.&quot;）</td>
+</tr>
+<tr>
+<td><strong>单日交易量限额</strong></td>
+<td>原文的例子：一个用户一天最多交易 100 万股</td>
+</tr>
+<tr>
+<td><strong>单笔数量上限（fat-finger check）</strong></td>
+<td>防止误操作——比如手抖多敲了两个零，挂出 100 万手</td>
+</tr>
+<tr>
+<td><strong>涨跌停 / 价格带（price band）</strong></td>
+<td>报价不能超出当日涨跌幅限制，或超出参考价的某个百分比</td>
+</tr>
+<tr>
+<td><strong>自成交防范（Self-Trade Prevention）</strong></td>
+<td>防止同一个账户的买单和卖单互相成交（这可能是操纵市场或系统 bug）</td>
+</tr>
+<tr>
+<td><strong>订单频率限制（rate limit）</strong></td>
+<td>防止单个客户端用海量订单压垮系统（这本身就是一种攻击）</td>
+</tr>
+<tr>
+<td><strong>账户状态</strong></td>
+<td>账户是否被冻结、是否已完成 KYC</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一句话记住</strong>：<strong>风控在撮合之前，因为撮合不可逆。</strong> 这是一个&quot;<strong>防止错误进入系统</strong>&quot;（pre-trade risk）的设计，而不是&quot;<strong>事后纠正错误</strong>&quot;（post-trade）的设计。
+面试时如果被问到&quot;风控应该放在哪里&quot;，答&quot;撮合之前&quot;并解释&quot;撮合结果不可逆&quot;，是一个非常有力的回答。</p>
+</blockquote>
+<hr />
+<h2 id="6-行情数据流与报送流">6. 行情数据流与报送流</h2>
+<h3 id="行情数据流">行情数据流</h3>
+<div align="center"><img src="./images/market-data.png" alt="行情数据流：撮合引擎 → 行情发布器 → 数据服务 → 订阅者" width="520" loading="lazy" decoding="async"></div>
+<p><strong>行情发布器（Market Data Publisher）</strong> 从撮合引擎接收成交，并<strong>基于成交流构建订单簿和 K 线图</strong>。这些数据被发送给<strong>数据服务（Data Service）</strong>，由它负责把<strong>聚合后的数据</strong>展示给订阅者。</p>
+<p><strong>关键点：行情发布器不参与撮合。</strong> 它只是<strong>消费</strong>撮合的结果，重新构建出对外的视图。这个解耦很重要——<strong>行情系统出问题，不应该影响交易</strong>。</p>
+<h3 id="报送流">报送流</h3>
+<div align="center"><img src="./images/reporting-flow.png" alt="报送流：报送器从订单和成交中收集字段写入数据库" width="520" loading="lazy" decoding="async"></div>
+<p><strong>报送器（Reporter）不在关键路径上，但依然是一个重要组件。</strong> 它负责：<strong>交易历史、税务报送、合规报送、清算（settlements）</strong> 等。</p>
+<p>原文强调：&quot;<strong>延迟对报送流不是关键要求。准确性和合规性才更重要。</strong>&quot;</p>
+<blockquote>
+<p><strong>这是一个非常好的&quot;分层&quot;示例。</strong>
+交易流追求<strong>速度</strong>，报送流追求<strong>准确和合规</strong>。它们的<strong>优化目标相反</strong>——为了速度，关键路径上会砍掉所有非必要操作（包括日志）；为了合规，报送流必须完整记录每一个字段，一条都不能少。
+<strong>如果一个团队用同一套标准去要求这两条流，结果一定是两头都做不好。</strong></p>
+</blockquote>
+<hr />
+<h2 id="7-api-设计">7. API 设计</h2>
+<p>客户端通过经纪商与交易所交互：下单、查看成交、获取行情、下载历史数据等。</p>
+<p>原文的协议选择：<strong>客户端网关与经纪商之间用 RESTful API</strong>；<strong>对机构客户使用专有协议（proprietary protocol）</strong>，以满足他们的低延迟要求。</p>
+<blockquote>
+<p><strong>补充：为什么机构要用专有协议？</strong>
+REST/HTTP + JSON 的开销在低延迟场景里是显著的：HTTP 头部冗长、文本解析慢、连接管理复杂。所以延迟敏感的机构客户通常使用 <strong>FIX</strong> 或<strong>自定义二进制协议</strong>，并配合<strong>持久连接（persistent connection）<strong>和</strong>二进制编码</strong>。
+<strong>REST 适合散户</strong>（易用、生态好、频率低），<strong>二进制协议适合机构</strong>（快、但开发成本高）。这是一个典型的&quot;<strong>按客户分层</strong>&quot;的设计。</p>
+</blockquote>
+<h3 id="创建订单">创建订单</h3>
+<pre><code>POST /v1/order
+</code></pre>
+<p><strong>参数：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>symbol</code></td>
+<td>String</td>
+<td>股票代码</td>
+</tr>
+<tr>
+<td><code>side</code></td>
+<td>String</td>
+<td>买或卖</td>
+</tr>
+<tr>
+<td><code>price</code></td>
+<td>Long</td>
+<td>限价单的价格</td>
+</tr>
+<tr>
+<td><code>orderType</code></td>
+<td>String</td>
+<td>limit 或 market（本设计只支持 limit）</td>
+</tr>
+<tr>
+<td><code>quantity</code></td>
+<td>Long</td>
+<td>订单数量</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>响应：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>Long</td>
+<td>订单 ID</td>
+</tr>
+<tr>
+<td><code>creationTime</code></td>
+<td>Long</td>
+<td>订单的系统创建时间</td>
+</tr>
+<tr>
+<td><code>filledQuantity</code></td>
+<td>Long</td>
+<td>已成功成交的数量</td>
+</tr>
+<tr>
+<td><code>remainingQuantity</code></td>
+<td>Long</td>
+<td>尚未成交的数量</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>String</td>
+<td>new / canceled / filled</td>
+</tr>
+<tr>
+<td>其余字段</td>
+<td>—</td>
+<td>与请求参数相同</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>注意 <code>price</code> 和 <code>quantity</code> 用的是 <code>Long</code> 而不是 <code>Double</code></strong>——这和上一章&quot;金额不要用浮点数&quot;是同一条原则：<strong>钱的精度不能丢</strong>。价格通常用**整数最小变动单位（tick）**表示，比如&quot;价格 100.25 元&quot;存成 <code>10025</code>（单位为分）。</p>
+</blockquote>
+<h3 id="查询成交">查询成交</h3>
+<pre><code>GET /execution?symbol={:symbol}&amp;orderId={:orderId}&amp;startTime={:startTime}&amp;endTime={:endTime}
+</code></pre>
+<p><strong>参数：</strong> <code>symbol</code>（股票代码）、<code>orderId</code>（可选）、<code>startTime</code> / <code>endTime</code>（epoch 时间戳）。</p>
+<p><strong>响应：</strong> <code>executions</code> 数组，每个元素包含 <code>id</code>、<code>orderId</code>、<code>symbol</code>、<code>side</code>、<code>price</code>、<code>orderType</code>、<code>quantity</code>（成交数量）。</p>
+<h3 id="查询订单簿">查询订单簿</h3>
+<pre><code>GET /marketdata/orderBook/L2?symbol={:symbol}&amp;depth={:depth}
+</code></pre>
+<p><strong>参数：</strong> <code>symbol</code>（股票代码）、<code>depth</code>（每一侧的档位深度）。</p>
+<p><strong>响应：</strong> <code>bids</code>（价格和数量的数组）、<code>asks</code>（价格和数量的数组）。</p>
+<h3 id="查询-k-线">查询 K 线</h3>
+<pre><code>GET /marketdata/candles?symbol={:symbol}&amp;resolution={:resolution}&amp;startTime={:startTime}&amp;endTime={:endTime}
+</code></pre>
+<p><strong>参数：</strong> <code>symbol</code>、<code>resolution</code>（K 线的窗口长度，单位秒）、<code>startTime</code> / <code>endTime</code>。</p>
+<p><strong>响应：</strong> <code>candles</code> 数组，每个元素包含 <code>open</code>、<code>close</code>、<code>high</code>、<code>low</code>。</p>
+<hr />
+<h2 id="8-数据模型订单簿与-k-线图">8. 数据模型：订单簿与 K 线图</h2>
+<p>交易所里有三类主要数据（原文）：<strong>产品/订单/成交</strong>、<strong>订单簿</strong>、<strong>K 线图</strong>。</p>
+<h3 id="81-产品订单成交">8.1 产品、订单、成交</h3>
+<p><strong>产品（Product）</strong> 描述一个交易标的的属性——产品类型、交易代码、UI 显示代码等。这类数据<strong>不常变</strong>，主要用于 UI 渲染。</p>
+<p><strong>订单（Order）</strong> 是买卖指令；<strong>成交（Execution）</strong> 是撮合产生的输出结果。</p>
+<div align="center"><img src="./images/product-order-execution-data-model.png" alt="产品、订单、成交的数据模型" width="520" loading="lazy" decoding="async"></div>
+<p>原文指出，订单和成交会出现在<strong>全部三条流</strong>里，但用途不同：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>数据流</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>关键路径</strong></td>
+<td>在<strong>内存中</strong>处理以获得高性能；状态<strong>从定序器存储和恢复</strong></td>
+</tr>
+<tr>
+<td><strong>报送流</strong></td>
+<td>报送器把订单和成交<strong>写入数据库</strong>，供报送使用</td>
+</tr>
+<tr>
+<td><strong>行情数据</strong></td>
+<td>成交被转发给行情系统，用来<strong>重建订单簿和 K 线图</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="82-订单簿order-book">8.2 订单簿（Order Book）</h3>
+<p><strong>订单簿是一个标的的买卖订单列表，按价格档位组织。</strong></p>
+<p>原文列出了一个高效的数据结构需要满足的条件：</p>
+<ol>
+<li><strong>常数级查找时间</strong>——获取某个价格档位的量，或价格档位之间的量；</li>
+<li><strong>快速的增 / 成交 / 撤操作</strong>；</li>
+<li><strong>查询最优买价 / 卖价</strong>；</li>
+<li><strong>能遍历价格档位</strong>。</li>
+</ol>
+<p><strong>订单簿的执行示例：</strong></p>
+<div align="center"><img src="./images/order-book-execution.png" alt="订单簿执行示例：吃掉大单后价格上升、买卖价差扩大" width="520" loading="lazy" decoding="async"></div>
+<p>原文的说明：&quot;在满足这个大单之后，价格上升，因为买卖价差扩大了。&quot;</p>
+<p><strong>原文的伪代码实现：</strong></p>
+<pre><code class="language-java">class PriceLevel {
+    private Price limitPrice;
+    private long totalVolume;
+    private List&lt;Order&gt; orders;
+}
+
+class Book&lt;Side&gt; {
+    private Side side;
+    private Map&lt;Price, PriceLevel&gt; limitMap;
+}
+
+class OrderBook {
+    private Book&lt;Buy&gt; buyBook;
+    private Book&lt;Sell&gt; sellBook;
+    private PriceLevel bestBid;
+    private PriceLevel bestOffer;
+    private Map&lt;OrderID, Order&gt; orderMap;
+}
+</code></pre>
+<p>原文指出：为了更高效，可以把标准列表换成<strong>双向链表（doubly-linked list）</strong>：</p>
+<ul>
+<li><strong>下新单是 O(1)</strong>——因为是把订单加到列表<strong>尾部</strong>；</li>
+<li><strong>撮合成交是 O(1)</strong>——因为是从<strong>头部</strong>删除订单；</li>
+<li><strong>撤单</strong>意味着从订单簿中删除一个订单。我们利用 <code>orderMap</code> 做 <strong>O(1) 查找</strong>和 <strong>O(1) 删除</strong>（因为 <code>Order</code> 持有对链表中前一个元素的引用）。</li>
+</ul>
+<div align="center"><img src="./images/order-book-impl.png" alt="订单簿实现：价格档位 + 双向链表 + 订单索引" width="520" loading="lazy" decoding="async"></div>
+<p>原文最后说：<strong>这个数据结构同样被行情服务用来重建订单簿。</strong></p>
+<h4 id="补充订单簿的三个核心设计点">补充：订单簿的三个核心设计点</h4>
+<p>原文的伪代码是很好的起点，但有几个关键点需要展开，否则你会以为&quot;一个 HashMap 就够了&quot;。</p>
+<p><strong>① 价格索引必须是&quot;有序&quot;结构，不能是普通哈希表</strong></p>
+<p>原文的需求第 3、4 条是&quot;<strong>查询最优买卖价</strong>&quot;和&quot;<strong>遍历价格档位</strong>&quot;。而 <code>Map&lt;Price, PriceLevel&gt;</code>（普通哈希表）<strong>做不到这两件事</strong>——哈希表不维护顺序，你无法&quot;找到比当前价格更高的下一档&quot;。</p>
+<p><strong>正确的选择是&quot;有序映射（ordered map）&quot;</strong>，通常有两种实现：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>结构</th>
+<th>插入/删除</th>
+<th>取最优价</th>
+<th>找相邻档位</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>红黑树（Red-Black Tree）</strong></td>
+<td>O(log N)</td>
+<td>O(log N)，可缓存为 O(1)</td>
+<td>O(log N)</td>
+<td>最常用，如 C++ <code>std::map</code>、Java <code>TreeMap</code></td>
+</tr>
+<tr>
+<td><strong>跳表（Skip List）</strong></td>
+<td>O(log N) 期望</td>
+<td>O(log N)，可缓存为 O(1)</td>
+<td>O(log N) 期望</td>
+<td>实现更简单，并发友好，Redis 的 ZSet 就用它</td>
+</tr>
+<tr>
+<td><strong>普通数组</strong></td>
+<td>O(N)（中间插入/删除要搬元素）</td>
+<td>O(1)（如果按价格索引）</td>
+<td>O(1)</td>
+<td>只在<strong>价格范围有限且固定</strong>时可用</td>
+</tr>
+<tr>
+<td><strong>普通哈希表</strong></td>
+<td>O(1)</td>
+<td><strong>做不到</strong></td>
+<td><strong>做不到</strong></td>
+<td>无法按价格排序，不能单独使用</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>&quot;为什么不用普通数组？&quot;</strong> 因为订单簿的价格档位是<strong>动态增删</strong>的：</p>
+<ul>
+<li>用<strong>线性数组</strong>存价格档位，插入一个新价位需要 O(N) 搬移元素；</li>
+<li>而且<strong>价格范围可能很大</strong>（比如股票价格从 1 元到 1000 元，按 0.01 元的 tick 就有 99,900 个可能的价位），用数组直接按价格索引会浪费大量空间。</li>
+</ul>
+<p><strong>但有一个重要的例外</strong>：如果<strong>价格范围有限且 tick 固定</strong>（很多交易所确实如此），那么用<strong>数组按 tick 索引</strong>是<strong>最快的</strong>——O(1) 定位到价格档位。这是真实撮合引擎里常见的优化：<strong>用数组换空间，把 O(log N) 变成 O(1)</strong>。</p>
+<p><strong>② 时间优先靠&quot;价格档位内的 FIFO 队列&quot;</strong></p>
+<p>订单簿的排序规则是<strong>价格优先、时间优先（Price-Time Priority）</strong>：</p>
+<ul>
+<li><strong>价格优先</strong>：买单出价高的优先成交，卖单要价低的优先成交；</li>
+<li><strong>同一价格</strong>：<strong>先到的先成交</strong>（FIFO）。</li>
+</ul>
+<p>所以每个<strong>价格档位</strong>内部，需要一个<strong>FIFO 队列</strong>。用<strong>双向链表</strong>实现最合适：</p>
+<ul>
+<li><strong>入队（新挂单）</strong>：加到<strong>尾部</strong>，O(1)；</li>
+<li><strong>出队（成交）</strong>：从<strong>头部</strong>取出，O(1)；</li>
+<li><strong>任意位置删除（撤单）</strong>：靠 <code>orderMap</code> 直接拿到节点，利用链表节点的前后指针 O(1) 删除。</li>
+</ul>
+<p><strong>这就是原文说的&quot;双向链表&quot;的真正价值</strong>——它同时满足了&quot;FIFO 语义&quot;和&quot;O(1) 任意删除&quot;。</p>
+<p><strong>③ 为什么买卖两侧的排序方向相反？</strong></p>
+<ul>
+<li><strong>买单（bids）按价格降序</strong>：最高的买价排在最前面，因为它是<strong>最优先成交的买单</strong>；</li>
+<li><strong>卖单（asks）按价格升序</strong>：最低的卖价排在最前面，因为它是<strong>最优先成交的卖单</strong>。</li>
+</ul>
+<p>所以订单簿的&quot;顶部&quot;（best bid / best ask）永远是<strong>双方各自最优的报价</strong>。<strong>当 best bid ≥ best ask 时，就发生了交叉，可以撮合。</strong></p>
+<h3 id="83-k-线图">8.3 K 线图</h3>
+<p>K 线数据在行情服务里，基于一个时间区间内的订单处理计算得出：</p>
+<pre><code class="language-java">class Candlestick {
+    private long openPrice;
+    private long closePrice;
+    private long highPrice;
+    private long lowPrice;
+    private long volume;
+    private long timestamp;
+    private int interval;
+}
+
+class CandlestickChart {
+    private LinkedList&lt;Candlestick&gt; sticks;
+}
+</code></pre>
+<p>原文列了两个避免占用过多内存的优化：</p>
+<ul>
+<li><strong>使用预分配的环形缓冲区（ring buffer）来存放 K 线</strong>，减少内存分配次数；</li>
+<li><strong>限制内存中的 K 线数量，其余的持久化到磁盘</strong>。</li>
+</ul>
+<p>原文还说：<strong>我们会用内存列式数据库（比如 KDB）做实时分析；收盘之后，数据持久化到历史数据库。</strong></p>
+<blockquote>
+<p><strong>为什么用&quot;列式数据库&quot;？</strong>
+因为行情分析是典型的<strong>分析型（OLAP）<strong>负载：你要算&quot;过去 20 天的平均成交量&quot;，这需要扫描</strong>一整列</strong>数据。<strong>列式存储把同一列的数据连续存放</strong>，扫描时缓存命中率高、压缩率高（同一列的数据类型相同、相似度高）。而传统的行式数据库（MySQL）适合&quot;查某一行&quot;，不适合&quot;扫某一列&quot;。<strong>KDB 就是金融行业最著名的列式时序数据库。</strong></p>
+</blockquote>
+<hr />
+<h2 id="9-深入设计为什么把一切塞进一台服务器">9. 深入设计：为什么把一切塞进一台服务器</h2>
+<p>原文开篇的一句话，是整章的题眼：</p>
+<blockquote>
+<p>&quot;One interesting thing to be aware of about modern exchanges is that unlike most other software, they typically run everything on one gigantic server.&quot;</p>
+</blockquote>
+<p><strong>现代交易所和大多数软件不同——它们通常把一切都跑在一台巨大的服务器上。</strong></p>
+<p>这句话乍听很反直觉：我们前面 27 章都在讲<strong>分布式、水平扩展、分片、多副本</strong>，怎么到了交易所反而要&quot;一台机器&quot;？</p>
+<p>原文接下来解释了原因。</p>
+<h3 id="91-性能目标是把延迟从毫秒压到微秒">9.1 性能：目标是把延迟从毫秒压到微秒</h3>
+<p>原文说：&quot;For an exchange, it is very important to have good overall latency for all percentiles.&quot;（对交易所来说，<strong>所有分位</strong>的延迟都要好，这一点非常重要。）注意&quot;all percentiles&quot;——又是<strong>尾延迟</strong>。</p>
+<p><strong>怎么降低延迟？原文给了两条路：</strong></p>
+<ol>
+<li><strong>减少关键路径上的任务数量</strong>；</li>
+<li><strong>缩短每个任务的时间</strong>——减少网络/磁盘使用，或缩短任务执行时间。</li>
+</ol>
+<p>原文说，为了达到第一个目标，<strong>关键路径被剥掉了所有无关职责——连日志（logging）都被移除了</strong>，以换取最优延迟。</p>
+<p><strong>如果用前面的&quot;分布式&quot;设计会怎样？</strong> 原文指出会有几个瓶颈：</p>
+<ul>
+<li><strong>服务之间的网络延迟</strong>；</li>
+<li><strong>定序器的磁盘使用</strong>。</li>
+</ul>
+<p><strong>结果是：端到端延迟只能做到几十毫秒。而我们的目标是几十微秒。</strong></p>
+<p>于是——<strong>把一切都放在一台服务器上，进程之间通过 <code>mmap</code> 作为事件存储来通信</strong>：</p>
+<div align="center"><img src="./images/mmap-bus.png" alt="mmap 总线：所有组件在同一台服务器内通过内存映射文件通信" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>这一步是本章最重要的架构决策。</strong>
+把跨进程的<strong>网络调用</strong>换成同机内的<strong>内存映射文件读写</strong>，省掉的不是&quot;一点点时间&quot;，而是<strong>整个网络协议栈</strong>：序列化/反序列化、TCP 握手、内核缓冲区拷贝、网卡中断、路由跳数……这些加起来通常在<strong>几十到几百微秒</strong>，正好是我们要省掉的那个数量级。
+代价是<strong>丧失了水平扩展能力</strong>——单机有 CPU 核数、内存、PCIe 带宽的物理上限。但对交易所来说这个取舍是划算的，因为：<strong>单个交易所的订单流，现代单机是能扛住的</strong>（见第 2 节的估算）。</p>
+</blockquote>
+<h3 id="92-应用循环application-loop">9.2 应用循环（Application Loop）</h3>
+<p><strong>另一个优化是使用应用循环（application loop）</strong>——一个<strong>执行关键任务的 while 循环</strong>，<strong>绑定（pin）在同一个 CPU 上，以避免上下文切换</strong>：</p>
+<div align="center"><img src="./images/application-loop.png" alt="应用循环：绑定到固定 CPU 核的 while 循环" width="520" loading="lazy" decoding="async"></div>
+<p>原文还指出应用循环的另一个副作用：<strong>没有锁竞争（lock contention）</strong>——不会有多个线程争抢同一个资源。</p>
+<blockquote>
+<p><strong>什么是&quot;绑定 CPU（CPU pinning）&quot;？</strong>
+操作系统默认会让线程在多个 CPU 核之间迁移，以均衡负载。但<strong>迁移本身有成本</strong>：缓存会失效（新核的 L1/L2 缓存里没有你的数据）、有调度延迟。
+<strong>把关键线程绑定到固定核</strong>，就能让它一直享受<strong>热缓存</strong>，且不被调度器打断。在极限延迟场景里，工程师甚至会：</p>
+<ul>
+<li>用**忙等（busy-spin）**代替休眠，避免唤醒延迟；</li>
+<li><strong>关闭 CPU 的省电状态（C-states）</strong>，避免频率切换带来的抖动；</li>
+<li>用**大页（Huge Pages）**减少 TLB miss。</li>
+</ul>
+<p><strong>这些优化听起来极端，但在微秒级场景里每一项都是必要的</strong>——因为一次缓存失效就可能带来几微秒的延迟，而我们的整个预算是几十微秒。</p>
+</blockquote>
+<h3 id="93-mmap-与-devshm">9.3 mmap 与 /dev/shm</h3>
+<p>原文解释了 mmap：<strong>它是一个 UNIX 系统调用，把磁盘上的文件映射到应用的内存空间。</strong></p>
+<p><strong>一个技巧</strong>：把文件建在 <strong><code>/dev/shm</code></strong> 目录下，它代表 <strong>&quot;shared memory&quot;（共享内存）</strong>。这样<strong>完全没有磁盘访问</strong>。</p>
+<blockquote>
+<p><strong><code>/dev/shm</code> 是什么？</strong>
+它是一个基于内存的<strong>临时文件系统（tmpfs）</strong>。你在里面创建的文件<strong>只存在于内存中</strong>，不落盘。所以对它做 mmap，读写就是<strong>纯内存操作</strong>，没有任何磁盘 IO。
+<strong>但要注意代价</strong>：<code>/dev/shm</code> 里的数据<strong>在机器重启后会丢失</strong>。所以在这个设计里，<code>/dev/shm</code> 只用于<strong>进程间的高性能通信通道</strong>（一条&quot;内存总线&quot;），而<strong>真正的持久化仍然要靠定序器写入的日志</strong>。<strong>性能通道和持久化通道必须是两条不同的路径</strong>——混淆这两者是危险的。</p>
+</blockquote>
+<h3 id="94-为什么不能用普通数据库做撮合">9.4 为什么不能用普通数据库做撮合</h3>
+<p>这是本章的高频考点，我们把原因系统化。<strong>普通数据库（如 MySQL/PostgreSQL）在撮合场景下有三个致命的延迟来源：</strong></p>
+<p><strong>① 磁盘 IO</strong></p>
+<ul>
+<li>即使是最快的 NVMe SSD，一次随机读也要<strong>几十微秒</strong>，而 <code>fsync</code>（强制刷盘）要<strong>几百微秒到几毫秒</strong>。</li>
+<li>数据库的<strong>事务提交默认要保证持久性（D）</strong>，也就是每次提交都要 <code>fsync</code>。<strong>这一条就把延迟钉死在毫秒级</strong>。</li>
+<li>相比之下，<strong>内存访问只要约 100 纳秒</strong>——差了三到四个数量级。</li>
+</ul>
+<p><strong>② 锁竞争（Lock Contention）</strong></p>
+<ul>
+<li>数据库用<strong>行锁 / 页锁 / 闩锁（latch）<strong>来保证隔离性。高并发下，多个事务争抢同一行（比如同一个标的的订单簿），会</strong>排队等待</strong>。</li>
+<li><strong>等待时间是不可预测的</strong>——这恰恰是<strong>尾延迟</strong>的最大来源。你可能 99% 的请求是 1 毫秒，但 1% 的请求要等 100 毫秒。</li>
+<li>我们的撮合引擎是<strong>单线程</strong>的，<strong>根本不需要锁</strong>——没有并发就没有竞争，延迟完全可预测。</li>
+</ul>
+<p><strong>③ 垃圾回收（GC）</strong></p>
+<ul>
+<li>如果撮合引擎用 Java/C# 这类带 GC 的语言，<strong>GC 停顿（GC pause）会造成延迟毛刺</strong>——一次 Full GC 可能是几十到几百毫秒。</li>
+<li>原文在&quot;确定性&quot;一节特别提到了这一点：&quot;Things which can cause latency spikes are garbage collector events in eg Java.&quot;</li>
+<li><strong>对策</strong>：要么用<strong>无 GC 的语言</strong>（C++、Rust），要么用<strong>零分配（allocation-free）的设计</strong>——预分配所有对象、用环形缓冲区复用内存、避免在关键路径上创建临时对象。<strong>LMAX 的 Disruptor 就是&quot;用 Java 但做到零分配&quot;的经典案例。</strong></li>
+</ul>
+<p><strong>④ 还有：SQL 解析、查询计划、MVCC、连接管理</strong></p>
+<ul>
+<li>一条 SQL 从收到到执行，要经过<strong>词法分析、语法分析、查询优化、生成执行计划</strong>——这些开销在微秒预算里是不可接受的。</li>
+<li><strong>撮合不需要 SQL</strong>，它需要的是<strong>确定的内存数据结构的操作</strong>。</li>
+</ul>
+<p><strong>所以正确的做法是：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>需求</th>
+<th>方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>撮合</td>
+<td><strong>纯内存</strong>操作，单线程，无锁</td>
+</tr>
+<tr>
+<td>持久化</td>
+<td><strong>顺序写日志（WAL，Write-Ahead Log）</strong>——追加写，不用随机 IO</td>
+</tr>
+<tr>
+<td>查询历史 / 报送</td>
+<td><strong>异步</strong>写入普通数据库，不阻塞关键路径</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一句话记住</strong>：<strong>内存做撮合，日志做持久化，数据库做查询。</strong> 三者职责分离，各用最适合自己的技术。
+<strong>顺序写（append-only）为什么快？</strong> 因为它<strong>不需要寻道</strong>——磁头一直往前写，即使是机械硬盘也能跑到很高的吞吐。而且日志是**不可变（immutable）**的，不需要原地更新、不需要加锁。<strong>这是 WAL 被几乎所有数据库和高性能系统采用的根本原因。</strong></p>
+</blockquote>
+<hr />
+<h2 id="10-事件溯源">10. 事件溯源</h2>
+<p>原文说：&quot;Event sourcing is discussed in-depth in the digital wallet chapter. Reference it for all the details.&quot;（事件溯源在第 27 章数字钱包里深入讨论过，细节请参考那一章。）</p>
+<p><strong>本章只做一个简要回顾</strong>：&quot;In a nutshell, instead of storing current states, we store immutable state transitions.&quot;（简而言之，我们不存当前状态，而是存<strong>不可变的状态转移</strong>。）</p>
+<div align="center"><img src="./images/event-sourcing.png" alt="事件溯源：左侧是传统表结构，右侧是事件溯源结构" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li><strong>左边</strong>：传统表结构（直接存当前状态）；</li>
+<li><strong>右边</strong>：事件溯源结构（存状态转移的事件序列）。</li>
+</ul>
+<p><strong>这时的整体设计如下：</strong></p>
+<div align="center"><img src="./images/design-so-far.png" alt="目前的设计：客户端网关、订单管理器、撮合核心、事件存储" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li><strong>外部域通过 FIX 协议与客户端网关交互</strong>；</li>
+<li><strong>订单管理器接收新订单事件，校验它，加入自己的内部状态。然后订单被送到撮合核心</strong>；</li>
+<li><strong>如果订单被撮合，生成 <code>OrderFilledEvent</code>，通过 mmap 发出</strong>；</li>
+<li><strong>其他组件订阅事件存储，各自动完成自己那部分处理</strong>。</li>
+</ol>
+<p><strong>另一个优化</strong>：<strong>所有组件都持有一份订单管理器的副本，把它打包成库（library）</strong>，以避免为管理订单而进行额外的调用。</p>
+<p><strong>在这个设计里，定序器的角色发生了变化——它不再是一个事件存储，而变成了一个&quot;单写者（single writer）&quot;，在把事件转发给事件存储之前先给它们定序</strong>：</p>
+<div align="center"><img src="./images/sequencer-deep-dive.png" alt="定序器深入：作为单写者为事件排序后再转发给事件存储" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>为什么&quot;所有组件持有一份订单管理器的副本&quot;能提升性能？</strong>
+因为原本每次查询订单状态都要<strong>跨进程调用</strong>订单管理器（一次 IPC 或 mmap 读 + 序列化）。把订单管理器做成<strong>库</strong>，直接在<strong>本进程内存里</strong>读，就没有调用开销了。
+<strong>前提是：所有副本的状态必须完全一致</strong>——而这正是<strong>确定性</strong>要保证的事情（见第 13 节）。<strong>如果状态会分叉，&quot;每个组件持有一份副本&quot;就会变成灾难。</strong> 所以这个优化不是独立的技巧，而是&quot;确定性 + 事件溯源&quot;这个基础打牢之后才能做的上层优化。</p>
+</blockquote>
+<hr />
+<h2 id="11-高可用与故障恢复">11. 高可用与故障恢复</h2>
+<h3 id="111-目标9999">11.1 目标：99.99%</h3>
+<p>原文：&quot;We aim for 99.99% availability - only 8.64s of downtime per day.&quot;</p>
+<p>我们验算一下：</p>
+<pre><code>99.99% 可用性 = 0.01% 不可用
+每天秒数 = 86,400
+每天允许宕机 = 86,400 × 0.0001 = 8.64 秒   ✓
+（换算成年：31,536,000 × 0.0001 = 3,153.6 秒 ≈ 52.6 分钟/年）
+</code></pre>
+<p><strong>每天只允许宕机 8.64 秒</strong>——这意味着<strong>故障转移必须是自动的、秒级的</strong>，人工干预根本来不及。</p>
+<h3 id="112-找出单点故障">11.2 找出单点故障</h3>
+<p>原文说，要达到这个目标，必须找出交易所架构里的<strong>单点故障（single point of failure）</strong>：</p>
+<ol>
+<li><strong>为关键服务（比如撮合引擎）设置备用实例，处于待命（stand-by）状态</strong>；</li>
+<li><strong>激进地自动化故障检测和故障转移（failover）到备用实例</strong>。</li>
+</ol>
+<p><strong>无状态服务</strong>（比如客户端网关）很容易通过<strong>加机器</strong>来水平扩展。</p>
+<p><strong>对于有状态组件</strong>，原文给出了一个关键设计：<strong>我们可以处理入站事件，但如果自己不是 leader，就不发布出站事件</strong>：</p>
+<div align="center"><img src="./images/leader-election.png" alt="Leader 选举：只有 leader 才对外发布事件" width="520" loading="lazy" decoding="async"></div>
+<p><strong>这个设计非常精妙，值得展开：</strong></p>
+<ul>
+<li><strong>所有副本（leader 和 standby）都消费同一份输入日志，都执行同样的撮合逻辑，都维护同样的内部状态。</strong></li>
+<li><strong>但只有 leader 会对外发布出站事件（成交回报、行情数据）。</strong></li>
+<li>standby 只是在**&quot;跟着跑&quot;<strong>——它把自己的状态维护得和 leader 一模一样，但</strong>对外界完全隐形**。</li>
+</ul>
+<p><strong>为什么这样设计？</strong> 因为当 leader 挂掉、standby 顶上的时候，<strong>standby 的状态已经是最新的了</strong>——它不需要&quot;重放几个小时的日志&quot;才能追上，它<strong>一直就是同步的</strong>。这就是<strong>热备（hot standby）</strong>。</p>
+<blockquote>
+<p><strong>注意这里的核心依赖</strong>：standby 能&quot;跟着跑&quot;，前提是<strong>它必须能精确复现 leader 的每一步</strong>。这就是<strong>确定性</strong>的用武之地（第 13 节）。<strong>如果撮合不是确定性的，standby 跑出来的状态就会和 leader 不一样，切换上去就是灾难。</strong></p>
+</blockquote>
+<h3 id="113-故障检测与跨服务器复制">11.3 故障检测与跨服务器复制</h3>
+<p>原文说：<strong>要检测主副本（primary replica）是否宕机，可以发送心跳（heartbeat）来发现它已经不可用。</strong></p>
+<p>原文接着指出：&quot;This mechanism only works within the boundary of a single server.&quot;（<strong>这个机制只在单台服务器的范围内有效。</strong>）</p>
+<p><strong>如果要扩展到多台服务器</strong>，可以把<strong>整台服务器</strong>设为<strong>热/温副本（hot/warm replica）</strong>，在故障时切换过去。</p>
+<p><strong>为了在副本之间复制事件存储，可以使用可靠 UDP（reliable UDP）来获得更快的通信。</strong></p>
+<blockquote>
+<p><strong>什么是&quot;可靠 UDP&quot;？</strong>
+严格说，<strong>&quot;可靠 UDP&quot; 是一个自相矛盾的说法</strong>——UDP 本身<strong>不保证送达、不保证顺序、不保证不重复</strong>。所谓&quot;可靠 UDP&quot;，是指在 UDP 之上<strong>自己实现一套可靠性机制</strong>（序号、确认、重传、去重），比如 <strong>QUIC</strong>、<strong>RDP</strong>，或者交易所自己定制的协议。
+<strong>为什么不用 TCP？</strong> 因为 TCP 的拥塞控制、重传、队头阻塞（Head-of-Line Blocking）会带来<strong>不可预测的延迟抖动</strong>——而在交易所场景里，<strong>抖动（jitter）比平均延迟更致命</strong>。所以它们宁可自己实现一套可控的重传逻辑，也不要 TCP 那套&quot;为通用互联网设计&quot;的机制。
+<strong>这也是一个通用的教训</strong>：<strong>当通用协议的最优目标（公平、稳定、对所有人友好）和你的目标（极限低延迟、可预测）冲突时，你会被迫自己造轮子。</strong> 这不是&quot;重复造轮子&quot;，而是&quot;目标不同&quot;。</p>
+</blockquote>
+<h3 id="114-容错连温备也挂了怎么办">11.4 容错：连温备也挂了怎么办</h3>
+<p>原文：&quot;What if even the warm instances go down? It is a low probability event but we should be ready for it.&quot;</p>
+<p><strong>大型科技公司解决这个问题的方式是：把核心数据复制到多个城市的多个数据中心</strong>，以抵御自然灾害等极端情况。</p>
+<p><strong>需要考虑的问题（原文）：</strong></p>
+<ul>
+<li>如果主实例挂了，<strong>如何、何时</strong>切换到备用实例？</li>
+<li>如何在备用实例中<strong>选出 leader</strong>？</li>
+<li>需要的<strong>恢复时间目标（RTO，Recovery Time Objective）</strong> 是多少？</li>
+<li><strong>哪些功能需要恢复？我们的系统能在降级状态下运行吗？</strong></li>
+</ul>
+<p><strong>怎么解决（原文）：</strong></p>
+<ul>
+<li>系统可能因为<strong>一个 bug</strong>（同时影响主实例和所有副本）而宕机——可以用<strong>混沌工程（Chaos Engineering）</strong> 来暴露这类边缘情况和灾难性后果；</li>
+<li><strong>在早期阶段，可以手动执行故障转移</strong>，直到我们对系统的失败模式积累了足够的知识；</li>
+<li>可以用 <strong>leader 选举（比如 Raft）</strong> 来决定主实例挂掉后哪个副本成为 leader。</li>
+</ul>
+<p><strong>跨服务器复制的示例：</strong></p>
+<div align="center"><img src="./images/replication-across-servers.png" alt="跨服务器复制：主服务器与副本服务器之间的数据复制" width="520" loading="lazy" decoding="async"></div>
+<p><strong>leader 选举的任期（term）示例：</strong></p>
+<div align="center"><img src="./images/leader-election-terms.png" alt="Leader 选举任期：term 递增，每个 term 最多一个 leader" width="520" loading="lazy" decoding="async"></div>
+<p>原文还提供了一个学习 Raft 的链接：<a href="https://thesecretlivesofdata.com/raft/" target="_blank" rel="noopener noreferrer">https://thesecretlivesofdata.com/raft/</a></p>
+<p><strong>最后，原文提醒还要考虑&quot;可容忍的丢失量（loss tolerance）&quot;</strong>：在事情变得危急之前，我们能丢失多少数据？<strong>这决定了我们备份数据的频率。</strong></p>
+<p><strong>对股票交易所来说，数据丢失是不可接受的，所以我们必须频繁备份，并依赖 Raft 的复制来降低数据丢失的概率。</strong></p>
+<blockquote>
+<p><strong>注意：&quot;手动故障转移&quot;听起来很落后，但它是一个成熟工程判断。</strong>
+原文说：&quot;Initially though, we could perform failovers manually until we gather sufficient knowledge about the system's failure modes.&quot;（<strong>在早期，我们可以先手动做故障转移，直到我们积累了对系统失败模式的足够认知。</strong>）
+<strong>为什么这是对的？</strong> 因为<strong>自动故障转移是一把双刃剑</strong>：如果自动化逻辑本身有 bug，它会在系统已经出问题的时候，<strong>再补一刀</strong>（比如误判健康的 leader 已死，把流量切到一个状态落后的 standby 上，造成数据丢失）。
+<strong>&quot;先手动、后自动&quot;是一条被反复验证的工程路径</strong>：手动操作能让你<strong>观察真实故障的表现</strong>，积累足够的知识之后再自动化。<strong>在你不理解一个系统的失败模式之前，不要自动处理它的失败。</strong></p>
+</blockquote>
+<hr />
+<h2 id="12-撮合算法">12. 撮合算法</h2>
+<p>原文给了一段伪代码，我们完整保留并逐段解读：</p>
+<pre><code class="language-java">Context handleOrder(OrderBook orderBook, OrderEvent orderEvent) {
+    if (orderEvent.getSequenceId() != nextSequence) {
+        return Error(OUT_OF_ORDER, nextSequence);
+    }
+
+    if (!validateOrder(symbol, price, quantity)) {
+        return ERROR(INVALID_ORDER, orderEvent);
+    }
+
+    Order order = createOrderFromEvent(orderEvent);
+    switch (msgType):
+        case NEW:
+            return handleNew(orderBook, order);
+        case CANCEL:
+            return handleCancel(orderBook, order);
+        default:
+            return ERROR(INVALID_MSG_TYPE, msgType);
+}
+
+Context handleNew(OrderBook orderBook, Order order) {
+    if (BUY.equals(order.side)) {
+        return match(orderBook.sellBook, order);
+    } else {
+        return match(orderBook.buyBook, order);
+    }
+}
+
+Context handleCancel(OrderBook orderBook, Order order) {
+    if (!orderBook.orderMap.contains(order.orderId)) {
+        return ERROR(CANNOT_CANCEL_ALREADY_MATCHED, order);
+    }
+
+    removeOrder(order);
+    setOrderStatus(order, CANCELED);
+    return SUCCESS(CANCEL_SUCCESS, order);
+}
+
+Context match(OrderBook book, Order order) {
+    Quantity leavesQuantity = order.quantity - order.matchedQuantity;
+    Iterator&lt;Order&gt; limitIter = book.limitMap.get(order.price).orders;
+    while (limitIter.hasNext() &amp;&amp; leavesQuantity &gt; 0) {
+        Quantity matched = min(limitIter.next.quantity, order.quantity);
+        order.matchedQuantity += matched;
+        leavesQuantity = order.quantity - order.matchedQuantity;
+        remove(limitIter.next);
+        generateMatchedFill();
+    }
+    return SUCCESS(MATCH_SUCCESS, order);
+}
+</code></pre>
+<p><strong>逐段解读：</strong></p>
+<p><strong><code>handleOrder</code>——入口，三道关卡</strong></p>
+<ol>
+<li><strong>序列号校验</strong>：<code>if (orderEvent.getSequenceId() != nextSequence)</code> → 如果收到的不是<strong>期望的下一个序列号</strong>，直接返回 <code>OUT_OF_ORDER</code> 错误。<strong>这是确定性的第一道保障</strong>——订单必须严格按序号处理，不能乱序、不能跳号。</li>
+<li><strong>订单合法性校验</strong>：<code>validateOrder(symbol, price, quantity)</code> → 校验标的、价格、数量是否合法（比如价格是否在涨跌停范围内、数量是否为正）。</li>
+<li><strong>按消息类型分发</strong>：<code>NEW</code> 走下单，<code>CANCEL</code> 走撤单。</li>
+</ol>
+<p><strong><code>handleNew</code>——下单</strong></p>
+<ul>
+<li>如果是<strong>买单</strong>，就去**卖盘（sellBook）**里找对手方；</li>
+<li>如果是<strong>卖单</strong>，就去**买盘（buyBook）**里找对手方。</li>
+</ul>
+<p><strong>注意这个逻辑</strong>：<strong>一个买单，撮合的对象是卖盘。</strong> 这看起来很自然，但初学者写代码时经常搞反。</p>
+<p><strong><code>handleCancel</code>——撤单</strong></p>
+<ul>
+<li>如果订单<strong>不在</strong> <code>orderMap</code> 里，说明它<strong>已经被成交了</strong>（成交时会从订单簿移除），返回 <code>CANNOT_CANCEL_ALREADY_MATCHED</code> 错误；</li>
+<li>否则移除订单，状态设为 <code>CANCELED</code>。</li>
+</ul>
+<p><strong><code>match</code>——撮合核心</strong></p>
+<pre><code class="language-java">Quantity leavesQuantity = order.quantity - order.matchedQuantity;  // 剩余待成交量
+Iterator&lt;Order&gt; limitIter = book.limitMap.get(order.price).orders; // 取该价格档位的订单队列
+while (limitIter.hasNext() &amp;&amp; leavesQuantity &gt; 0) {
+    Quantity matched = min(limitIter.next.quantity, order.quantity);
+    order.matchedQuantity += matched;
+    leavesQuantity = order.quantity - order.matchedQuantity;
+    remove(limitIter.next);
+    generateMatchedFill();
+}
+</code></pre>
+<p>原文的说明：&quot;<strong>This matching algorithm uses the FIFO algorithm for determining which orders at a price level to match.</strong>&quot;（这个撮合算法用 <strong>FIFO</strong> 来决定同一价格档位里先撮合哪个订单。）</p>
+<p><strong>这正是&quot;时间优先&quot;的实现</strong>：同一价格档位内，队列头部的订单（最早到的）优先成交。</p>
+<h3 id="补充原文伪代码里的一处-bug">补充：原文伪代码里的一处 bug</h3>
+<p>上面 <code>match</code> 函数里有一处<strong>逻辑错误</strong>，需要指出（详见【勘误与补充】勘误 2）：</p>
+<pre><code class="language-java">Quantity matched = min(limitIter.next.quantity, order.quantity);  // ← 这里应该是 leavesQuantity
+</code></pre>
+<p><strong>问题</strong>：这里用的是 <code>order.quantity</code>（订单的<strong>原始总量</strong>），但正确的应该是 <code>leavesQuantity</code>（<strong>剩余待成交量</strong>）。</p>
+<p><strong>为什么这是 bug？</strong> 举个例子：订单原始数量 <code>order.quantity = 100</code>。</p>
+<ul>
+<li>第一轮：对手方有 30 手 → <code>matched = min(30, 100) = 30</code>，<code>matchedQuantity = 30</code>，<code>leavesQuantity = 70</code>。</li>
+<li>第二轮：对手方有 80 手 → 按原代码 <code>matched = min(80, 100) = 80</code>，<code>matchedQuantity = 30 + 80 = 110</code>。</li>
+</ul>
+<p><strong>结果：订单成交了 110 手，超过了原始的 100 手——超卖！</strong></p>
+<p>正确写法应该是 <code>min(limitIter.next.quantity, leavesQuantity)</code>，这样第二轮就是 <code>min(80, 70) = 70</code>，总成交恰好 100 手。</p>
+<p><strong>这个 bug 在真实系统里是灾难性的</strong>——它会凭空创造出持仓。这也提醒我们：<strong>伪代码在面试里可以写得很简略，但你必须理解每一行的语义。</strong></p>
+<h3 id="补充连续竞价continuous-auction与集合竞价call-auction">补充：连续竞价（Continuous Auction）与集合竞价（Call Auction）</h3>
+<p>原文的伪代码描述的是<strong>连续竞价</strong>：订单<strong>随到随撮</strong>，来一笔处理一笔。这是交易时段内的主要模式。但真实的交易所有<strong>两种撮合模式</strong>，初学者容易只知其一：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>何时使用</th>
+<th>撮合方式</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>连续竞价（Continuous Auction）</strong></td>
+<td><strong>正常交易时段</strong>（如 09:30–11:30、13:00–15:00）</td>
+<td>订单<strong>到达即尝试撮合</strong>，能成交就立刻成交</td>
+<td>价格<strong>连续变化</strong>，实时性好</td>
+</tr>
+<tr>
+<td><strong>集合竞价（Call Auction）</strong></td>
+<td><strong>开盘前</strong>和<strong>收盘前</strong>（如 09:15–09:25、14:57–15:00）</td>
+<td>在一段时间内<strong>收集所有订单</strong>，在<strong>某个时刻统一撮合一次</strong>，产生一个<strong>单一成交价</strong></td>
+<td>所有成交<strong>同一价格</strong>，能减少开盘/收盘时的价格剧烈波动</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>集合竞价怎么定价？</strong> 原则是<strong>最大化成交量</strong>：在所有可能的候选价格中，选一个能让<strong>成交手数最多</strong>的价格。如果有多个价格并列，通常再按&quot;最小剩余不平衡量&quot;等规则打破平局。</p>
+<blockquote>
+<p><strong>为什么要有集合竞价？</strong>
+因为<strong>开盘那一刻订单会集中爆发</strong>。如果直接连续撮合，第一笔订单可能以一个极端的价格成交（因为当时订单簿还很空），引发价格剧烈波动。<strong>集合竞价通过&quot;先攒一攒、再统一定价&quot;来平抑这种波动</strong>，让开盘价更公允。
+<strong>这也解释了原文那句话</strong>：&quot;Trading volume is significantly higher when the market opens.&quot;（开盘时交易量显著更高。）——正是这个爆发，让集合竞价成为必要。</p>
+</blockquote>
+<h3 id="补充部分成交partial-fill">补充：部分成交（Partial Fill）</h3>
+<p>原文提到限价单&quot;可能立刻成交、可能部分成交、也可能不成交&quot;，但没展开<strong>部分成交</strong>的处理。这是撮合引擎里最容易出错的地方。</p>
+<p><strong>场景</strong>：你想买 1000 手，但卖盘上只有 300 手在你出价或更低的价格。于是：</p>
+<ul>
+<li>你的订单<strong>成交 300 手</strong>，剩余 <strong>700 手</strong>；</li>
+<li>成交的部分生成一笔<strong>成交记录（fill）</strong>；</li>
+<li><strong>剩余的 700 手继续挂在订单簿上</strong>，等待后续的卖单。</li>
+</ul>
+<p><strong>这要求系统维护两个数量字段</strong>（原文 API 里就有）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>filledQuantity</code></td>
+<td><strong>已成交</strong>的数量</td>
+</tr>
+<tr>
+<td><code>remainingQuantity</code></td>
+<td><strong>剩余未成交</strong>的数量</td>
+</tr>
+</tbody>
+</table></div>
+<p>并且 <code>filledQuantity + remainingQuantity = quantity</code>（原始数量）——<strong>这个恒等式必须永远成立</strong>，它是撮合正确性的一条不变量。</p>
+<p><strong>订单的状态也要相应扩展</strong>（原文只列了 <code>new/canceled/filled</code>，缺了部分成交状态，见勘误 4）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>状态</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NEW</code></td>
+<td>已接受，尚未成交</td>
+</tr>
+<tr>
+<td><code>PARTIALLY_FILLED</code></td>
+<td><strong>部分成交</strong>，剩余仍在订单簿上</td>
+</tr>
+<tr>
+<td><code>FILLED</code></td>
+<td><strong>全部成交</strong></td>
+</tr>
+<tr>
+<td><code>CANCELED</code></td>
+<td>已撤销（可能是在部分成交之后撤销）</td>
+</tr>
+<tr>
+<td><code>REJECTED</code></td>
+<td>被拒绝（风控、资金不足等）</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>部分成交是&quot;时间优先&quot;的直接结果</strong>：因为对手方可能是很多笔小单，你的大单会<strong>依次吃掉队列头部的订单</strong>，产生<strong>多笔成交</strong>而不是一笔。所以<strong>一个订单可以对应多个成交（one-to-many）</strong>——这一点在数据模型设计时必须考虑到。</p>
+</blockquote>
+<hr />
+<h2 id="13-确定性determinism">13. 确定性（Determinism）</h2>
+<p><strong>这是本章最重要的概念之一，也是原文专门用一节来讲的内容。</strong></p>
+<h3 id="131-什么是确定性为什么它如此关键">13.1 什么是确定性，为什么它如此关键</h3>
+<p><strong>确定性（Determinism）</strong> 的含义是：<strong>同一批输入，必须以完全相同的顺序、产生完全相同的输出。</strong></p>
+<p><strong>为什么交易所的撮合引擎必须是确定性的？</strong> 核心原因是<strong>高可用</strong>：</p>
+<p>回忆第 11 节的主备设计——<strong>所有副本（leader 和 standby）都在跑同一套撮合逻辑</strong>。</p>
+<ul>
+<li>如果撮合是<strong>确定性</strong>的，那么只要<strong>输入相同、顺序相同</strong>，所有副本跑出来的<strong>状态必然完全相同</strong>。</li>
+<li>leader 挂掉时，standby 顶上来，<strong>状态是无缝衔接的</strong>。</li>
+<li>如果撮合<strong>不是确定性</strong>的（比如依赖了随机数、系统时间、或者不同副本收到输入的顺序不同），那么 standby 跑出来的状态就会和 leader <strong>分叉（diverge）</strong>——<strong>切换上去就是灾难</strong>：订单簿不一样、持仓不一样、资金不一样。</li>
+</ul>
+<blockquote>
+<p><strong>一句话记住</strong>：<strong>确定性是&quot;主备复制&quot;能成立的前提。</strong> 没有确定性，主备就是两个各自跑偏的系统，切换等于事故。</p>
+</blockquote>
+<h3 id="132-原文怎么说的">13.2 原文怎么说的</h3>
+<p>原文：&quot;Functional determinism is guaranteed via the sequencer technique we used.&quot;（<strong>功能确定性</strong>通过我们使用的<strong>定序器技术</strong>来保证。）</p>
+<p><strong>&quot;实际的事件发生时间不重要&quot;</strong>：</p>
+<div align="center"><img src="./images/determinism.png" alt="确定性：用序列号排序，而不是用真实时间排序" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>这张图是理解确定性的关键。</strong>
+假如系统用<strong>真实时间戳</strong>来排序订单，那么两台机器<strong>不可能</strong>得到完全一样的顺序——因为网络延迟有抖动、时钟有偏差（即使有 NTP 也做不到纳秒级一致）。<strong>只要顺序有任何一点不同，撮合结果就可能完全不同。</strong>
+<strong>解法是：不依赖真实时间，而是依赖&quot;序列号&quot;。</strong> 定序器给每个输入打上一个<strong>单调递增的序列号</strong>，所有副本都<strong>按序列号处理</strong>——这样顺序就是<strong>客观、唯一、可复现</strong>的。<strong>&quot;谁先到&quot;不再由物理时钟决定，而由定序器的编号决定。</strong></p>
+</blockquote>
+<p>原文接着说：&quot;<strong>Latency determinism</strong> is something we have to track. We can calculate it based on monitoring 99 or 99.99 percentile latency.&quot;（<strong>延迟确定性</strong>是我们要跟踪的东西，可以通过监控 p99 或 p99.99 延迟来计算。）</p>
+<p><strong>&quot;Things which can cause latency spikes are garbage collector events in eg Java.&quot;</strong>（会造成延迟毛刺的因素，比如 Java 里的 <strong>GC 事件</strong>。）</p>
+<h3 id="133-补充两种确定性不要混淆">13.3 补充：两种&quot;确定性&quot;，不要混淆</h3>
+<p>原文提到了两个概念，但没明确区分。它们其实是<strong>两件不同的事</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>含义</th>
+<th>关注点</th>
+<th>怎么保证</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>功能确定性（Functional Determinism）</strong></td>
+<td>同一批输入 → <strong>完全相同的输出状态</strong></td>
+<td><strong>正确性</strong></td>
+<td>单线程撮合 + 序列号排序 + 禁用随机数/系统时间</td>
+</tr>
+<tr>
+<td><strong>延迟确定性（Latency Determinism）</strong></td>
+<td>处理时间<strong>稳定可预测</strong>，没有毛刺</td>
+<td><strong>性能一致性</strong></td>
+<td>避免 GC、避免锁、CPU 绑定、禁用省电状态</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么要区分？</strong> 因为一个系统可以<strong>功能确定但延迟不确定</strong>（结果对，但时快时慢），也可以<strong>延迟稳定但功能不确定</strong>（快，但结果会变）。<strong>交易所两者都要。</strong></p>
+<h3 id="134-补充实现功能确定性的三个手段">13.4 补充：实现功能确定性的三个手段</h3>
+<p>要让撮合引擎<strong>功能确定</strong>，必须做到这三点：</p>
+<p><strong>① 单线程撮合</strong></p>
+<ul>
+<li><strong>为什么？</strong> 因为多线程会导致<strong>执行顺序不确定</strong>（线程调度是操作系统决定的，不可复现）。即使你用锁保护共享状态，<strong>两个线程谁先拿到锁</strong>也是不确定的。</li>
+<li><strong>代价</strong>：放弃了并行度。<strong>但如第 2 节所算，单核的吞吐量对交易所来说是够的</strong>，所以这个代价是值得的。</li>
+<li><strong>收益</strong>：<strong>没有锁 → 没有竞争 → 延迟可预测</strong>。一举两得。</li>
+</ul>
+<p><strong>② 输入按序号严格排序</strong></p>
+<ul>
+<li>定序器给每个输入打上<strong>单调递增的序列号</strong>；</li>
+<li>撮合引擎<strong>必须按序号处理</strong>——如果收到的不是期望的下一个序号，就报错（原文伪代码里的 <code>OUT_OF_ORDER</code>）。</li>
+<li><strong>这保证了&quot;输入顺序&quot;这个唯一的非确定性来源被消除了。</strong></li>
+</ul>
+<p><strong>③ 禁止依赖随机数和系统时间</strong></p>
+<ul>
+<li><strong>不能用随机数</strong>：比如&quot;随机选择一个对手方&quot;就完全破坏了确定性；</li>
+<li><strong>不能用系统时间</strong>：比如&quot;根据当前时间决定订单优先级&quot;会因机器不同而不同。原文的图正是在讲这一点——<strong>用序列号排序，而不是用时间排序</strong>；</li>
+<li><strong>不能读外部 IO</strong>：比如读一个外部服务的数据来决定撮合逻辑——外部服务在不同时刻返回不同结果，就无法复现。</li>
+</ul>
+<blockquote>
+<p><strong>和上一章的呼应</strong>：第 27 章讲事件溯源时说过，&quot;<strong>状态机必须是确定性的，因此不应该读外部 IO、不应该依赖随机性</strong>&quot;。<strong>这是同一个原则在两类系统里的应用</strong>——<strong>只要你想让&quot;重放&quot;或&quot;复制&quot;能产生一致的结果，确定性就是硬性前提。</strong></p>
+<p>这也解释了为什么原文说&quot;<strong>命令是非确定性的，所以事件列表不能从命令列表重建</strong>&quot;——命令可以包含随机性和外部 IO 依赖，而事件不行。<strong>确定性的边界，就是&quot;哪些数据可以被当作真相来源&quot;的边界。</strong></p>
+</blockquote>
+<hr />
+<h2 id="14-行情发布优化与组播">14. 行情发布优化与组播</h2>
+<h3 id="141-行情发布器的优化">14.1 行情发布器的优化</h3>
+<div align="center"><img src="./images/market-data-publisher.png" alt="行情发布器：重建订单簿和 K 线图，客户端可选不同粒度" width="520" loading="lazy" decoding="async"></div>
+<p><strong>行情发布器从撮合引擎接收撮合结果，并基于它们重建订单簿和 K 线图。</strong></p>
+<p>原文指出：<strong>我们只保留部分 K 线，因为没有无限的内存。客户端可以选择它想要多细的粒度；更细的粒度可能需要更高的价格。</strong></p>
+<p><strong>环形缓冲区（Ring Buffer / Circular Buffer）</strong>：一个<strong>固定大小的队列</strong>，<strong>头尾相连</strong>。<strong>空间是预分配的</strong>，以避免分配开销。这个数据结构也是**无锁（lock-free）**的。</p>
+<p><strong>另一个优化环形缓冲区的技术是填充（padding）</strong>，它<strong>确保序列号永远不会和别的东西处于同一个缓存行（cache line）</strong>。</p>
+<blockquote>
+<p><strong>什么是&quot;缓存行填充（Padding）&quot;和&quot;伪共享（False Sharing）&quot;？</strong>
+CPU 读取内存不是按字节读的，而是按<strong>缓存行（通常 64 字节）<strong>整块读的。
+<strong>问题来了</strong>：如果两个</strong>不同的变量</strong>恰好落在<strong>同一个缓存行</strong>里，而这两个变量分别被<strong>两个不同的 CPU 核</strong>频繁修改，那么：核 A 改了变量 1 → 缓存行失效 → 核 B 的缓存也得失效 → 核 B 必须重新从内存加载整行……<strong>明明改的是不同的变量，却互相干扰</strong>。这就是<strong>伪共享</strong>。
+<strong>解法是&quot;填充&quot;</strong>：在变量前后加一些<strong>无意义的字节</strong>，把变量&quot;撑&quot;到独占一个缓存行。这样两个核改各自的变量时，就不会互相使缓存失效了。
+<strong>这是一个&quot;用空间换性能&quot;的典型例子</strong>——多花 60 多个字节，换来的是避免缓存失效带来的几十纳秒延迟。在微秒预算里，这是值得的。</p>
+</blockquote>
+<h3 id="142-分发的公平性与组播multicast">14.2 分发的公平性与组播（Multicast）</h3>
+<p>原文：&quot;We need to ensure subscribers receive the data at the same time, since if one receives data before another, that gives them crucial market insight, which can be used to manipulate the market.&quot;</p>
+<p>（<strong>我们必须保证订阅者同时收到数据</strong>，因为如果有人比别人先拿到数据，他就获得了关键的市场信息，可以用来操纵市场。）</p>
+<p><strong>为了达到这个目标，可以用可靠 UDP 做组播（multicast）来向订阅者发布数据。</strong></p>
+<p><strong>数据通过互联网传输有三种方式：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>含义</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>单播（Unicast）</strong></td>
+<td><strong>一个源 → 一个目的地</strong></td>
+<td>要给 1000 个订阅者发，就要发 1000 次</td>
+</tr>
+<tr>
+<td><strong>广播（Broadcast）</strong></td>
+<td><strong>一个源 → 整个子网</strong></td>
+<td>只在同一个子网内有效，无法跨网段</td>
+</tr>
+<tr>
+<td><strong>组播（Multicast）</strong></td>
+<td><strong>一个源 → 一组位于不同子网的主机</strong></td>
+<td><strong>一次发送，组内所有成员同时收到</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>原文说：&quot;In theory, by using multicast, all subscribers should receive the data at the same time.&quot;（<strong>理论上</strong>，使用组播，所有订阅者应该同时收到数据。）</p>
+<p><strong>但原文也诚实指出</strong>：&quot;UDP, however, is unreliable and the data might not reach everyone. It can be enhanced with retransmissions, however.&quot;（<strong>UDP 是不可靠的，数据可能到不了所有人。不过可以通过重传来增强。</strong>）</p>
+<blockquote>
+<p><strong>这里有一个重要的设计洞察：为什么行情数据可以容忍丢包，而订单不能？</strong></p>
+<p>这是面试的高频考点，答案是<strong>两类数据的&quot;可恢复性&quot;完全不同</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>订单（Order）</th>
+<th>行情（Market Data）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>能不能丢？</strong></td>
+<td><strong>绝对不能</strong></td>
+<td><strong>可以容忍少量丢失</strong></td>
+</tr>
+<tr>
+<td><strong>为什么？</strong></td>
+<td>丢一笔订单 = 客户的钱少了/多了，<strong>无法挽回</strong></td>
+<td>行情是<strong>状态的快照流</strong>，下一笔快照会<strong>覆盖</strong>上一笔</td>
+</tr>
+<tr>
+<td><strong>恢复机制</strong></td>
+<td>必须靠<strong>序列号 + 重传 + 持久化</strong>保证不丢</td>
+<td><strong>发现序号跳号 → 重新拉一份完整快照</strong>即可</td>
+</tr>
+<tr>
+<td><strong>协议选择</strong></td>
+<td>可靠传输（TCP 或可靠 UDP）</td>
+<td><strong>UDP 组播</strong>（追求同时性和低延迟）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>核心区别在于&quot;数据是不是自包含的完整状态&quot;</strong>：</p>
+<ul>
+<li><strong>订单是增量事件（delta）</strong>——丢了就永远少了那一笔，无法从后续数据推断出来。</li>
+<li><strong>行情快照是完整状态（full snapshot）</strong>——它包含了订单簿的当前完整视图。所以丢了一帧不要紧，<strong>下一帧（或主动拉取的快照）就能把状态纠正回来</strong>。</li>
+</ul>
+<p><strong>这就是&quot;组播 + UDP&quot;能在行情分发里成立的根本原因</strong>：<strong>不是因为它可靠，而是因为它&quot;丢得起&quot;。</strong></p>
+<p><strong>反过来，如果行情只推送增量（delta）而不定期推送完整快照，那它就丢不起了</strong>——因为丢一个 delta，客户端的状态就永久错误。所以真实系统里，行情协议通常是&quot;<strong>增量 + 定期全量快照</strong>&quot;的组合。</p>
+</blockquote>
+<blockquote>
+<p><strong>组播为什么能保证&quot;同时&quot;？</strong>
+因为组播在<strong>网络层</strong>做了复制：源只发<strong>一份</strong>数据，由<strong>路由器</strong>在网络的<strong>分叉点</strong>复制给不同的下游。<strong>所有接收者处在同一棵分发树的不同分支上，从分叉点开始，数据是&quot;同时&quot;出发的。</strong>
+相比之下，单播要发 N 份，<strong>发送方自己就成了瓶颈</strong>——发第一份和发第 N 份之间有明确的时间差，先收到的人就获得了信息优势。<strong>这正是原文担心的&quot;操纵市场&quot;风险的来源。</strong></p>
+</blockquote>
+<hr />
+<h2 id="15-机房托管colocation与网络安全">15. 机房托管（Colocation）与网络安全</h2>
+<h3 id="151-机房托管">15.1 机房托管</h3>
+<p>原文：&quot;Exchanges offer brokers the ability to colocate their servers in the same data center as the exchange. This reduces the latency drastically and can be considered a VIP service.&quot;</p>
+<p>（<strong>交易所允许经纪商把自己的服务器托管（colocate）在交易所的同一个数据中心里。这能大幅降低延迟，可以视为一种 VIP 服务。</strong>）</p>
+<blockquote>
+<p><strong>为什么托管能&quot;大幅&quot;降低延迟？</strong>
+因为<strong>光速是有限的</strong>。数据在光纤里的传播速度大约是<strong>每公里 5 微秒</strong>（真空光速的约 2/3）。所以：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>物理距离</th>
+<th>单程传播时间（约）</th>
+<th>往返（RTT，约）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>同城不同机房</td>
+<td>20 km</td>
+<td>100 μs</td>
+<td>200 μs</td>
+</tr>
+<tr>
+<td>跨城（如上海-北京）</td>
+<td>1,200 km</td>
+<td>6,000 μs = 6 ms</td>
+<td>12 ms</td>
+</tr>
+<tr>
+<td>跨洲（如纽约-伦敦）</td>
+<td>5,500 km</td>
+<td>27,500 μs = 27.5 ms</td>
+<td>55 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>看这个数量级差异</strong>：同机房内可能是<strong>几微秒</strong>，跨城就是<strong>几毫秒</strong>——差了<strong>三个数量级</strong>。而我们的整个延迟预算是<strong>几十微秒</strong>，所以<strong>跨城网络根本不可能进入关键路径</strong>。
+<strong>托管不是&quot;优化&quot;，而是&quot;唯一可行&quot;</strong>——你不把服务器搬进交易所的机房，就永远不可能参与微秒级的竞争。</p>
+<p><strong>这也解释了为什么&quot;延迟&quot;是一门生意</strong>：交易所卖托管机位、卖低延迟行情、卖更短的网线，本质上是<strong>在出售&quot;物理距离&quot;这个稀缺资源</strong>。</p>
+</blockquote>
+<h3 id="152-公平性fairness托管的另一面">15.2 公平性（Fairness）——托管的另一面</h3>
+<p><strong>托管带来一个新问题：如果谁都可以托管，那是不是谁离撮合引擎近谁就赢？</strong></p>
+<p>这确实是一个真实存在的问题。如果不管控，参与者会陷入&quot;<strong>军备竞赛</strong>&quot;——不断往更近的机位、更短的线缆上砸钱，最终胜负由<strong>物理位置</strong>而非<strong>交易策略</strong>决定。这违背了交易所作为<strong>公平市场</strong>的定位。</p>
+<p><strong>交易所的常见对策：</strong></p>
+<ul>
+<li><strong>等长线缆（equal-length cabling）</strong>：给所有托管客户的机位配<strong>长度完全相同的网线</strong>，让物理延迟一致；</li>
+<li><strong>统一接入点</strong>：所有订单从同一个接入点进入定序器；</li>
+<li><strong>速度缓冲（Speed Bump）</strong>：<strong>故意引入一段延迟</strong>，让所有人都慢下来，从而抵消&quot;最后几微秒&quot;的优势。<strong>IEX 交易所</strong>以推出&quot;速度缓冲&quot;机制而闻名——它让所有进入的订单<strong>人为延迟一小段时间</strong>再处理，使得&quot;离得近&quot;的优势被抵消，<strong>做市商无法靠&quot;抢跑（front-running）&quot;获利</strong>。</li>
+</ul>
+<blockquote>
+<p><strong>这是一个非常深刻的设计取舍：用&quot;更慢&quot;来换&quot;更公平&quot;。</strong>
+从纯性能角度看，加延迟是&quot;倒退&quot;；但从市场质量角度看，<strong>它消除了&quot;靠物理位置套利&quot;这种无价值竞争</strong>，让市场回归到&quot;靠定价能力竞争&quot;。
+<strong>面试时如果被问到&quot;怎么保证公平&quot;，能从&quot;延迟均等化&quot;和&quot;速度缓冲&quot;两个角度回答，会非常出彩</strong>——因为这说明你理解&quot;交易所不只追求快，还追求公平&quot;这个<strong>业务本质</strong>。</p>
+</blockquote>
+<h3 id="153-网络安全">15.3 网络安全</h3>
+<p>原文说：&quot;DDoS is a challenge for exchanges as there are some internet-facing services.&quot;（<strong>DDoS 对交易所是个挑战，因为有些服务是面向互联网的。</strong>）</p>
+<p><strong>原文给的选项：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>手段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>隔离公私服务</strong></td>
+<td>把公开服务和数据与私有服务<strong>隔离</strong>，这样 DDoS 攻击不会影响最重要的客户</td>
+</tr>
+<tr>
+<td><strong>缓存层</strong></td>
+<td>用缓存层存储<strong>不常更新</strong>的数据</td>
+</tr>
+<tr>
+<td><strong>加固 URL</strong></td>
+<td>比如优先用 <code>https://my.website.com/data/recent</code> 而不是 <code>https://my.website.com/data?from=123&amp;to=456</code>，<strong>因为前者更容易被缓存</strong></td>
+</tr>
+<tr>
+<td><strong>黑白名单（allowlist / blocklist）</strong></td>
+<td>需要有效的黑白名单机制</td>
+</tr>
+<tr>
+<td><strong>限流（rate limiting）</strong></td>
+<td>用限流来缓解 DDoS</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>&quot;加固 URL 以利于缓存&quot;是一个很实用的技巧。</strong>
+因为 CDN 和反向代理通常<strong>按完整 URL（含查询参数）做缓存键</strong>。如果每个用户都带不同的 <code>from</code>/<code>to</code> 参数，那么<strong>每个 URL 都是&quot;唯一&quot;的，缓存命中率为零</strong>，所有请求都会穿透到源站——<strong>DDoS 的放大效果反而更强</strong>。
+把参数编码进<strong>路径</strong>（<code>/data/recent</code>）就变成了<strong>有限的、可缓存的</strong>资源。<strong>这是&quot;用 URL 设计来抗 DDoS&quot;的经典手法</strong>，成本极低，效果显著。</p>
+</blockquote>
+<hr />
+<h2 id="16-收尾">16. 收尾</h2>
+<p>原文在 Wrap Up 里给了两条补充说明：</p>
+<ol>
+<li><strong>不是所有交易所都把一切放在一台大服务器上，但有些确实还在这么做。</strong></li>
+<li><strong>现代交易所更多地依赖云基础设施，也更多依赖自动做市商（AMM）来避免维护订单簿。</strong></li>
+</ol>
+<blockquote>
+<p><strong>关于第 2 条，需要一点澄清（详见勘误 3）</strong>：<strong>AMM（Automated Market Maker，自动做市商）主要是去中心化金融（DeFi）里的概念</strong>（比如用恒定乘积公式 <code>x × y = k</code> 定价，完全不维护订单簿）。<strong>传统交易所仍然维护订单簿</strong>，它们用的是<strong>指定做市商（Designated Market Maker）或流动性提供者</strong>——这些做市商<strong>仍然在订单簿上挂单</strong>，只是有义务提供流动性。
+<strong>把 AMM 说成传统交易所的趋势，是一个概念混淆。</strong> 你可以在面试里主动澄清这一点，这反而能体现你对两类市场的区分。</p>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>原笔记本章整体质量高（尤其是&quot;关键路径剥离&quot;和&quot;确定性&quot;两节），但有几处<strong>事实错误、代码 bug 和概念混淆</strong>必须指出。</p>
+</blockquote>
+<h3 id="勘误-1事件溯源的章节链接是错的">勘误 1：事件溯源的章节链接是错的</h3>
+<ul>
+<li><strong>原文说法</strong>：原文在事件溯源一节写道：&quot;Event sourcing is discussed in-depth in the <code>[digital wallet chapter](../chapter28)</code>.&quot;</li>
+<li><strong>问题</strong>：<strong>链接写成了 <code>../chapter28</code>，但数字钱包是第 27 章。</strong> 这是一个明显的笔误——<code>chapter28</code> 指向的就是本章（股票交易所）自己，会形成一个<strong>自我引用</strong>的坏链接。</li>
+<li><strong>正确说法</strong>：应该指向 <strong><code>../chapter27</code></strong>（数字钱包章节）。</li>
+<li><strong>延伸</strong>：这类错误在文档里很常见，但<strong>在高信誉的教程项目里会被放大</strong>——读者会认为&quot;连章节都指向错了，内容还可信吗&quot;。这也提醒你：<strong>写作时引用外部内容，一定要回头验证链接。</strong></li>
+</ul>
+<h3 id="勘误-2撮合伪代码存在超卖-bug">勘误 2：撮合伪代码存在超卖 bug</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>match</code> 函数里：<pre><code class="language-java">Quantity matched = min(limitIter.next.quantity, order.quantity);
+</code></pre>
+</li>
+<li><strong>问题</strong>：这里用的是 <code>order.quantity</code>（订单<strong>原始总量</strong>），而不是 <code>leavesQuantity</code>（<strong>剩余待成交量</strong>）。当订单需要<strong>多轮撮合</strong>（部分成交）时，会导致<strong>累计成交量超过订单原始数量</strong>。</li>
+<li><strong>正确说法</strong>：应该写成：<pre><code class="language-java">Quantity matched = min(limitIter.next.quantity, leavesQuantity);
+</code></pre>
+</li>
+<li><strong>延伸</strong>：我们用具体数字验证一下这个 bug 的危害。假设 <code>order.quantity = 100</code>，对手方依次有 30 手、80 手：
+<ul>
+<li><strong>错误代码</strong>：第一轮 <code>min(30, 100) = 30</code>，第二轮 <code>min(80, 100) = 80</code>，累计成交 <strong>110 手</strong> —— <strong>超卖 10 手</strong>；</li>
+<li><strong>正确代码</strong>：第一轮 <code>min(30, 70) = 30</code>，第二轮 <code>min(80, 70) = 70</code>，累计成交 <strong>100 手</strong> ✓。
+<strong>在真实系统里，超卖意味着凭空创造持仓</strong>——这是灾难性的资金错误。这段伪代码还省略了&quot;遍历价格档位&quot;的逻辑（<code>limitMap.get(order.price)</code> 只取了当前价格档位，没有继续找下一个更优档位），真实实现要复杂得多。</li>
+</ul>
+</li>
+</ul>
+<h3 id="勘误-3amm-不是传统交易所的趋势">勘误 3：AMM 不是传统交易所的趋势</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;modern exchanges rely more on cloud infrastructure and also on automatic market makers (AMM) to avoid maintaining an order book.&quot;</li>
+<li><strong>问题</strong>：<strong>AMM（自动做市商）是去中心化金融（DeFi）的概念</strong>，其核心特征是<strong>用数学公式定价、完全不维护订单簿</strong>（最著名的是恒定乘积公式 <code>x × y = k</code>，Uniswap 采用）。<strong>传统证券交易所在可预见的未来仍会维护订单簿</strong>——因为订单簿提供了<strong>价格发现（price discovery）<strong>和</strong>透明度</strong>，是受监管市场的核心机制。</li>
+<li><strong>正确说法</strong>：传统交易所的趋势是<strong>更多地使用云基础设施</strong>（对非关键路径而言）和<strong>指定做市商 / 流动性提供者计划</strong>（Designated Market Maker / Liquidity Provider Program）。这些做市商<strong>仍然在订单簿上挂单</strong>，只是被赋予了<strong>提供流动性的义务</strong>（并换取一些费用优惠或信息优势）。</li>
+<li><strong>延伸</strong>：<strong>订单簿 vs AMM 是一个很好的对比题</strong>：
+<ul>
+<li><strong>订单簿</strong>：价格由买卖双方的挂单<strong>博弈</strong>产生，价格发现更精细，但需要有人提供流动性（否则订单簿会很空、价差很大）。</li>
+<li><strong>AMM</strong>：价格由<strong>公式</strong>产生，永远有流动性（只要你接受公式给的价格），但<strong>存在无常损失（impermanent loss）</strong>，且对大额交易的价格滑点可能很严重。
+<strong>两者不是&quot;新旧替代&quot;关系，而是适用于不同市场结构的两种机制。</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="勘误-4订单状态缺少部分成交">勘误 4：订单状态缺少&quot;部分成交&quot;</h3>
+<ul>
+<li><strong>原文说法</strong>：创建订单的响应里，<code>status</code> 字段是 <code>new / canceled / filled</code> 三种。</li>
+<li><strong>问题</strong>：<strong>缺少 <code>PARTIALLY_FILLED</code>（部分成交）状态。</strong> 而原文自己在业务知识一节明确说了限价单&quot;it might be partially matched&quot;（可能部分成交）。</li>
+<li><strong>正确说法</strong>：至少需要 <code>NEW</code>、<code>PARTIALLY_FILLED</code>、<code>FILLED</code>、<code>CANCELED</code>、<code>REJECTED</code> 五种状态。</li>
+<li><strong>延伸</strong>：这不是小事——<strong>客户端和风控都依赖准确的状态</strong>。如果一个部分成交的订单被标成 <code>NEW</code>，客户端会以为&quot;一点都没成交&quot;；如果被标成 <code>FILLED</code>，客户端会以为&quot;全成交了&quot;。<strong>状态机的完整性，是订单系统正确性的基础。</strong></li>
+</ul>
+<h3 id="勘误-5所有交易所都把一切放在一台服务器上是过度概括">勘误 5：&quot;所有交易所都把一切放在一台服务器上&quot;是过度概括</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;modern exchanges ... typically run everything on one gigantic server.&quot;（现代交易所通常把一切跑在一台巨大的服务器上。）</li>
+<li><strong>问题</strong>：这是一个<strong>过度概括</strong>。原文自己在 Wrap Up 里也承认：&quot;not all exchanges rely on putting everything on one big server, but some still do.&quot;（不是所有交易所都这样，但有些确实是。）</li>
+<li><strong>正确说法</strong>：更准确的表述是——<strong>撮合核心（matching core）通常是单节点、单线程的</strong>（为了确定性和微秒级延迟）；但<strong>外围服务（客户端网关、行情分发、报送、监控、历史查询）是分布式的</strong>，跑在很多台机器上。<strong>&quot;一台机器&quot;说的是撮合这个心脏，不是整个交易所。</strong></li>
+<li><strong>延伸</strong>：而且&quot;一台服务器&quot;这个说法本身也不够精确。更准确的是&quot;<strong>关键路径在同一个故障域内</strong>&quot;——可能是同一台机器，也可能是同一机架内通过高速网络连接的几台机器。<strong>关键是避免跨数据中心的网络往返。</strong></li>
+</ul>
+<h3 id="勘误-6美国市场有三级报价的表述不准确">勘误 6：&quot;美国市场有三级报价&quot;的表述不准确</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;The US market has three tiers of price quotes - L1, L2, L3.&quot;</li>
+<li><strong>问题</strong>：L1/L2/L3 是<strong>行业通用的行情深度分级约定</strong>，不是美国市场特有的制度。原文的表述容易让读者误以为这是美国监管规定的分类。</li>
+<li><strong>正确说法</strong>：L1（最优买卖价）、L2（多档聚合深度）、L3（逐笔订单明细）是<strong>数据深度层级</strong>的通用划分，全球市场都这么用。</li>
+<li><strong>延伸</strong>：真正属于美国市场<strong>监管制度</strong>的是 <strong>NMS（National Market System）</strong> 和 <strong>Reg NMS</strong> 等规则体系（比如订单保护规则 Order Protection Rule、访问费上限等）。<strong>不要把&quot;行业惯例&quot;和&quot;监管制度&quot;混为一谈。</strong></li>
+</ul>
+<h3 id="补充-1为什么不能用普通数据库做撮合">补充 1：为什么不能用普通数据库做撮合</h3>
+<p>原笔记在&quot;性能&quot;一节提到&quot;网络延迟和磁盘使用是瓶颈&quot;，但<strong>没有系统地解释为什么数据库不行</strong>。正文第 9.4 节补齐了五个原因：<strong>磁盘 IO（尤其 <code>fsync</code>）、锁竞争、GC 停顿、SQL 解析开销、以及不可预测的尾延迟</strong>。并给出了正确做法：<strong>内存撮合 + 顺序写 WAL + 异步写数据库</strong>。</p>
+<h3 id="补充-2为什么交易所不用-raftpaxos-做撮合">补充 2：为什么交易所不用 Raft/Paxos 做撮合</h3>
+<p>原笔记提到了用 <strong>Raft 做 leader 选举</strong>和用<strong>可靠 UDP 复制事件存储</strong>，但<strong>没有解释&quot;为什么撮合本身不走共识协议&quot;</strong>。这是一个必须讲清楚的问题，否则读者会困惑：&quot;既然 Raft 能保证一致性，为什么不直接用 Raft 复制撮合状态？&quot;</p>
+<p><strong>答案是延迟。</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>每笔订单的延迟</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Raft / Paxos 复制状态机</strong></td>
+<td><strong>几百微秒到毫秒级</strong></td>
+<td>每一笔订单都要等<strong>多数派（quorum）<strong>确认——至少一次网络往返到</strong>最慢的那个多数派节点</strong></td>
+</tr>
+<tr>
+<td><strong>主备 + 异步日志复制</strong></td>
+<td><strong>几十微秒</strong></td>
+<td>leader <strong>不等 standby 确认</strong>就先撮合、先发布结果；standby 在后台追赶</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>详细解释：</strong></p>
+<ul>
+<li><strong>Raft/Paxos 是&quot;强一致&quot;协议</strong>：它保证任何一条日志被提交之前，<strong>必须复制到多数派</strong>。这意味着<strong>每一笔订单的提交都要等一个网络往返</strong>。在跨机房场景里，一个往返就是<strong>几百微秒到几毫秒</strong>——<strong>这直接吃掉了我们全部的延迟预算</strong>。</li>
+<li><strong>而且延迟取决于&quot;多数派中最慢的节点&quot;</strong>：只要有一个节点抖动，整个系统的延迟就抖动。这对尾延迟是灾难。</li>
+<li><strong>交易所的选择是&quot;主备 + 日志复制&quot;</strong>：leader <strong>立即</strong>撮合、立即发布结果；同时把<strong>输入日志</strong>（或输出事件）<strong>异步</strong>复制给 standby。<strong>延迟由本地操作决定，不受网络往返影响。</strong></li>
+<li><strong>代价</strong>：如果 leader 在日志复制完成前就挂了，<strong>最近的一小段日志可能丢失</strong>。交易所用两个手段控制这个风险：(1) <strong>同步复制到同机架内的备用机</strong>（延迟只有几微秒，不是几百微秒）；(2) <strong>定期做快照备份</strong>，把&quot;丢失窗口&quot;限制在可接受范围内。</li>
+</ul>
+<blockquote>
+<p><strong>一句话记住</strong>：<strong>Raft 保证&quot;一致&quot;，但不保证&quot;低延迟&quot;。</strong> 交易所需要的是&quot;<strong>快 + 能在故障时快速切到状态一致的备份</strong>&quot;，而不是&quot;<strong>每笔订单都经过多数派共识</strong>&quot;。
+<strong>Raft 在这里的正确用法是&quot;控制平面&quot;（选 leader、维护集群成员），而不是&quot;数据平面&quot;（每笔订单的提交）。</strong> 这个&quot;控制平面 vs 数据平面&quot;的区分，是分布式系统里一个非常有力的思维工具。</p>
+</blockquote>
+<h3 id="补充-3连续竞价集合竞价与部分成交">补充 3：连续竞价、集合竞价与部分成交</h3>
+<p>原笔记的撮合算法只覆盖了<strong>连续竞价</strong>，也<strong>没有展开部分成交的处理</strong>。正文第 12 节补齐了：</p>
+<ul>
+<li><strong>连续竞价</strong>（交易时段，随到随撮）vs <strong>集合竞价</strong>（开盘/收盘，统一定价，最大化成交量）；</li>
+<li><strong>部分成交</strong>：<code>filledQuantity + remainingQuantity = quantity</code> 是一条必须永远成立的不变量；订单状态要包含 <code>PARTIALLY_FILLED</code>。</li>
+</ul>
+<h3 id="补充-4订单簿的有序索引结构">补充 4：订单簿的有序索引结构</h3>
+<p>原笔记的伪代码用了 <code>Map&lt;Price, PriceLevel&gt;</code>，但<strong>普通哈希表无法满足它自己列出的&quot;查询最优买卖价&quot;和&quot;遍历价格档位&quot;两个需求</strong>。正文第 8.2 节补充了：</p>
+<ul>
+<li>需要<strong>有序映射</strong>：<strong>红黑树</strong>（O(log N)）或<strong>跳表</strong>（O(log N) 期望）；</li>
+<li>如果<strong>价格范围有限且 tick 固定</strong>，可以用<strong>数组按 tick 索引</strong>，把 O(log N) 降到 <strong>O(1)</strong>（这是真实撮合引擎的常见优化）；</li>
+<li>价格档位内部用<strong>双向链表</strong>实现 FIFO（时间优先），配合 <code>orderMap</code> 实现 O(1) 撤单。</li>
+</ul>
+<h3 id="补充-5行情可以丢包订单不能为什么">补充 5：行情可以丢包，订单不能——为什么？</h3>
+<p>原笔记说了&quot;UDP 不可靠，可以用重传来增强&quot;，但<strong>没有回答那个更关键的问题</strong>：<strong>为什么行情系统敢用 UDP 组播？</strong> 正文第 14.2 节给出了答案：<strong>因为行情是&quot;完整状态快照流&quot;，丢一帧可以用下一帧覆盖；而订单是&quot;增量事件&quot;，丢了就永久缺失。</strong></p>
+<h3 id="补充-6公平性与机房托管的矛盾">补充 6：公平性与机房托管的矛盾</h3>
+<p>原笔记提到了 colocation 是 &quot;VIP service&quot;，但<strong>没有讨论它带来的公平性问题</strong>。正文第 15.2 节补充了：<strong>等长线缆、统一接入点、速度缓冲（Speed Bump，IEX 的著名机制）</strong>——以及那个深刻的设计取舍：<strong>用&quot;故意更慢&quot;来换取&quot;更公平&quot;。</strong></p>
+<h3 id="补充-7延迟指标的量级澄清">补充 7：延迟指标的量级澄清</h3>
+<p>原笔记的非功能需求写&quot;往返延迟毫秒级&quot;，深入设计又说&quot;目标几十微秒&quot;，<strong>这两处需要澄清</strong>（正文第 1 节末尾已说明）：<strong>毫秒级指端到端（含网络、网关、风控），微秒级指撮合引擎内部。</strong> 现代主流交易所的撮合内核在微秒级，端到端在几十微秒到亚毫秒级。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>交易所应该像其他系统一样做分布式水平扩展</td>
+<td>撮合要求<strong>微秒级</strong>延迟和<strong>确定性</strong>，跨网络调用会引入几十到几百微秒的延迟，多线程会破坏确定性</td>
+<td><strong>撮合核心单机单线程</strong>；只有外围服务（网关、行情、报送）才分布式</td>
+</tr>
+<tr>
+<td>撮合引擎用数据库就行</td>
+<td>数据库的 <code>fsync</code>、行锁、SQL 解析、GC 都会把延迟钉在毫秒级，且造成不可预测的<strong>尾延迟</strong></td>
+<td><strong>内存撮合 + 顺序写 WAL 持久化 + 异步写库做查询</strong></td>
+</tr>
+<tr>
+<td>撮合引擎可以多线程并行提速</td>
+<td>多线程的执行顺序<strong>不确定</strong>，会破坏<strong>确定性</strong>，导致主备状态分叉</td>
+<td><strong>单线程撮合</strong>（现代 CPU 单核吞吐足够）+ 序列号定序</td>
+</tr>
+<tr>
+<td>用真实时间戳给订单排序就行</td>
+<td>不同机器的时钟不可能纳秒级一致，网络延迟也有抖动，<strong>顺序无法复现</strong></td>
+<td>用<strong>定序器的单调递增序列号</strong>排序，<strong>序列号才是&quot;先来后到&quot;的唯一标准</strong></td>
+</tr>
+<tr>
+<td>用 Raft 复制撮合状态最稳妥</td>
+<td>Raft 每笔提交都要等<strong>多数派确认</strong>，引入几百微秒到毫秒的延迟，且受最慢节点拖累</td>
+<td>用<strong>主备 + 异步日志复制</strong>；<strong>Raft 只用于控制平面</strong>（选主）</td>
+</tr>
+<tr>
+<td>风控可以放在成交之后校验</td>
+<td><strong>撮合结果不可逆</strong>——成交之后发现资金不够，无法撤销已成交的交易</td>
+<td><strong>风控必须在撮合之前</strong>（pre-trade risk check），把错误挡在系统之外</td>
+</tr>
+<tr>
+<td>行情和订单一样，绝对不能丢</td>
+<td>行情是<strong>完整状态快照流</strong>，丢一帧可由下一帧覆盖；订单是<strong>增量事件</strong>，丢了无法恢复</td>
+<td>行情可以用 <strong>UDP 组播</strong>（追求同时性和低延迟），订单必须<strong>可靠传输 + 序列号去重</strong></td>
+</tr>
+<tr>
+<td>订单簿用哈希表就够了</td>
+<td>哈希表<strong>不维护顺序</strong>，无法&quot;查最优价&quot;或&quot;遍历价格档位&quot;</td>
+<td>价格索引必须是<strong>有序结构</strong>（红黑树 / 跳表 / 定 tick 数组），档位内用双向链表实现时间优先</td>
+</tr>
+<tr>
+<td>报价用 <code>double</code> 就行</td>
+<td>浮点数无法精确表示十进制小数，会累积误差</td>
+<td>价格用**整数最小变动单位（tick）**表示，数量用整数</td>
+</tr>
+<tr>
+<td>托管就是&quot;快一点&quot;的增值服务</td>
+<td>托管解决的是<strong>物理距离</strong>问题——跨城往返是毫秒级，而预算是几十微秒，差了三个数量级</td>
+<td>托管是<strong>参与微秒级竞争的唯一前提</strong>；同时交易所要用<strong>等长线缆 / 速度缓冲</strong>保证公平</td>
+</tr>
+<tr>
+<td>平均延迟低就够了</td>
+<td>交易对时间极敏感，<strong>p99 的一次 10 毫秒延迟</strong>就意味着那 1% 的用户在用旧价格成交</td>
+<td>优化<strong>尾延迟（Tail Latency）</strong>，看 p99 / p99.9，不看平均值</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：股票交易所是&quot;<strong>用单机单线程的确定性撮合引擎保证微秒级延迟和主备一致性，用事件溯源保证状态可重放，用组播保证行情分发公平</strong>&quot;的系统；其余设计都围绕&quot;关键路径极致优化、非关键路径放宽要求&quot;这一条主线展开。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>三条数据流的延迟要求完全不同</strong>：交易流在关键路径（微秒级），行情流要求同时性（毫秒级），报送流只要准确（不敏感）。<strong>优化要对准关键路径。</strong></li>
+<li><strong>撮合引擎必须是确定性的</strong>：单线程 + 输入按序列号严格排序 + 禁用随机数和系统时间。<strong>确定性是主备复制成立的前提。</strong></li>
+<li><strong>不能用普通数据库做撮合</strong>：磁盘 <code>fsync</code>、锁竞争、GC 都会造成尾延迟毛刺。用<strong>内存撮合 + 顺序写 WAL + 异步写库</strong>。</li>
+<li><strong>定序器（Sequencer）是核心</strong>：给入站订单和出站成交打序列号，保证<strong>及时性/公平性、快速恢复、精确一次</strong>。</li>
+<li><strong>风控必须在撮合之前</strong>，因为撮合结果不可逆。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动解释<strong>为什么不用 Raft 做撮合</strong>（多数派确认的延迟太高），并区分<strong>控制平面（Raft 选主）与数据平面（主备日志复制）</strong>。</li>
+<li>主动说明<strong>行情可以丢包、订单不能</strong>，因为行情是完整快照流（下一帧可覆盖），订单是增量事件（丢了无法恢复）。</li>
+<li>主动提到<strong>尾延迟</strong>，并解释为什么平均值会掩盖问题。</li>
+<li>主动提到<strong>机房托管 + 等长线缆 + 速度缓冲</strong>，说明&quot;交易所不只追求快，还追求公平&quot;。</li>
+<li>主动指出订单簿的<strong>价格索引必须有序</strong>（红黑树 / 跳表 / 定 tick 数组），并说明档位内用双向链表实现时间优先。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;为什么撮合引擎要单线程？多线程不是更快吗？&quot;</em>
+→ 多线程的执行顺序由操作系统调度决定，<strong>不可复现</strong>，会破坏确定性，导致主备状态分叉。而且单线程<strong>没有锁竞争</strong>，延迟更可预测。<strong>现代 CPU 单核每秒处理数百万笔订单是现实可达的</strong>，对交易所来说吞吐足够，所以用确定性换并行度是划算的。</li>
+<li><em>&quot;撮合引擎挂了怎么办？&quot;</em>
+→ <strong>主备（Primary-Standby）<strong>架构：standby 一直在消费同一份输入日志、执行同样的确定性撮合、维护同样的状态，但</strong>不对外发布事件</strong>。leader 挂掉时靠<strong>心跳检测</strong>发现，自动切换到 standby——<strong>因为状态一直同步，切换是无缝的</strong>。跨机器时用<strong>可靠 UDP 复制事件存储</strong>。</li>
+<li><em>&quot;订单簿用什么数据结构？&quot;</em>
+→ <strong>价格维度用有序映射</strong>（红黑树或跳表，O(log N)；价格范围固定时可用数组按 tick 索引做到 O(1)）；<strong>同一价格档位内用双向链表</strong>实现 FIFO（时间优先，入队/出队 O(1)）；<strong>再用一个 <code>orderId → 订单节点</code> 的哈希表</strong>支持 O(1) 撤单。<strong>注意：普通哈希表不能单独使用，因为它不维护价格顺序。</strong></li>
+<li><em>&quot;为什么行情用 UDP 组播，订单不用？&quot;</em>
+→ 行情是<strong>完整状态快照流</strong>，丢一帧可以由下一帧覆盖或主动拉取快照恢复；订单是<strong>增量事件</strong>，丢一笔就是永久的资金差错。所以行情追求<strong>同时性和低延迟</strong>（组播 + UDP），订单追求<strong>不丢不重</strong>（序列号 + 确认 + 重传）。</li>
+<li><em>&quot;怎么保证所有订阅者同时收到行情？&quot;</em>
+→ 用<strong>组播（Multicast）</strong>：源只发一份，由路由器在网络分叉点复制，所有订阅者处在同一棵分发树的不同分支上，<strong>从分叉点起是同时出发的</strong>。单播做不到这点，因为发送方要发 N 份，发第一份和发第 N 份之间有明显时间差，先收到的人就获得了信息优势。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://thesecretlivesofdata.com/raft/" target="_blank" rel="noopener noreferrer">The Secret Lives of Data: Raft</a> — 原笔记推荐的 Raft 可视化教程</li>
+<li><a href="https://martinfowler.com/articles/lmax.html" target="_blank" rel="noopener noreferrer">Martin Fowler：The LMAX Architecture</a> — 单线程撮合 + 内存环形缓冲（Disruptor）的经典工业案例，本章&quot;单机撮合&quot;思路的最佳佐证</li>
+<li><a href="https://www.fixtrading.org/" target="_blank" rel="noopener noreferrer">FIX Trading Community</a> — FIX 协议官方规范</li>
+<li><a href="https://lmax-exchange.github.io/disruptor/" target="_blank" rel="noopener noreferrer">LMAX Disruptor</a> — 无锁环形缓冲区的开源实现，含&quot;缓存行填充&quot;等低延迟技巧</li>
+<li><a href="https://raft.github.io/" target="_blank" rel="noopener noreferrer">Raft 共识算法官网</a> — 论文、可视化演示与各类语言实现</li>
+<li><a href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol" target="_blank" rel="noopener noreferrer">Two-phase commit protocol（Wikipedia）</a> — 对比理解&quot;为什么共识协议不适用于撮合热路径&quot;</li>
+<li><a href="https://kx.com/" target="_blank" rel="noopener noreferrer">KX / KDB+</a> — 金融行业主流的列式时序数据库，用于实时行情分析</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../27/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">数字钱包</span></a><a class="next" href="../../appendix/glossary.html"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">术语表</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求澄清与非功能需求">1. 需求澄清与非功能需求</a>
+<a class="lv3" href="#先问清楚边界">先问清楚边界</a>
+<a class="lv3" href="#非功能需求">非功能需求</a>
+<a class="lv3" href="#关于延迟指标的澄清">关于延迟指标的澄清</a>
+<a class="lv2" href="#2-量级估算">2. 量级估算</a>
+<a class="lv2" href="#3-业务基础订单报价与行情分级">3. 业务基础：订单、报价与行情分级</a>
+<a class="lv3" href="#经纪商broker">经纪商（Broker）</a>
+<a class="lv3" href="#订单类型">订单类型</a>
+<a class="lv3" href="#价格">价格</a>
+<a class="lv3" href="#行情分级l1-l2-l3">行情分级：L1 / L2 / L3</a>
+<a class="lv3" href="#k-线图candlestick">K 线图（Candlestick）</a>
+<a class="lv3" href="#fix-协议">FIX 协议</a>
+<a class="lv2" href="#4-高层设计三条数据流">4. 高层设计：三条数据流</a>
+<a class="lv3" href="#交易流trading-flow-关键路径">交易流（Trading flow）—— 关键路径</a>
+<a class="lv3" href="#行情数据流market-data-flowm1m3">行情数据流（Market data flow，M1–M3）</a>
+<a class="lv3" href="#报送流reporter-flowr1r2">报送流（Reporter flow，R1–R2）</a>
+<a class="lv3" href="#关键区别只有交易流在关键路径上">关键区别：只有交易流在关键路径上</a>
+<a class="lv2" href="#5-交易链路深入撮合引擎定序器订单管理器客户端网关">5. 交易链路深入：撮合引擎、定序器、订单管理器、客户端网关</a>
+<a class="lv3" href="#51-撮合引擎matching-engine">5.1 撮合引擎（Matching Engine）</a>
+<a class="lv3" href="#52-定序器sequencer">5.2 定序器（Sequencer）</a>
+<a class="lv3" href="#53-订单管理器order-manager">5.3 订单管理器（Order Manager）</a>
+<a class="lv3" href="#54-客户端网关client-gateway">5.4 客户端网关（Client Gateway）</a>
+<a class="lv3" href="#55-风控risk-check在链路中的位置">5.5 风控（Risk Check）在链路中的位置</a>
+<a class="lv2" href="#6-行情数据流与报送流">6. 行情数据流与报送流</a>
+<a class="lv3" href="#行情数据流">行情数据流</a>
+<a class="lv3" href="#报送流">报送流</a>
+<a class="lv2" href="#7-api-设计">7. API 设计</a>
+<a class="lv3" href="#创建订单">创建订单</a>
+<a class="lv3" href="#查询成交">查询成交</a>
+<a class="lv3" href="#查询订单簿">查询订单簿</a>
+<a class="lv3" href="#查询-k-线">查询 K 线</a>
+<a class="lv2" href="#8-数据模型订单簿与-k-线图">8. 数据模型：订单簿与 K 线图</a>
+<a class="lv3" href="#81-产品订单成交">8.1 产品、订单、成交</a>
+<a class="lv3" href="#82-订单簿order-book">8.2 订单簿（Order Book）</a>
+<a class="lv3" href="#83-k-线图">8.3 K 线图</a>
+<a class="lv2" href="#9-深入设计为什么把一切塞进一台服务器">9. 深入设计：为什么把一切塞进一台服务器</a>
+<a class="lv3" href="#91-性能目标是把延迟从毫秒压到微秒">9.1 性能：目标是把延迟从毫秒压到微秒</a>
+<a class="lv3" href="#92-应用循环application-loop">9.2 应用循环（Application Loop）</a>
+<a class="lv3" href="#93-mmap-与-devshm">9.3 mmap 与 /dev/shm</a>
+<a class="lv3" href="#94-为什么不能用普通数据库做撮合">9.4 为什么不能用普通数据库做撮合</a>
+<a class="lv2" href="#10-事件溯源">10. 事件溯源</a>
+<a class="lv2" href="#11-高可用与故障恢复">11. 高可用与故障恢复</a>
+<a class="lv3" href="#111-目标9999">11.1 目标：99.99%</a>
+<a class="lv3" href="#112-找出单点故障">11.2 找出单点故障</a>
+<a class="lv3" href="#113-故障检测与跨服务器复制">11.3 故障检测与跨服务器复制</a>
+<a class="lv3" href="#114-容错连温备也挂了怎么办">11.4 容错：连温备也挂了怎么办</a>
+<a class="lv2" href="#12-撮合算法">12. 撮合算法</a>
+<a class="lv3" href="#补充原文伪代码里的一处-bug">补充：原文伪代码里的一处 bug</a>
+<a class="lv3" href="#补充连续竞价continuous-auction与集合竞价call-auction">补充：连续竞价（Continuous Auction）与集合竞价（Call Auction）</a>
+<a class="lv3" href="#补充部分成交partial-fill">补充：部分成交（Partial Fill）</a>
+<a class="lv2" href="#13-确定性determinism">13. 确定性（Determinism）</a>
+<a class="lv3" href="#131-什么是确定性为什么它如此关键">13.1 什么是确定性，为什么它如此关键</a>
+<a class="lv3" href="#132-原文怎么说的">13.2 原文怎么说的</a>
+<a class="lv3" href="#133-补充两种确定性不要混淆">13.3 补充：两种&quot;确定性&quot;，不要混淆</a>
+<a class="lv3" href="#134-补充实现功能确定性的三个手段">13.4 补充：实现功能确定性的三个手段</a>
+<a class="lv2" href="#14-行情发布优化与组播">14. 行情发布优化与组播</a>
+<a class="lv3" href="#141-行情发布器的优化">14.1 行情发布器的优化</a>
+<a class="lv3" href="#142-分发的公平性与组播multicast">14.2 分发的公平性与组播（Multicast）</a>
+<a class="lv2" href="#15-机房托管colocation与网络安全">15. 机房托管（Colocation）与网络安全</a>
+<a class="lv3" href="#151-机房托管">15.1 机房托管</a>
+<a class="lv3" href="#152-公平性fairness托管的另一面">15.2 公平性（Fairness）——托管的另一面</a>
+<a class="lv3" href="#153-网络安全">15.3 网络安全</a>
+<a class="lv2" href="#16-收尾">16. 收尾</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1事件溯源的章节链接是错的">勘误 1：事件溯源的章节链接是错的</a>
+<a class="lv3" href="#勘误-2撮合伪代码存在超卖-bug">勘误 2：撮合伪代码存在超卖 bug</a>
+<a class="lv3" href="#勘误-3amm-不是传统交易所的趋势">勘误 3：AMM 不是传统交易所的趋势</a>
+<a class="lv3" href="#勘误-4订单状态缺少部分成交">勘误 4：订单状态缺少&quot;部分成交&quot;</a>
+<a class="lv3" href="#勘误-5所有交易所都把一切放在一台服务器上是过度概括">勘误 5：&quot;所有交易所都把一切放在一台服务器上&quot;是过度概括</a>
+<a class="lv3" href="#勘误-6美国市场有三级报价的表述不准确">勘误 6：&quot;美国市场有三级报价&quot;的表述不准确</a>
+<a class="lv3" href="#补充-1为什么不能用普通数据库做撮合">补充 1：为什么不能用普通数据库做撮合</a>
+<a class="lv3" href="#补充-2为什么交易所不用-raftpaxos-做撮合">补充 2：为什么交易所不用 Raft/Paxos 做撮合</a>
+<a class="lv3" href="#补充-3连续竞价集合竞价与部分成交">补充 3：连续竞价、集合竞价与部分成交</a>
+<a class="lv3" href="#补充-4订单簿的有序索引结构">补充 4：订单簿的有序索引结构</a>
+<a class="lv3" href="#补充-5行情可以丢包订单不能为什么">补充 5：行情可以丢包，订单不能——为什么？</a>
+<a class="lv3" href="#补充-6公平性与机房托管的矛盾">补充 6：公平性与机房托管的矛盾</a>
+<a class="lv3" href="#补充-7延迟指标的量级澄清">补充 7：延迟指标的量级澄清</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

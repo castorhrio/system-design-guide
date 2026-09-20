@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 4 章：设计限流器 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item active" href="./"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-4-章设计限流器">第 4 章：设计限流器</h1>
+<blockquote>
+<p>原章节：Design a Rate Limiter · 原项目路径 <code>04. Rate Limiter/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>想象你的登录接口没有做任何限制。某个脚本小子写了个 for 循环，每秒发一万次登录请求，试你的密码。你的数据库连接池被打满，正常用户全部登录失败。</p>
+<p>这不是假设——这是每个上线过的服务都遇到过的真实场景。</p>
+<p>「限流器（Rate Limiter）」就是解决这类问题的组件：<strong>它决定&quot;单位时间内，某个主体最多能做多少次某个操作&quot;</strong>。</p>
+<p>这一章是全书第一个完整的系统设计题。它比第 1 章具体，比后面的章节简单，非常适合用来练习第 3 章的面试框架。而且限流器本身就是面试高频题——因为它足够小，能在 45 分钟里讲透；又足够深，能一路问到分布式一致性和故障降级。</p>
+<p>学完这一章，你应该能回答：限流器该放在客户端、网关还是服务端？五种限流算法各自的代价是什么？为什么分布式限流必须保证原子性？<strong>限流器自己挂了的时候，应该放行还是拒绝？</strong></p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>限流的三个业务价值，以及它和&quot;节流、熔断、降级&quot;的区别</li>
+<li>限流器的三种部署位置及各自的适用场景</li>
+<li>五种限流算法的原理、优缺点和适用场景，以及一张完整的对比表</li>
+<li>限流系统的整体架构，以及限流规则该定义在哪个维度上</li>
+<li>分布式限流的核心难题：为什么&quot;读-判断-写&quot;三步必须原子，Lua 脚本如何做到</li>
+<li><strong>fail-open 与 fail-closed</strong>：限流器自身故障时的关键决策</li>
+<li>工业界实现：Redis <code>INCR</code> + <code>EXPIRE</code>、<code>redis-cell</code>、Nginx <code>limit_req</code>、Envoy</li>
+</ul>
+<hr />
+<h2 id="1-什么是限流器为什么需要它">1. 什么是限流器，为什么需要它</h2>
+<p>「限流器（Rate Limiter）」是一个控制客户端或服务发送请求速率的组件。它可以作用在 API 层，也可以作用在更底层（比如 TCP 连接数、数据库连接数）。</p>
+<p>原笔记给了三个业务价值，逐条展开：</p>
+<p><strong>价值一：防止拒绝服务攻击（DoS / DDoS）</strong></p>
+<p>攻击者用大量请求淹没服务，目的是耗尽你的资源（CPU、内存、数据库连接、带宽），让正常用户无法使用。限流器把超额的请求挡在门外，保护后端的资源不被抢光。</p>
+<blockquote>
+<p>需要说清楚的是：<strong>限流器不是 DDoS 防护的完整方案</strong>。它只能挡住&quot;应用层&quot;的请求洪流。真正的流量型 DDoS（比如用僵尸网络打满你的带宽）要在更上游处理——CDN、清洗中心、云厂商的防护服务。限流器是纵深防御中的一层，不是全部。</p>
+</blockquote>
+<p><strong>价值二：降低成本</strong></p>
+<p>每一次请求都要消耗资源。如果某个调用方因为写错了循环，每秒钟发十万次无意义的查询，你会为这些请求付出真实的金钱——云数据库的 IOPS 是按量计费的，带宽是按流量计费的。限流可以挡住这部分浪费。</p>
+<p><strong>价值三：防止过载</strong></p>
+<p>即使请求都是合法的、来自真实用户的，也可能超过系统的处理能力。限流器把流量削到系统能承受的水平，保证已经进入系统的请求能正常完成，而不是所有请求都变慢、最后一起超时。</p>
+<p><strong>业务场景举例</strong>（原笔记给的三个例子都很典型）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>限制什么</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>发帖</td>
+<td>每用户每分钟最多 5 条</td>
+<td>防垃圾信息、防机器人刷屏</td>
+</tr>
+<tr>
+<td>注册账号</td>
+<td>每 IP 每天最多 10 个</td>
+<td>防批量注册小号</td>
+</tr>
+<tr>
+<td>领取奖励</td>
+<td>每用户每天 1 次</td>
+<td>防刷单、防薅羊毛</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="顺带分清四个概念">顺带分清四个概念</h3>
+<p>初学者经常把这四个词混着用，但它们的含义完全不同：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>英文</th>
+<th>做什么</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>限流</strong></td>
+<td>Rate Limiting</td>
+<td>超过阈值就<strong>拒绝</strong>请求</td>
+<td>每秒超过 100 次，返回 429</td>
+</tr>
+<tr>
+<td><strong>节流</strong></td>
+<td>Throttling</td>
+<td>超过阈值就<strong>放慢</strong>（排队、延迟）</td>
+<td>超过 100 次/秒的部分排队等待</td>
+</tr>
+<tr>
+<td><strong>熔断</strong></td>
+<td>Circuit Breaking</td>
+<td><strong>停止调用</strong>一个正在故障的下游</td>
+<td>下游错误率超过 50%，直接不调用它</td>
+</tr>
+<tr>
+<td><strong>降级</strong></td>
+<td>Degradation</td>
+<td>返回<strong>功能不完整但可用</strong>的结果</td>
+<td>推荐服务挂了，返回热门榜单兜底</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>限流是&quot;拦&quot;，节流是&quot;缓&quot;，熔断是&quot;断&quot;，降级是&quot;退&quot;。</strong> 四个词在面试里混用会显得很不专业。</p>
+<hr />
+<h2 id="2-第一步理解问题明确需求">2. 第一步：理解问题、明确需求</h2>
+<blockquote>
+<p>对应原笔记的 <strong>Step 1: Understanding the Problem</strong></p>
+</blockquote>
+<p>按第 3 章的框架，第一步要先澄清需求。原笔记列出了两组内容，这里整理清楚。</p>
+<h3 id="功能性需求key-features">功能性需求（Key Features）</h3>
+<ul>
+<li>服务端的 API 限流器</li>
+<li>支持多种限流规则（不同 API 不同阈值）</li>
+<li>在分布式环境下能正常工作</li>
+<li>可以选择做成独立服务，也可以做成应用内的代码库</li>
+<li>被限流时要明确告知用户</li>
+</ul>
+<h3 id="非功能性需求requirements">非功能性需求（Requirements）</h3>
+<ul>
+<li><strong>精确限流</strong>：不能误杀（把合法请求拒掉），也不能漏放（让超额请求通过）</li>
+<li><strong>低延迟</strong>：限流器在请求关键路径上，它慢一点，所有请求都慢一点</li>
+<li><strong>低内存占用</strong>：要为海量用户维护计数器，内存效率必须高</li>
+<li><strong>分布式能力</strong>：多个节点共享同一套限流状态</li>
+<li><strong>异常处理清晰</strong>：被限流时要返回明确的状态码和提示</li>
+<li><strong>高容错</strong>：限流器自身故障时，不能把整个服务拖垮</li>
+</ul>
+<blockquote>
+<p><strong>这里有个需要主动澄清的关键问题（原笔记没提）</strong>：
+&quot;限流器应该精确到什么程度？&quot;
+因为&quot;精确&quot;和&quot;低延迟 + 低内存&quot;是矛盾的。精确的方案（比如滑动窗口日志）要为每个请求存时间戳；省内存的方案（比如固定窗口计数器）在窗口边界上会放过多余的请求。
+<strong>主动问出这个问题，并说明你选择哪种取舍，是面试中的加分动作。</strong></p>
+</blockquote>
+<h3 id="完整话术示例">完整话术示例</h3>
+<blockquote>
+<p>&quot;在开始设计前，我先确认几个问题。</p>
+<p><strong>限流维度</strong>：我们是按用户 ID 限流、按 IP 限流，还是按 API key？不同维度对应不同的存储结构和 key 设计。我的假设是<strong>按用户 ID 为主，IP 为辅</strong>（未登录用户按 IP）。</p>
+<p><strong>部署形态</strong>：限流器是做成一个独立的服务，还是作为中间件嵌入网关？我的假设是<strong>作为 API 网关的中间件</strong>，这样所有服务的限流逻辑统一。</p>
+<p><strong>规则数量</strong>：大概有多少条限流规则？是几十条还是几万条？这决定了规则是放配置文件还是放数据库。</p>
+<p><strong>精确度要求</strong>：我们允许在窗口边界上有少量超额请求吗？如果允许，我可以用滑动窗口计数器省下大量内存；如果要求严格，就必须用滑动窗口日志。</p>
+<p><strong>被限流后的行为</strong>：是直接返回 429，还是排队等待？我默认是<strong>直接拒绝并返回 429 + <code>Retry-After</code> 头</strong>。</p>
+<p><strong>故障时的行为</strong>：如果限流器依赖的 Redis 挂了，是放行所有请求，还是拒绝所有请求？这个我们待会儿要专门讨论。</p>
+<p>我先按这些假设往下走。&quot;</p>
+</blockquote>
+<hr />
+<h2 id="3-第二步高层设计限流器放在哪里">3. 第二步：高层设计——限流器放在哪里</h2>
+<blockquote>
+<p>对应原笔记的 <strong>Step 2: High-Level Design</strong></p>
+</blockquote>
+<p>限流器可以放在三个位置，各有取舍。</p>
+<div align="center"><img src="./images/rate_limiter_architecture.png" alt="限流器在客户端、服务端与网关中间件三种部署位置" width="520" loading="lazy" decoding="async"></div>
+<h3 id="位置一客户端实现">位置一：客户端实现</h3>
+<p>把限流逻辑写在客户端（App、SDK、前端）里。</p>
+<p><strong>缺点：客户端完全不可信。</strong></p>
+<ul>
+<li>攻击者可以绕过客户端，直接调你的 API</li>
+<li>用户改一下配置就能关掉限流</li>
+<li>客户端版本发出去就收不回来，规则改了要等用户升级</li>
+</ul>
+<p><strong>结论：客户端限流只能作为&quot;体验优化&quot;（比如避免用户误操作触发限流），不能作为安全措施。</strong></p>
+<blockquote>
+<p><strong>但有一个例外值得知道</strong>：客户端<strong>主动配合</strong>限流是很有价值的。比如客户端收到 429 后，按 <code>Retry-After</code> 退避重试，而不是立刻重试。这不是&quot;限流&quot;，是&quot;礼貌&quot;。真正的限流必须在服务端。</p>
+</blockquote>
+<h3 id="位置二服务端实现">位置二：服务端实现</h3>
+<p>限流逻辑放在 API 服务内部（比如一个拦截器 / 中间件）。</p>
+<p><strong>优点</strong>：完全可控，服务端说了算。</p>
+<p><strong>缺点</strong>：如果有很多个服务，每个服务都要实现一遍限流逻辑，<strong>规则散落各处，难以统一管理和修改</strong>。</p>
+<h3 id="位置三中间件api-网关">位置三：中间件（API 网关）</h3>
+<p>把限流做成 API 网关（API Gateway）的一层。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>集中管理</strong>：所有服务的限流规则在一处配置</li>
+<li><strong>统一实现</strong>：不用每个服务重复造轮子</li>
+<li><strong>和微服务架构天然契合</strong></li>
+</ul>
+<p><strong>缺点</strong>：网关是单点，需要保证它自身的高可用和低延迟。</p>
+<h3 id="怎么选原笔记给的选型指南">怎么选（原笔记给的选型指南）</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>原则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>评估现有技术栈，选效率最高的方案</td>
+<td>如果你已经用了 Nginx / Envoy / Kong，直接用它们的限流能力</td>
+</tr>
+<tr>
+<td>根据业务需求选择算法</td>
+<td>见第 4 节的对比表</td>
+</tr>
+<tr>
+<td>用微服务架构就用 API 网关</td>
+<td>这是最自然的选择</td>
+</tr>
+<tr>
+<td>资源有限就买商业方案</td>
+<td>云厂商的 API 网关通常自带限流，不用自己造</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>补充一条原笔记没说的工程判断</strong>：
+<strong>限流最好在多层同时做。</strong> 真实系统通常是：</p>
+<ul>
+<li><strong>接入层（Nginx / Envoy）</strong>：做粗粒度的 IP 级限流，挡住明显的洪水攻击</li>
+<li><strong>网关层</strong>：做用户级 / API key 级的业务限流</li>
+<li><strong>服务层</strong>：做最细粒度的业务规则（比如&quot;每个用户每天最多领 1 次奖励&quot;）</li>
+</ul>
+<p>为什么要分层？因为<strong>越靠外层，能挡掉的流量越多，代价越小</strong>。让洪水在接入层就被挡掉，后面的组件就不用承担这份压力。</p>
+</blockquote>
+<hr />
+<h2 id="4-第三步深入设计五种限流算法">4. 第三步：深入设计——五种限流算法</h2>
+<blockquote>
+<p>对应原笔记的 <strong>Step 3: Rate Limiting Algorithms</strong></p>
+</blockquote>
+<p>这是本章的核心。五种算法，我们从最简单的开始。</p>
+<h3 id="算法一令牌桶token-bucket">算法一：令牌桶（Token Bucket）</h3>
+<div align="center"><img src="./images/token-bucket.png" alt="令牌桶算法：按固定速率向桶中投放令牌，请求消耗令牌" width="520" loading="lazy" decoding="async"></div>
+<p><strong>怎么工作</strong></p>
+<p>想象一个水桶，旁边有个水龙头以固定速率往里滴&quot;令牌&quot;：</p>
+<ol>
+<li>桶的容量固定（比如 5 个令牌），装满就不再增加</li>
+<li>每来一个请求，就从桶里取走 1 个令牌</li>
+<li>桶里有令牌 → 请求放行；桶是空的 → 请求被拒绝（或排队）</li>
+</ol>
+<p><strong>两个参数</strong>：</p>
+<ul>
+<li><strong>桶容量（Bucket Size）</strong>：决定能承受多大的突发流量。容量 5 意味着最多允许连续 5 个请求瞬间通过。</li>
+<li><strong>补充速率（Refill Rate）</strong>：决定长期的稳定速率。比如每秒补 1 个令牌，长期平均就是 1 QPS。</li>
+</ul>
+<p><strong>为什么它能支持突发流量？</strong></p>
+<p>这是令牌桶最重要的特性。如果桶容量 10、补充速率 1/秒，那么：</p>
+<ul>
+<li>系统空闲了 10 秒，桶里攒了 10 个令牌</li>
+<li>突然来了 10 个请求 → <strong>全部放行</strong>（瞬间 10 QPS）</li>
+<li>之后的请求只能按每秒 1 个的速度通过</li>
+</ul>
+<p>也就是说，<strong>长期速率被限制在补充速率上，但允许短时间内的突发</strong>。这非常符合真实业务的形态——用户不是匀速操作，而是&quot;安静一会儿，然后连着点几下&quot;。</p>
+<p><strong>优点</strong>：实现简单、内存占用极小（只需存两个数字：当前令牌数、上次补充时间）、支持突发。</p>
+<p><strong>缺点</strong>：两个参数需要调优。容量太小挡不住正常突发，容量太大又失去了保护作用。</p>
+<blockquote>
+<p><strong>工程实现的关键技巧：不需要真的开一个定时器去补令牌。</strong>
+只需存&quot;当前令牌数&quot;和&quot;上次补充的时间戳&quot;。每次请求来时，按时间差惰性计算应该补多少令牌：</p>
+<pre><code>应补令牌数 = (当前时间 - 上次补充时间) × 补充速率
+当前令牌数 = min(桶容量, 当前令牌数 + 应补令牌数)
+</code></pre>
+<p>这叫<strong>惰性计算</strong>。省掉了后台定时任务，是令牌桶在生产环境中唯一合理的实现方式。</p>
+</blockquote>
+<h3 id="算法二漏桶leaky-bucket">算法二：漏桶（Leaky Bucket）</h3>
+<div align="center"><img src="./images/leaking-bucket.png" alt="漏桶算法：请求进入先进先出队列，以固定速率流出" width="520" loading="lazy" decoding="async"></div>
+<p><strong>怎么工作</strong></p>
+<p>想象一个底部有个小孔的桶：</p>
+<ol>
+<li>请求进来先放进一个<strong>先进先出队列（FIFO Queue）</strong></li>
+<li>桶底以<strong>固定的速率</strong>把请求&quot;漏&quot;出去（交给后端处理）</li>
+<li>队列满了，新来的请求就被丢弃</li>
+</ol>
+<p><strong>和令牌桶的区别是什么？</strong></p>
+<p>这是初学者最容易搞混的地方，一句话说清：</p>
+<blockquote>
+<p><strong>令牌桶限制的是&quot;速率上限&quot;，允许突发；漏桶强制的是&quot;恒定流出速率&quot;，不允许突发。</strong></p>
+<ul>
+<li>令牌桶：桶里攒了令牌，突发请求就能立刻全部通过。</li>
+<li>漏桶：无论进来多快，出去的速度恒定不变。突发只能排队等待。</li>
+</ul>
+</blockquote>
+<p><strong>优点</strong>：内存占用小（只需要一个队列）；<strong>流出速率绝对稳定</strong>，这对保护脆弱的下游特别有用。</p>
+<p><strong>缺点</strong>：突发流量会填满队列，<strong>后续的请求要么长时间等待，要么直接被丢弃</strong>。</p>
+<blockquote>
+<p><strong>适用场景</strong>：下游是一个处理能力固定、且不能被突刺冲击的服务。比如给第三方支付网关发请求——对方要求你必须匀速调用，这时候漏桶就是正确选择。</p>
+</blockquote>
+<p><strong>一个典型的工业实现</strong>：<a href="https://github.com/uber-go/ratelimit" target="_blank" rel="noopener noreferrer">uber-go/ratelimit</a>（原笔记给的链接）。它实现了&quot;不漏桶&quot;式的限流——调用方会阻塞到下一个令牌可用为止。</p>
+<blockquote>
+<p><strong>术语提醒</strong>：原笔记把这个算法写成了 &quot;Leaking Bucket&quot;，<strong>正确术语是 &quot;Leaky Bucket&quot;</strong>。详见【勘误 1】。</p>
+</blockquote>
+<h3 id="算法三固定窗口计数器fixed-window-counter">算法三：固定窗口计数器（Fixed Window Counter）</h3>
+<div align="center"><img src="./images/fixed-window-counter.png" alt="固定窗口计数器：把时间切成固定区间，每个区间维护一个计数器" width="520" loading="lazy" decoding="async"></div>
+<p><strong>怎么工作</strong></p>
+<ol>
+<li>把时间切成固定长度的窗口（比如每 1 分钟一个窗口）</li>
+<li>每个窗口维护一个计数器，初始为 0</li>
+<li>请求进来，计数器 +1</li>
+<li>计数器超过阈值 → 拒绝；到了下一个窗口，计数器归零</li>
+</ol>
+<p><strong>优点</strong>：实现极简单，内存占用小（每个窗口只需要一个整数）。如果业务对精度要求不高，这是最经济的选择。</p>
+<p><strong>缺点：窗口边界问题。</strong></p>
+<p>这是这个算法唯一的、但很严重的缺陷。看一个具体例子：</p>
+<p><strong>假设限制是&quot;每分钟最多 3 个请求&quot;，窗口按自然分钟切分。</strong></p>
+<pre><code>时间轴：  |---- 00:00 ~ 00:59 ----|---- 01:00 ~ 01:59 ----|
+请求分布：                 58s 59s | 00s 01s 02s
+每个窗口计数：              2 个   |        3 个
+</code></pre>
+<ul>
+<li>00:00–00:59 这个窗口只有 2 个请求 → 没有超限</li>
+<li>01:00–01:59 这个窗口有 3 个请求 → 也没有超限</li>
+</ul>
+<p><strong>但是在 00:00:58 到 01:00:02 这 4 秒内，一共通过了 5 个请求。</strong></p>
+<p>而这 5 个请求全部落在&quot;00:00:58 到 01:00:58&quot;这个 60 秒的滑动区间内——<strong>这个区间里的请求数是 5，是限额 3 的 1.67 倍。</strong></p>
+<div align="center"><img src="./images/fixed-window-issue.png" alt="固定窗口的边界问题：跨窗口的突发流量可以突破限额" width="520" loading="lazy" decoding="async"></div>
+<p>这就是原笔记说的&quot;窗口边缘的流量突刺会让实际通过的请求数超过配额&quot;。<strong>攻击者只要卡在窗口切换的瞬间发请求，就能拿到接近 2 倍的配额。</strong></p>
+<h3 id="算法四滑动窗口日志sliding-window-log">算法四：滑动窗口日志（Sliding Window Log）</h3>
+<div align="center"><img src="./images/sliding-window-log.png" alt="滑动窗口日志：记录每个请求的时间戳，按滚动时间窗计算请求数" width="520" loading="lazy" decoding="async"></div>
+<p><strong>怎么工作</strong></p>
+<ol>
+<li>为每个限流主体维护一个<strong>有序集合</strong>，里面存每一次请求的时间戳</li>
+<li>新请求到来时，先删掉所有落在窗口之外的时间戳（比如删除 60 秒之前的）</li>
+<li>剩下的元素个数就是当前窗口内的请求数</li>
+<li>如果数量 &lt; 限额 → 放行，并把当前时间戳加入集合；否则拒绝</li>
+</ol>
+<p><strong>优点</strong>：<strong>完全精确</strong>。因为它记录的是真实的请求时间，窗口是真正&quot;滑动&quot;的，不存在固定窗口的边界问题。</p>
+<p><strong>缺点</strong>：<strong>内存消耗极高。</strong></p>
+<p>假设限制是&quot;每小时最多 100 万次请求&quot;，那么最坏情况下你要为单个用户存 100 万个时间戳。一个时间戳按 8 字节算就是 8 MB，10 万个用户就是 800 GB——<strong>完全不可接受</strong>。</p>
+<blockquote>
+<p><strong>所以滑动窗口日志只适合限额很小的场景</strong>（比如&quot;每分钟 5 次&quot;这种）。原笔记给的&quot;高内存消耗&quot;这个判断是准确的。</p>
+<p><strong>实现提示</strong>：在 Redis 里用 <strong>Sorted Set（ZSET）</strong> 实现——member 用请求 ID（保证唯一），score 用时间戳。这样既能按 score 范围删除过期元素，又能用 <code>ZCARD</code> 取计数。</p>
+</blockquote>
+<h3 id="算法五滑动窗口计数器sliding-window-counter">算法五：滑动窗口计数器（Sliding Window Counter）</h3>
+<div align="center"><img src="./images/sliding-window-counter.png" alt="滑动窗口计数器：用当前窗口和前一窗口的加权计数近似滑动窗口" width="520" loading="lazy" decoding="async"></div>
+<p><strong>怎么工作</strong></p>
+<p>这是固定窗口和滑动窗口日志的折中方案，也是最常被工业界采用的方案。</p>
+<p>它只保留<strong>两个</strong>计数器：当前窗口的计数，和上一个窗口的计数。然后用一个加权公式来估算&quot;过去 60 秒内的请求数&quot;。</p>
+<p><strong>公式</strong>：</p>
+<pre><code>估算请求数 = 当前窗口计数 + 上一个窗口计数 × 上一个窗口的重叠比例
+</code></pre>
+<p>其中，重叠比例 = 上一个窗口在当前滑动窗口中所占的比例。</p>
+<p><strong>完整算例</strong>（这个例子一定要会手推）：</p>
+<p>假设限额是<strong>每分钟 7 个请求</strong>，当前时刻是 01:00:18（即当前窗口已经过去了 30%）。</p>
+<ul>
+<li>上一个窗口（00:00–00:59）的计数 = 5</li>
+<li>当前窗口（01:00–01:59）的计数 = 3</li>
+</ul>
+<p>那么，过去 60 秒是&quot;01:00:18 往前推 60 秒&quot;，即从 00:00:18 到 01:00:18。这段区间里：</p>
+<ul>
+<li>完整包含当前窗口已经过去的部分（01:00:00–01:00:18），共 3 个请求</li>
+<li>包含上一个窗口的后 42 秒（00:00:18–00:59:59），占上一个窗口的 <code>42/60 = 70%</code></li>
+</ul>
+<pre><code>估算请求数 = 3 + 5 × 0.7 = 3 + 3.5 = 6.5
+向下取整 → 6
+</code></pre>
+<p><code>6 &lt; 7</code>，所以<strong>新请求放行</strong>。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>内存占用小（每个主体只需要 2 个计数器，而不是 100 万个时间戳）</li>
+<li>平滑掉了固定窗口的边界突刺（因为上一个窗口的计数被按比例算进来了）</li>
+</ul>
+<p><strong>缺点</strong>：<strong>它是一个近似，不是精确值。</strong></p>
+<p>因为公式假设&quot;上一个窗口里的请求是均匀分布的&quot;，但实际上可能全部集中在窗口末尾。所以估算值可能偏乐观，也可能偏保守。</p>
+<blockquote>
+<p><strong>这是可以接受的取舍吗？</strong> 在实践中通常可以。有公开的工程分析指出，在真实流量下这种近似的误差通常只有百分之几（远小于固定窗口在边界上可能达到的 100% 超额）。<strong>面试时说清&quot;这是近似、误差来源是均匀分布假设&quot;，比只说'它是近似的'要有力得多。</strong></p>
+</blockquote>
+<h3 id="五种算法对比与选型">五种算法对比与选型</h3>
+<p>原笔记逐个列了五种算法，但没有横向对比。这张表是本章最需要补上的内容：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>算法</th>
+<th>精确度</th>
+<th>内存</th>
+<th>支持突发</th>
+<th>实现复杂度</th>
+<th>典型适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>令牌桶</strong></td>
+<td>高</td>
+<td>极低（2 个数字）</td>
+<td>✅ 支持，且可调</td>
+<td>低</td>
+<td><strong>通用首选</strong>。API 网关、需要允许合理突发的业务</td>
+</tr>
+<tr>
+<td><strong>漏桶</strong></td>
+<td>高</td>
+<td>低（一个队列）</td>
+<td>❌ 强制匀速</td>
+<td>低</td>
+<td>下游要求恒定速率（第三方 API、脆弱的下游服务）</td>
+</tr>
+<tr>
+<td><strong>固定窗口计数器</strong></td>
+<td>低（边界可超 100%）</td>
+<td>极低（1 个整数）</td>
+<td>❌</td>
+<td>极低</td>
+<td>对精度要求不高的粗粒度保护，比如 IP 级洪水拦截</td>
+</tr>
+<tr>
+<td><strong>滑动窗口日志</strong></td>
+<td>最高（精确）</td>
+<td><strong>极高</strong></td>
+<td>❌</td>
+<td>中</td>
+<td>限额很小的场景（每分钟几次），且要求严格精确</td>
+</tr>
+<tr>
+<td><strong>滑动窗口计数器</strong></td>
+<td>中（近似）</td>
+<td>低（2 个计数器）</td>
+<td>部分平滑</td>
+<td>中</td>
+<td><strong>工业界最常用</strong>。要在精度和内存之间取平衡的场景</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>选型决策树</strong>（面试时可以直接照着说）：</p>
+<pre><code>需要严格精确吗？
+├─ 是 → 限额大吗？
+│        ├─ 大（每秒几千）→ 滑动窗口计数器（接受近似）+ 短窗口
+│        └─ 小（每分钟几次）→ 滑动窗口日志
+└─ 否 → 需要允许突发吗？
+         ├─ 需要 → 令牌桶
+         └─ 不需要，要匀速 → 漏桶
+</code></pre>
+<blockquote>
+<p><strong>一句话记住</strong>：<strong>令牌桶是通用答案，滑动窗口计数器是工业答案，滑动窗口日志是精确但昂贵的答案。</strong></p>
+</blockquote>
+<hr />
+<h2 id="5-把算法落到系统上整体架构">5. 把算法落到系统上：整体架构</h2>
+<blockquote>
+<p>对应原笔记的 <strong>High-Level Architecture</strong> 一节</p>
+</blockquote>
+<p>选好算法之后，要把它落成一个真实系统。</p>
+<div align="center"><img src="./images/architecture.png" alt="限流器整体架构：客户端经中间件访问 Redis 计数器，再决定放行或拒绝" width="520" loading="lazy" decoding="async"></div>
+<h3 id="数据存储">数据存储</h3>
+<p><strong>用内存缓存（如 Redis）来存计数器。</strong></p>
+<p>为什么必须是内存而不是数据库？</p>
+<ul>
+<li>限流器在<strong>每一个请求</strong>的关键路径上，它的延迟会被加到所有请求上</li>
+<li>Redis 的读写在<strong>百微秒级</strong>，而 MySQL 在毫秒级——差一个数量级</li>
+<li>计数器是高频读写的临时数据，不需要持久化保证</li>
+</ul>
+<blockquote>
+<p><strong>补充一点原笔记没说的</strong>：限流状态<strong>可以接受丢失</strong>。如果 Redis 重启，计数器归零，最坏的结果是&quot;短时间内放宽了限流&quot;。这个代价通常可以接受。
+<strong>所以限流用的 Redis 一般不开 AOF 持久化</strong>，甚至可以用 <code>maxmemory-policy noeviction</code> 之外更激进的策略——因为它就是一份缓存。这一点和&quot;存用户数据&quot;的 Redis 是完全不同的使用姿势。</p>
+</blockquote>
+<h3 id="三步流程">三步流程</h3>
+<p>原笔记给的三步很清晰：</p>
+<ol>
+<li>客户端发请求到中间件</li>
+<li>中间件检查 Redis 里的计数器</li>
+<li>根据限额决定处理还是拒绝</li>
+</ol>
+<p><strong>这里要补上第 4 步——被拒绝之后要做什么</strong>（原笔记的流程在&quot;拒绝&quot;之后就断了）：</p>
+<ol start="4">
+<li><strong>如果拒绝</strong>：返回 <strong>HTTP 429（Too Many Requests）</strong>，并在响应头里告知用户什么时候可以重试</li>
+</ol>
+<p><strong>响应头应该带什么？</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>响应头</th>
+<th>含义</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>X-RateLimit-Limit</code></td>
+<td>窗口内的总配额</td>
+<td><code>100</code></td>
+</tr>
+<tr>
+<td><code>X-RateLimit-Remaining</code></td>
+<td>剩余可用次数</td>
+<td><code>7</code></td>
+</tr>
+<tr>
+<td><code>X-RateLimit-Reset</code></td>
+<td>配额重置的时间（Unix 时间戳）</td>
+<td><code>1710000000</code></td>
+</tr>
+<tr>
+<td><code>Retry-After</code></td>
+<td>建议多少秒后重试（配合 429）</td>
+<td><code>12</code></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p>上面的 <code>X-RateLimit-*</code> 是事实标准（GitHub、Twitter 等都在用）。IETF 有一个正在推进的标准草案，去掉了 <code>X-</code> 前缀，改成 <code>RateLimit-Limit</code> / <code>RateLimit-Remaining</code> / <code>RateLimit-Reset</code>。<strong>面试时说&quot;我用 <code>X-RateLimit-*</code> 这套事实标准，同时知道 IETF 在推进无前缀版本&quot;是最加分的答案。</strong></p>
+<p><strong>为什么一定要返回这些头？</strong> 因为一个&quot;好的&quot;限流器不只拒绝请求，还要让调用方知道<strong>如何正确重试</strong>。返回 429 但不告诉对方何时可以重试，会导致客户端盲目重试，反而加剧拥塞。</p>
+</blockquote>
+<h3 id="限流规则定义在哪个维度上">限流规则定义在哪个维度上</h3>
+<p>原笔记没有提这一点，但它是设计限流系统时必须回答的问题。常见的限流维度：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>适用场景</th>
+<th>注意事项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>用户 ID</strong></td>
+<td>已登录用户的业务限流</td>
+<td>最准确，但未登录用户没有 ID</td>
+</tr>
+<tr>
+<td><strong>IP 地址</strong></td>
+<td>未登录用户、防爬</td>
+<td><strong>共享 NAT 下大量用户共用一个 IP</strong>，容易误杀</td>
+</tr>
+<tr>
+<td><strong>API Key / 租户 ID</strong></td>
+<td>面向开发者的开放平台</td>
+<td>按套餐分级限流</td>
+</tr>
+<tr>
+<td><strong>接口路径</strong></td>
+<td>保护特定接口</td>
+<td>常和上面几个维度组合</td>
+</tr>
+<tr>
+<td><strong>全局</strong></td>
+<td>保护整个系统不被打垮</td>
+<td>兜底，不区分来源</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>规则怎么组合？</strong> 真实系统通常是<strong>多个规则同时生效，取最严格的那个</strong>：</p>
+<pre><code>规则 1：用户 12345 每分钟最多 100 次
+规则 2：IP 1.2.3.4 每分钟最多 500 次
+规则 3：/api/login 接口全局每分钟最多 10000 次
+
+→ 三个规则都检查，任何一个超限就拒绝
+</code></pre>
+<blockquote>
+<p><strong>IP 限流的一个大坑</strong>：公司、学校、运营商出口都在用 NAT，一个 IP 背后可能是几万个真实用户。如果按 IP 限得太死，会一次性误杀整个公司。<strong>对策</strong>：对已登录用户优先用用户 ID；IP 限流只用于&quot;防洪水&quot;这种粗粒度场景，阈值要放得很宽。</p>
+</blockquote>
+<hr />
+<h2 id="6-第三步续分布式限流性能与监控">6. 第三步（续）：分布式限流、性能与监控</h2>
+<blockquote>
+<p>对应原笔记的 <strong>Advanced Considerations</strong> 一节</p>
+</blockquote>
+<p>单机限流器很简单：一个内存里的计数器就够了。但真实系统是多台机器，问题立刻变得复杂。</p>
+<h3 id="分布式环境的核心难题">分布式环境的核心难题</h3>
+<p>原笔记只写了一句话：&quot;<strong>Challenges: Race conditions, synchronization issues. Solutions: Use locks, Lua scripts, or sorted sets in Redis.</strong>&quot;</p>
+<p><strong>这句话太简略了，缺了最关键的一环：为什么需要原子性。</strong> 这里完整补上。</p>
+<h4 id="为什么需要原子性一个具体的竞态条件">为什么需要原子性：一个具体的竞态条件</h4>
+<p>假设限流规则是&quot;每分钟最多 5 个请求&quot;，计数器存在 Redis 里，当前值是 4。</p>
+<p>现在有<strong>两个请求同时到达</strong>，分别落在两台不同的服务器上：</p>
+<pre><code>时刻 T1:  服务器 A 读取计数器 → 得到 4
+时刻 T2:  服务器 B 读取计数器 → 得到 4
+时刻 T3:  服务器 A 判断 4 &lt; 5 → 放行
+时刻 T4:  服务器 B 判断 4 &lt; 5 → 放行
+时刻 T5:  服务器 A 写入计数器 → 5
+时刻 T6:  服务器 B 写入计数器 → 5
+</code></pre>
+<p><strong>结果：两个请求都放行了，但计数器只涨到了 5。</strong> 实际上这个窗口里应该有 6 个请求（原来的 4 个 + 新的 2 个），<strong>超额了 1 个</strong>。</p>
+<p>这就是「竞态条件（Race Condition）」：<strong>&quot;读 → 判断 → 写&quot;这三步不是一个原子操作</strong>，两个请求的这三步交错执行了，导致判断基于的是过期的数据。</p>
+<p><strong>问题有多严重？</strong> 在单机限流里，这个问题很小（因为并发窗口极短）。但在分布式限流里：</p>
+<ul>
+<li>如果有 100 台服务器，每台都在同一瞬间读到 <code>4</code>，就可能放行 100 个请求</li>
+<li><strong>限额是 5，实际放行了 104 个——限流器彻底失效</strong></li>
+</ul>
+<blockquote>
+<p><strong>面试中一定要说出这句话</strong>：&quot;分布式限流的第一个难题是竞态条件——读、判断、写必须作为一个原子操作完成，否则并发请求会读到同一个旧值，导致超额放行。&quot;</p>
+</blockquote>
+<h4 id="怎么保证原子性">怎么保证原子性</h4>
+<p>原笔记给了三个方案，但没说清各自的代价。这里逐个分析：</p>
+<p><strong>方案 A：加分布式锁（不推荐）</strong></p>
+<p>思路：每个请求先抢一把分布式锁，拿到锁之后再做&quot;读-判断-写&quot;，做完释放锁。</p>
+<p><strong>为什么通常不推荐？</strong></p>
+<ul>
+<li><strong>性能灾难</strong>：限流器在每一个请求的关键路径上。加锁意味着所有请求串行化，吞吐量会被锁竞争拖垮。</li>
+<li><strong>引入新的故障点</strong>：锁服务本身挂了怎么办？锁没释放（客户端崩溃）怎么办？需要额外处理锁超时、锁续期。</li>
+<li><strong>收益不成比例</strong>：为了限流这一个操作引入分布式锁，架构复杂度大幅上升。</li>
+</ul>
+<p><strong>结论</strong>：加锁是&quot;可行但代价过高&quot;的方案。<strong>只有在限流逻辑非常复杂、无法用单条原子命令表达时，才考虑它。</strong></p>
+<p><strong>方案 B：Lua 脚本（推荐）</strong></p>
+<p>这是分布式限流的<strong>主流方案</strong>。</p>
+<p><strong>为什么 Lua 脚本能保证原子性？</strong></p>
+<p>关键事实：<strong>Redis 执行命令是单线程的，而且一个 Lua 脚本在执行期间，Redis 不会处理其他任何命令。</strong></p>
+<p>也就是说，当 Redis 开始执行一个 Lua 脚本时，它会把整个脚本当成<strong>一个不可分割的整体</strong>执行完，中途不会被其他请求插进来。这正好解决了&quot;读-判断-写&quot;被交错执行的问题。</p>
+<p><strong>用 Lua 实现滑动窗口日志的示意</strong>：</p>
+<pre><code class="language-lua">-- KEYS[1] = 限流 key（如 rate_limit:user:12345）
+-- ARGV[1] = 当前时间戳（毫秒）
+-- ARGV[2] = 窗口大小（毫秒）
+-- ARGV[3] = 限额
+
+local key        = KEYS[1]
+local now        = tonumber(ARGV[1])
+local window     = tonumber(ARGV[2])
+local limit      = tonumber(ARGV[3])
+
+-- 1. 删除窗口外的旧记录
+redis.call('ZREMRANGEBYSCORE', key, 0, now - window)
+
+-- 2. 统计窗口内的请求数
+local count = redis.call('ZCARD', key)
+
+-- 3. 判断是否超限
+if count &lt; limit then
+    -- 4. 未超限：记录本次请求，放行
+    redis.call('ZADD', key, now, now .. '-' .. math.random())
+    redis.call('PEXPIRE', key, window)
+    return 1          -- 放行
+else
+    return 0          -- 拒绝
+end
+</code></pre>
+<p><strong>关键点</strong>：这四步（删除过期、计数、判断、写入）在同一个脚本里，Redis 保证它们原子执行。<strong>无论多少个并发请求同时到达，都不会出现两个请求读到同一个旧值的情况。</strong></p>
+<blockquote>
+<p><strong>一个必须知道的 Redis 坑</strong>：如果用的是 <strong>Redis Cluster</strong>，Lua 脚本里涉及的所有 key 必须在**同一个哈希槽（slot）**上，否则会报 <code>CROSSSLOT</code> 错误。
+解决办法是使用 <strong>hash tag</strong>——把 key 写成 <code>rate_limit:{user:12345}:window</code>，花括号里的部分决定了分片，保证同一个用户的 key 落在同一个槽上。
+<strong>面试中能主动提这一点，说明你真的用过 Redis Cluster 做限流。</strong></p>
+</blockquote>
+<p><strong>方案 C：Sorted Set（有序集合）</strong></p>
+<p>这其实是<strong>滑动窗口日志的数据结构</strong>，不是独立的&quot;原子性方案&quot;。</p>
+<ul>
+<li><code>ZREMRANGEBYSCORE</code> 删除过期记录</li>
+<li><code>ZCARD</code> 统计数量</li>
+<li><code>ZADD</code> 添加新记录</li>
+</ul>
+<p><strong>但如果这三条命令分开执行，它依然有竞态条件。</strong> 所以正确用法是：<strong>把 Sorted Set 的操作包在 Lua 脚本里</strong>（就是上面方案 B 的代码）。</p>
+<p><strong>结论</strong>：原笔记把&quot;Lua 脚本&quot;和&quot;有序集合&quot;并列成两种方案，其实它们是<strong>协作关系</strong>——Sorted Set 是数据结构，Lua 是保证原子性的手段。</p>
+<h4 id="其他分布式问题">其他分布式问题</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>表现</th>
+<th>对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>状态同步延迟</strong></td>
+<td>多个 Redis 副本之间同步有延迟</td>
+<td>限流状态用<strong>单个 Redis 主节点</strong>（或 Redis Cluster 的单一分片）保证强一致</td>
+</tr>
+<tr>
+<td><strong>跨数据中心延迟</strong></td>
+<td>用户在美国，限流器在亚洲，每次请求多 150 ms</td>
+<td>每个数据中心独立限流（各分一部分配额），或用就近的限流节点</td>
+</tr>
+<tr>
+<td><strong>Redis 成为单点</strong></td>
+<td>Redis 挂了，限流器全挂</td>
+<td>见下面的 fail-open / fail-closed</td>
+</tr>
+<tr>
+<td><strong>热 key</strong></td>
+<td>某个超级用户的计数器被高频访问</td>
+<td>本地缓存 + 批量上报；或对同一用户做 key 分片</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="性能优化">性能优化</h3>
+<p>原笔记给了两条，都很对：</p>
+<ol>
+<li><strong>多数据中心部署降低延迟</strong>——就近限流，但要注意配额如何分配（各机房独立配额，还是全局共享？）</li>
+<li><strong>最终一致性模型做同步</strong>——限流状态不需要强一致，短暂的不一致（多放行几个请求）通常可以接受</li>
+</ol>
+<p><strong>再补一条最实用的</strong>：</p>
+<ol start="3">
+<li><strong>本地预检 + 远程精确限流</strong>。每台服务器在内存里维护一个粗略的本地计数器，先本地判断；只有本地计数接近阈值时，才去问 Redis。这样能把绝大部分请求的限流判断做成<strong>零网络开销</strong>。</li>
+</ol>
+<blockquote>
+<p><strong>不过要小心</strong>：本地预检会让限额变得不精确（每台机器都有自己的计数）。所以它只适合&quot;防洪水&quot;这类粗粒度场景，不适合&quot;每用户每天 1 次领奖&quot;这种必须精确的场景。</p>
+</blockquote>
+<h3 id="监控">监控</h3>
+<p>原笔记说：&quot;定期分析，确保算法有效，并按需调整规则。&quot;</p>
+<p>这句话方向对，但太笼统。<strong>具体要监控什么？</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>被限流的请求比例</strong></td>
+<td>如果超过 1%，说明规则可能太严，正在误杀正常用户</td>
+</tr>
+<tr>
+<td><strong>被限流的请求来源分布</strong></td>
+<td>是少数几个 IP 在刷，还是大面积用户都触发了？前者是攻击，后者是规则设计错误</td>
+</tr>
+<tr>
+<td><strong>限流器的 P99 延迟</strong></td>
+<td>它在关键路径上，延迟升高会拖慢所有请求</td>
+</tr>
+<tr>
+<td><strong>Redis 的命中率和错误率</strong></td>
+<td>限流器依赖 Redis，它的健康度就是限流器的健康度</td>
+</tr>
+<tr>
+<td><strong>规则命中分布</strong></td>
+<td>哪些规则从来没触发过？可能是阈值设得毫无意义</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个很容易被忽略的点</strong>：<strong>限流规则需要和业务方一起 review</strong>。规则太松等于没有，太严会误杀用户。这个&quot;调参&quot;过程是持续的，不是一次性的。</p>
+</blockquote>
+<hr />
+<h2 id="7-第四步原笔记缺失收尾">7. 第四步（原笔记缺失）：收尾</h2>
+<p>原笔记在&quot;监控&quot;之后就结束了，<strong>没有 Step 4 收尾环节</strong>。按第 3 章的框架，收尾要总结取舍、指出不足、提出改进方向。这里补上本章应该有的收尾内容。</p>
+<h3 id="硬限流-vs-软限流hard-vs-soft-rate-limiting">硬限流 vs 软限流（Hard vs Soft Rate Limiting）</h3>
+<p>这是一个非常实用的设计选择：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>行为</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>硬限流</strong></td>
+<td>超过阈值直接返回 429，拒绝请求</td>
+<td>保护系统不被打垮；对外 API 的配额</td>
+</tr>
+<tr>
+<td><strong>软限流</strong></td>
+<td>允许请求通过，但打上&quot;超限&quot;标记</td>
+<td>观察期：先看看新规则会影响多少用户，再决定要不要真的拒绝</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>软限流的价值</strong>：上线一条新规则时，先用软限流跑一周，统计&quot;如果硬限流会有多少请求被拒&quot;。<strong>避免因为阈值设错而误杀大量正常用户。</strong></p>
+<h3 id="不同接口用不同的限流规则">不同接口用不同的限流规则</h3>
+<p>不应该所有接口用同一个阈值。典型的差异化：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>接口类型</th>
+<th>限流策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>读接口（查询）</td>
+<td>阈值可以放宽，因为成本低</td>
+</tr>
+<tr>
+<td>写接口（发帖、评论）</td>
+<td>阈值要收紧，因为要落库</td>
+</tr>
+<tr>
+<td>昂贵接口（报表导出、全量搜索）</td>
+<td>阈值极低，甚至要求排队</td>
+</tr>
+<tr>
+<td>敏感接口（登录、短信验证码、支付）</td>
+<td><strong>阈值最低，且必须 fail-closed</strong>（见下）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="客户端如何优雅地应对被限流">客户端如何优雅地应对被限流</h3>
+<p>限流器设计得好，还要调用方配合。<strong>这三条是面试加分项</strong>：</p>
+<ol>
+<li><strong>客户端缓存</strong>：减少不必要的请求，从源头降低触发限流的概率</li>
+<li><strong>指数退避 + 抖动（Exponential Backoff with Jitter）</strong>：被限流后，不要立刻重试，等待时间按 <code>1s → 2s → 4s → 8s</code> 递增，并加入随机抖动避免&quot;重试风暴&quot;</li>
+<li><strong>尊重 <code>Retry-After</code> 头</strong>：服务端告诉你等多久，就等多久</li>
+</ol>
+<pre><code class="language-python">import random, time
+
+def call_with_backoff(fn, max_retries=5):
+    for attempt in range(max_retries):
+        resp = fn()
+        if resp.status_code != 429:
+            return resp
+        # 优先使用服务端给的 Retry-After
+        wait = float(resp.headers.get(&quot;Retry-After&quot;, 2 ** attempt))
+        # 加抖动，避免所有客户端同时重试
+        wait += random.uniform(0, wait * 0.1)
+        time.sleep(wait)
+    raise Exception(&quot;rate limited after retries&quot;)
+</code></pre>
+<h3 id="关键决策限流器自身故障时放行还是拒绝">关键决策：限流器自身故障时，放行还是拒绝？</h3>
+<p><strong>这是本章最重要、也是原笔记完全没提的一个决策。</strong> 面试中主动提出这个问题，会显著加分。</p>
+<p>限流器依赖 Redis。<strong>如果 Redis 挂了，你的限流器该怎么办？</strong> 只有两个选择：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>行为</th>
+<th>好处</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>fail-open（故障放行）</strong></td>
+<td>Redis 挂了 → <strong>放行所有请求</strong></td>
+<td>服务保持可用</td>
+<td>限流失效，可能被洪水打垮</td>
+</tr>
+<tr>
+<td><strong>fail-closed（故障拒绝）</strong></td>
+<td>Redis 挂了 → <strong>拒绝所有请求</strong></td>
+<td>保护后端不被压垮</td>
+<td><strong>Redis 一挂，整个服务全面不可用</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>怎么选？</strong></p>
+<p>核心判断依据是：<strong>&quot;失去限流保护&quot;和&quot;服务完全不可用&quot;，哪个后果更严重？</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐策略</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>普通读接口</td>
+<td><strong>fail-open</strong></td>
+<td>短时间没有限流不会致命；但全部拒绝会立刻造成全站不可用</td>
+</tr>
+<tr>
+<td>登录 / 短信验证码 / 支付</td>
+<td><strong>fail-closed</strong></td>
+<td>这些接口被刷的后果（盗号、短信轰炸产生真金白银的损失）比短暂不可用更严重</td>
+</tr>
+<tr>
+<td>内部服务调用</td>
+<td><strong>fail-open + 本地兜底</strong></td>
+<td>内部流量可控</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>实践中最重要的折中：fail-open + 本地兜底限流。</strong></p>
+<pre><code>如果 Redis 不可用：
+  1. 降级到每台服务器内存里的本地令牌桶（阈值设得很宽，比如全局阈值的 1/N）
+  2. 至少保证单个节点不会被无限打垮
+  3. 同时触发告警，让人工介入
+</code></pre>
+<p><strong>为什么这是最优解？</strong></p>
+<ul>
+<li>纯 fail-open 会让后端完全裸奔，一个洪水就能打垮整个系统</li>
+<li>纯 fail-closed 会让&quot;Redis 抖动 5 秒&quot;升级成&quot;全站故障 5 分钟&quot;</li>
+<li><strong>fail-open + 本地兜底</strong> 保住了可用性，同时保留了一层粗糙但有效的保护</li>
+</ul>
+<blockquote>
+<p><strong>面试标准答法</strong>：
+&quot;限流器故障时，默认应该 <strong>fail-open</strong>——因为限流器是保护层，不是业务功能，它不该成为新的单点故障。但这个默认要分场景：对于登录、验证码、支付这类安全敏感接口，应该 <strong>fail-closed</strong>，因为被刷的代价高于短暂不可用。生产环境的做法是 <strong>fail-open + 本地内存限流兜底 + 告警</strong>，既不裸奔也不全挂。&quot;</p>
+</blockquote>
+<p><strong>这个回答包含了三层：默认策略、按场景区分、工程折中。</strong> 能说出这三层，说明你真正思考过，而不是背了一个名词。</p>
+<hr />
+<h2 id="8-补充工业界实现">8. 补充：工业界实现</h2>
+<p>原笔记只给了 uber-go/ratelimit 一个链接。这里补齐主流实现，面试中能报出具体的产品名和配置项，是明显的加分项。</p>
+<h3 id="redisincr-expire固定窗口">Redis：<code>INCR</code> + <code>EXPIRE</code>（固定窗口）</h3>
+<p>这是最经典的实现，也是最容易写错的。</p>
+<pre><code class="language-bash"># 每次请求执行：
+INCR rate_limit:user:12345          # 计数器 +1，返回新值
+EXPIRE rate_limit:user:12345 60     # 设置 60 秒过期
+</code></pre>
+<p><strong>它为什么有坑？</strong></p>
+<p>如果 <code>INCR</code> 成功、但在 <code>EXPIRE</code> 之前进程崩溃（或网络中断），这个 key 就<strong>永远不会过期</strong>。结果是这个用户被<strong>永久限流</strong>。</p>
+<p><strong>正确写法（三种）</strong>：</p>
+<p><strong>写法一：用 Lua 脚本保证原子性</strong></p>
+<pre><code class="language-lua">local current = redis.call('INCR', KEYS[1])
+if current == 1 then
+    redis.call('EXPIRE', KEYS[1], ARGV[1])
+end
+return current
+</code></pre>
+<p>只在第一次（<code>current == 1</code>）时设置过期时间，且整个操作原子。</p>
+<p><strong>写法二：用 <code>SET ... EX ... NX</code> 先建 key</strong></p>
+<pre><code class="language-bash">SET rate_limit:user:12345 0 EX 60 NX   # 不存在才创建，并带上过期时间
+INCR rate_limit:user:12345             # 再自增
+</code></pre>
+<p><strong>写法三：直接在一个命令里完成</strong></p>
+<pre><code>SET rate_limit:user:12345 0 EX 60 NX
+</code></pre>
+<p><code>INCR</code> 本身是原子的，所以计数器不会算错；问题只出在&quot;过期时间可能没设上&quot;。上面三种写法都能解决。</p>
+<blockquote>
+<p><strong>注意</strong>：这个方案实现的是<strong>固定窗口计数器</strong>，所以它有窗口边界的突刺问题（见第 4 节）。它适合&quot;防洪水&quot;这类粗粒度场景。</p>
+</blockquote>
+<h3 id="redis-cell用-gcra-实现令牌桶"><code>redis-cell</code>：用 GCRA 实现令牌桶</h3>
+<p><code>redis-cell</code> 是一个 Redis 模块，提供 <code>CL.THROTTLE</code> 命令，底层用的是 <strong>GCRA（Generic Cell Rate Algorithm，通用信元速率算法）</strong>。</p>
+<p><strong>GCRA 是什么？</strong> 它是&quot;漏桶作为计量器（Leaky Bucket as a Meter）&quot;的等价实现。它不需要真的维护一个桶和队列，而是用一个**理论到达时间（TAT, Theoretical Arrival Time）**来表示状态——<strong>每个限流主体只需要存一个时间戳</strong>，内存效率极高。</p>
+<pre><code class="language-bash">CL.THROTTLE user:12345 15 30 60 1
+#              key     上限 补速 窗口 消耗
+# → 返回：是否允许、总配额、剩余、重试等待秒数、重置秒数
+</code></pre>
+<p><strong>它的优势</strong>：单条命令、原子、返回信息完整（包含 <code>Retry-After</code> 所需的秒数）、内存极省。</p>
+<p><strong>选用前需要注意</strong>：<code>redis-cell</code> 是一个第三方 Redis 模块，需要单独编译加载；而且项目的更新节奏比较慢。<strong>在生产环境选用前，应评估它的维护状态和你的 Redis 版本兼容性。</strong> 如果你不想引入模块，用 Lua 脚本自己实现 GCRA 或令牌桶也是常见做法。</p>
+<h3 id="nginxlimit-req漏桶">Nginx：<code>limit_req</code>（漏桶）</h3>
+<p>Nginx 内置的 <code>limit_req</code> 模块实现的是<strong>漏桶算法</strong>，这是它在生产环境中最广泛的用途之一。</p>
+<pre><code class="language-nginx">http {
+    # 定义限流区域：按客户端 IP 限流，共享内存 10MB，速率 10 请求/秒
+    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+
+    server {
+        location /api/ {
+            # 应用限流：允许突发 20 个请求，且不延迟处理（nodelay）
+            limit_req zone=api_limit burst=20 nodelay;
+
+            proxy_pass http://backend;
+        }
+    }
+}
+</code></pre>
+<p><strong>关键参数</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>limit_req_zone</code></td>
+<td>定义限流区域。<code>$binary_remote_addr</code> 是限流维度（这里按 IP）</td>
+</tr>
+<tr>
+<td><code>rate=10r/s</code></td>
+<td>漏桶的流出速率</td>
+</tr>
+<tr>
+<td><code>burst=20</code></td>
+<td>队列容量。允许 20 个请求排队</td>
+</tr>
+<tr>
+<td><code>nodelay</code></td>
+<td>队列中的请求<strong>立即处理</strong>，而不是按速率平滑放出</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>关于 <code>nodelay</code> 的重要区别</strong>：</p>
+<ul>
+<li><strong>不加 <code>nodelay</code></strong>：超出的请求会排队，并按 <code>rate</code> 匀速放行——这是<strong>标准漏桶</strong>行为，会增加响应延迟。</li>
+<li><strong>加 <code>nodelay</code></strong>：<code>burst</code> 范围内的请求立刻放行——这时的行为更接近<strong>令牌桶</strong>（允许突发），只是超出 <code>burst</code> 的部分才被拒绝。</li>
+</ul>
+<blockquote>
+<p><strong>这是面试中一个很好的细节</strong>：能说出&quot;Nginx 的 <code>limit_req</code> 本质是漏桶，但加 <code>nodelay</code> 后行为趋近令牌桶&quot;，说明你真的读过文档，而不是只知道&quot;Nginx 能限流&quot;。</p>
+<p>Nginx 还有 <code>limit_conn</code>（限制并发连接数），它和 <code>limit_req</code>（限制请求速率）是两个不同的维度，经常一起用。</p>
+</blockquote>
+<h3 id="envoy本地限流-全局限流">Envoy：本地限流 + 全局限流</h3>
+<p>Envoy 作为现代服务网格的数据面，提供了两级限流：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>过滤器</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>本地限流（Local Rate Limit）</strong></td>
+<td><code>envoy.filters.http.local_ratelimit</code></td>
+<td>每个 Envoy 实例独立计数，<strong>用令牌桶实现</strong>。零网络开销，但全局配额是&quot;每实例配额 × 实例数&quot;</td>
+</tr>
+<tr>
+<td><strong>全局限流（Global Rate Limit）</strong></td>
+<td><code>envoy.filters.http.ratelimit</code> + 外部 RLS 服务</td>
+<td>Envoy 把请求描述符（descriptor）发给一个 gRPC 限流服务（<strong>RLS</strong>），由它做全局计数。精确，但多一次网络调用</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么 Envoy 要分两级？</strong></p>
+<ul>
+<li>本地限流挡掉绝大部分明显的超量流量，<strong>不产生网络开销</strong></li>
+<li>全局限流只对&quot;通过了本地检查、但可能突破全局配额&quot;的请求做精确判定</li>
+</ul>
+<p><strong>Envoy 的故障策略是可配置的</strong>——在 <code>ratelimit</code> 过滤器里有 <code>failure_mode_deny</code> 选项：设为 <code>true</code> 就是 <strong>fail-closed</strong>，设为 <code>false</code>（默认）就是 <strong>fail-open</strong>。<strong>这正好印证了第 7 节讲的决策：这不是&quot;对错&quot;问题，而是&quot;配置项&quot;问题，取决于业务场景。</strong></p>
+<h3 id="其他值得一提的实现">其他值得一提的实现</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>产品 / 库</th>
+<th>算法</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Guava <code>RateLimiter</code></strong>（Java）</td>
+<td>令牌桶</td>
+<td><strong>仅限单 JVM</strong>，不能跨进程共享状态。适合单机场景</td>
+</tr>
+<tr>
+<td><strong>Bucket4j</strong>（Java）</td>
+<td>令牌桶</td>
+<td>支持分布式（可接 Redis、Hazelcast、JDBC），API 友好</td>
+</tr>
+<tr>
+<td><strong>Kong API Gateway</strong></td>
+<td>多种</td>
+<td>插件式，支持按 consumer / credential 限流</td>
+</tr>
+<tr>
+<td><strong>AWS API Gateway</strong></td>
+<td>固定窗口</td>
+<td>通过 <strong>Usage Plan</strong> 配置&quot;速率 + 突发&quot;两个值</td>
+</tr>
+<tr>
+<td><strong>Cloudflare</strong></td>
+<td>多种</td>
+<td>边缘节点限流，能在流量到达源站前就挡住</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个选型建议</strong>：如果你已经有 API 网关（Nginx、Envoy、Kong），<strong>优先用网关自带的限流能力</strong>。自己实现一套分布式限流器，要处理的边界情况（原子性、Redis Cluster、fail-open、时钟漂移、规则热更新）比想象中多得多。</p>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>原笔记本章的算法描述基本正确，但在<strong>术语、结构完整性和工程深度</strong>三个方面有明显问题。以下逐条说明。</p>
+</blockquote>
+<h3 id="勘误-1leaking-bucket-是错误的术语">勘误 1：<code>Leaking Bucket</code> 是错误的术语</h3>
+<ul>
+<li><strong>原文说法</strong>：第二种算法的标题写作 <strong>&quot;Leaking Bucket&quot;</strong>，配图名为 <code>leaking-bucket.png</code>。</li>
+<li><strong>问题</strong>：<code>Leaking</code> 是&quot;正在漏的&quot;（动词进行时），<code>Leaky</code> 是&quot;会漏的&quot;（形容词）。这个算法的标准英文名是 <strong>Leaky Bucket</strong>——它描述的是&quot;一个会漏的桶&quot;这个<strong>容器属性</strong>，而不是&quot;正在发生泄漏&quot;这个动作。在英文技术文献、Nginx / Envoy 文档、以及 Alex Xu 原书中，统一写作 <strong>Leaky Bucket</strong>。</li>
+<li><strong>正确说法</strong>：<strong>Leaky Bucket（漏桶）</strong>。搜索相关资料时用 <code>leaky bucket</code> 才能找到正确的算法资料（用 <code>leaking bucket</code> 会搜到大量关于&quot;内存泄漏&quot;的无关内容）。</li>
+<li><strong>延伸</strong>：这类术语错误在面试中是明显的减分项——面试官会怀疑你只是&quot;看过中文博客的二手转述&quot;，而不是读过原始资料。<strong>本章正文已统一改用 Leaky Bucket。</strong></li>
+<li><strong>说明</strong>：图片文件名 <code>leaking-bucket.png</code> 是原项目自带的资源，按规范不做重命名，仅正文术语已更正。</li>
+</ul>
+<h3 id="勘误-2章节结构断层缺少-step-4且-step-2-的内容被放到了-step-3-之后">勘误 2：章节结构断层——缺少 Step 4，且 Step 2 的内容被放到了 Step 3 之后</h3>
+<ul>
+<li><strong>原文说法</strong>：原笔记的编号是 <code>Step 1: Understanding the Problem</code> → <code>Step 2: High-Level Design</code> → <code>Step 3: Rate Limiting Algorithms</code>，之后直接跳到 <code>High-Level Architecture</code> 和 <code>Advanced Considerations</code> 两个无编号小节，<strong>没有 Step 4</strong>。</li>
+<li><strong>问题</strong>：两处结构问题。
+<ol>
+<li><strong>缺少收尾环节</strong>。按第 3 章的四步框架（也是 Alex Xu 原书的结构），最后必须有 Step 4（Wrap-Up）。原笔记在&quot;监控&quot;之后就结束了，读者看不到&quot;硬/软限流&quot;&quot;不同接口不同规则&quot;&quot;客户端如何优雅重试&quot;这些收尾内容。</li>
+<li><strong>Step 2 与 Step 3 的内容错位</strong>。<code>High-Level Architecture</code>（整体架构、Redis 存储、三步流程）在逻辑上属于 <strong>Step 2 高层设计</strong>，却被放在了 <strong>Step 3 算法</strong>之后。这会让读者误以为&quot;先选算法，再想架构&quot;，而正确的顺序是相反的——<strong>先确定架构和存储，再选算法</strong>。</li>
+</ol>
+</li>
+<li><strong>正确说法</strong>：完整的逻辑顺序应为 <strong>Step 1 需求 → Step 2 高层设计（部署位置 + 整体架构 + 数据存储）→ Step 3 深入设计（算法 + 分布式 + 性能 + 监控）→ Step 4 收尾</strong>。本章正文为了便于你对照原笔记，<strong>保留了原笔记的小节顺序</strong>，但在第 5 节开头显式标注了它实际属于 Step 2，并补写了第 7 节的 Step 4 收尾内容。<strong>阅读时请按上面的逻辑顺序理解，不要按小节编号理解。</strong></li>
+<li><strong>延伸</strong>：这个结构断层不只是&quot;排版问题&quot;。<strong>它反映了一个常见的思维误区：把算法当成了设计的起点。</strong> 实际工程中，算法只是最后一步的实现选择——先有约束（延迟、内存、精度），才有算法的取舍。</li>
+</ul>
+<h3 id="勘误-3分布式限流只给了结论没有解释为什么">勘误 3：分布式限流只给了结论，没有解释&quot;为什么&quot;</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Distributed Environments</code> 一节只有两句：挑战是 &quot;Race conditions, synchronization issues&quot;，解决方案是 &quot;Use locks, Lua scripts, or sorted sets in Redis&quot;。</li>
+<li><strong>问题</strong>：三个层面的缺失。
+<ol>
+<li><strong>没解释为什么会有竞态条件</strong>。读者不知道&quot;读-判断-写&quot;三步交错执行会导致什么后果，也就无法判断这个问题的严重性。</li>
+<li><strong>没解释 Lua 脚本为什么能保证原子性</strong>。只是把 Lua 列为一个选项，读者会以为它和&quot;加锁&quot;是等价的两种选择。实际上 <strong>Lua 的原子性来自&quot;Redis 单线程执行脚本、中途不处理其他命令&quot;</strong> 这一机制——不理解这一点，就无法在 Redis Cluster 场景下正确使用它。</li>
+<li><strong>把&quot;Lua 脚本&quot;和&quot;有序集合&quot;并列成两种方案，是概念混淆</strong>。有序集合（Sorted Set）是<strong>数据结构</strong>，Lua 是<strong>保证原子性的手段</strong>。二者是协作关系，不是并列关系——用 Sorted Set 实现滑动窗口日志时，仍然需要 Lua 来保证那几条命令原子执行。</li>
+</ol>
+</li>
+<li><strong>正确说法</strong>：详见第 6 节。核心要点是：<strong>分布式限流的原子性问题来自&quot;读-判断-写&quot;三步可能被并发交错；Lua 脚本通过 Redis 的单线程执行模型把这三步变成一个不可分割的整体；Sorted Set 是滑动窗口日志的数据结构，需要配合 Lua 使用。</strong></li>
+<li><strong>延伸</strong>：<code>Use locks</code> 这个建议在实践中要谨慎。<strong>每个请求都加一次分布式锁，会让限流器成为性能瓶颈</strong>，而且引入锁服务本身又增加了故障点。加锁只在&quot;限流逻辑复杂到无法用单条原子命令表达&quot;时才值得考虑。</li>
+</ul>
+<h3 id="勘误-4leaky-bucket-的缺点描述不准确">勘误 4：Leaky Bucket 的缺点描述不准确</h3>
+<ul>
+<li><strong>原文说法</strong>：Leaking Bucket 的 Cons 是 &quot;Traffic bursts may <strong>delay</strong> recent requests&quot;（突发流量可能<strong>延迟</strong>最近的请求）。</li>
+<li><strong>问题</strong>：<code>delay</code>（延迟）这个词弱化了后果。漏桶的队列是<strong>有界</strong>的——队列满了之后，新来的请求不是&quot;被延迟&quot;，而是<strong>被直接丢弃（拒绝）</strong>。把后果说成&quot;延迟&quot;会让人以为请求最终一定会被处理，从而低估这个算法在突发场景下的代价。</li>
+<li><strong>正确说法</strong>：突发流量会填满队列，<strong>队列中排队的请求会被延迟处理（增加延迟），而队列满之后的请求会被直接拒绝</strong>。所以漏桶的准确代价是&quot;<strong>高延迟 + 突发时丢弃</strong>&quot;，而不仅仅是&quot;延迟&quot;。</li>
+<li><strong>延伸</strong>：这一点在选型时很关键。如果你的下游是一个&quot;响应慢但不会拒绝&quot;的服务，用漏桶没问题；如果下游有超时限制，被延迟的请求最终还是会超时失败——<strong>这时候漏桶的效果和直接拒绝几乎没有区别，但多消耗了队列内存。</strong></li>
+</ul>
+<h3 id="补充-1五种算法的横向对比表与选型决策树">补充 1：五种算法的横向对比表与选型决策树</h3>
+<p>原笔记逐个介绍了五种算法，但没有横向对比，读者无法判断&quot;什么时候该用哪个&quot;。详见第 4 节末尾的对比表和决策树。<strong>这是本章最需要补上的一块内容。</strong></p>
+<h3 id="补充-2限流规则的定义维度">补充 2：限流规则的定义维度</h3>
+<p>原笔记完全没有提&quot;限流该按什么维度定义&quot;。详见第 5 节末尾的表格，其中 <strong>NAT 导致的 IP 限流误杀</strong>是一个必须知道的坑。</p>
+<h3 id="补充-3被限流后的响应设计http-429-与响应头">补充 3：被限流后的响应设计（HTTP 429 与响应头）</h3>
+<p>原笔记的&quot;三步流程&quot;在&quot;决定拒绝&quot;之后就断了，没有说拒绝之后要做什么。详见第 5 节：<strong>返回 429 + <code>X-RateLimit-*</code> + <code>Retry-After</code></strong>，并说明了为什么告知重试时间如此重要。</p>
+<h3 id="补充-4fail-open-与-fail-closed">补充 4：fail-open 与 fail-closed</h3>
+<p><strong>这是原笔记最大的内容缺失。</strong> 原笔记只写了&quot;High fault tolerance&quot;（高容错）这一个需求，但没有说&quot;容错&quot;具体该怎么做。详见第 7 节——这是分布式限流器设计中最重要的一个决策，也是面试高频追问点。</p>
+<h3 id="补充-5工业界实现清单">补充 5：工业界实现清单</h3>
+<p>原笔记只给了一个 uber-go/ratelimit 的链接。详见第 8 节：Redis <code>INCR</code>+<code>EXPIRE</code>（含&quot;key 永不过期&quot;这个经典坑的三种正确写法）、<code>redis-cell</code> 与 GCRA、Nginx <code>limit_req</code>（含 <code>nodelay</code> 的行为差异）、Envoy 的两级限流与 <code>failure_mode_deny</code>。</p>
+<h3 id="补充-6限流-vs-节流-vs-熔断-vs-降级">补充 6：限流 vs 节流 vs 熔断 vs 降级</h3>
+<p>原笔记没有区分这四个概念。详见第 1 节末尾的表格。<strong>混用这四个词在面试中是明显的减分项。</strong></p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>客户端做限流就够了</td>
+<td>客户端完全不可信，攻击者直接调 API 就能绕过</td>
+<td>限流<strong>必须在服务端</strong>。客户端只能做体验优化</td>
+</tr>
+<tr>
+<td>限流器就是一个计数器，很简单</td>
+<td>分布式环境下&quot;读-判断-写&quot;存在竞态条件</td>
+<td>必须用 <strong>Lua 脚本</strong>或原子命令保证三步原子执行</td>
+</tr>
+<tr>
+<td>用分布式锁做限流很稳妥</td>
+<td>每个请求加锁会让限流器成为性能瓶颈，还引入新的故障点</td>
+<td>优先用 <strong>Lua 脚本</strong>；加锁只在限流逻辑无法用单条原子命令表达时才考虑</td>
+</tr>
+<tr>
+<td>Lua 脚本和有序集合是两种并列方案</td>
+<td>一个是&quot;保证原子性的手段&quot;，一个是&quot;数据结构&quot;</td>
+<td>Sorted Set 是滑动窗口日志的存储结构，<strong>仍需 Lua 保证原子性</strong></td>
+</tr>
+<tr>
+<td>限流器挂了就拒绝所有请求最安全</td>
+<td>这会让&quot;Redis 抖动 5 秒&quot;升级为&quot;全站故障 5 分钟&quot;</td>
+<td>默认应 <strong>fail-open</strong>；只有登录/验证码/支付这类接口才 fail-closed</td>
+</tr>
+<tr>
+<td>fail-open 就是完全不做限流</td>
+<td>那后端会彻底裸奔</td>
+<td>生产做法是 <strong>fail-open + 本地内存限流兜底 + 告警</strong></td>
+</tr>
+<tr>
+<td>固定窗口计数器够用了</td>
+<td>窗口边界上实际通过量可接近限额的 2 倍</td>
+<td>攻击者卡在窗口切换瞬间发请求即可超额；需要精度就用滑动窗口</td>
+</tr>
+<tr>
+<td>滑动窗口日志是最佳方案</td>
+<td>内存消耗随请求数线性增长，限额大时完全不可用</td>
+<td>它只适合&quot;每分钟几次&quot;的小限额场景；大限额用滑动窗口计数器</td>
+</tr>
+<tr>
+<td>令牌桶和漏桶差不多</td>
+<td>令牌桶允许突发（桶里攒的令牌可以一次用完），漏桶强制匀速</td>
+<td><strong>令牌桶限速率上限，漏桶限恒定流出速率</strong></td>
+</tr>
+<tr>
+<td>限流状态必须持久化，不能丢</td>
+<td>计数器丢了最坏只是短暂放宽限流，代价可以接受</td>
+<td>限流状态是<strong>可丢失的缓存</strong>，通常不为此开 AOF</td>
+</tr>
+<tr>
+<td>按 IP 限流最方便</td>
+<td>NAT 环境下大量用户共享一个 IP，容易大面积误杀</td>
+<td>已登录用户优先按 <strong>用户 ID</strong>；IP 限流阈值要放宽，只做粗粒度防护</td>
+</tr>
+<tr>
+<td>所有接口用同一个限流阈值</td>
+<td>读接口和支付接口的成本差几个数量级</td>
+<td>按接口成本分级；敏感接口阈值最低且必须 fail-closed</td>
+</tr>
+<tr>
+<td>被限流了就让客户端立刻重试</td>
+<td>会造成&quot;重试风暴&quot;，把系统打得更垮</td>
+<td>用<strong>指数退避 + 抖动</strong>，并尊重 <code>Retry-After</code> 头</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：限流器是在请求关键路径上按维度限制速率的保护层，它的设计难点不在算法本身，而在<strong>分布式原子性</strong>和<strong>故障时的降级策略</strong>。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>部署位置</strong>：客户端不可信，服务端可控，<strong>API 网关最适合微服务</strong>；真实系统应该分层限流。</li>
+<li><strong>五种算法</strong>：令牌桶（通用首选，支持突发）、漏桶（强制匀速）、固定窗口（简单但有边界突刺）、滑动窗口日志（精确但费内存）、滑动窗口计数器（工业最常用）。</li>
+<li><strong>存储用 Redis</strong>：限流状态在关键路径上，必须用内存存储；状态可丢失，不必持久化。</li>
+<li><strong>分布式原子性</strong>：<code>读 → 判断 → 写</code> 必须原子执行，否则并发请求会读到同一个旧值导致超额放行。用 <strong>Lua 脚本</strong>解决。</li>
+<li><strong>被限流返回 429</strong> + <code>X-RateLimit-*</code> + <code>Retry-After</code>，让调用方能正确重试。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li><strong>主动提出 fail-open vs fail-closed 的决策</strong>，并说明&quot;默认 fail-open，安全敏感接口 fail-closed，生产用 fail-open + 本地兜底 + 告警&quot;。</li>
+<li><strong>主动说明 Lua 的原子性来源</strong>——Redis 单线程执行脚本、中途不处理其他命令；并提到 <strong>Redis Cluster 的 CROSSSLOT 问题要用 hash tag 解决</strong>。</li>
+<li><strong>主动区分限流 / 节流 / 熔断 / 降级</strong>四个概念。</li>
+<li><strong>主动指出令牌桶不需要后台定时器</strong>——用&quot;上次补充时间&quot;惰性计算即可。</li>
+<li><strong>主动提到 Nginx <code>limit_req</code> 加 <code>nodelay</code> 后行为趋近令牌桶</strong>，或 Envoy 的 <code>failure_mode_deny</code> 配置项。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;限流器自己挂了怎么办？&quot;</em>
+→ 默认 <strong>fail-open</strong>（限流器是保护层，不该成为新的单点）。但登录、验证码、支付这类接口要 <strong>fail-closed</strong>，因为被刷的代价高于短暂不可用。生产实践是 <strong>fail-open + 每节点本地内存限流兜底 + 告警</strong>，既不裸奔也不全挂。</li>
+<li><em>&quot;为什么不能只用一条 <code>INCR</code>？&quot;</em>
+→ <code>INCR</code> 本身是原子的，但固定窗口需要配合 <code>EXPIRE</code>。如果 <code>INCR</code> 成功而 <code>EXPIRE</code> 没执行，key 永不过期，用户会被<strong>永久限流</strong>。正确做法是用 Lua 脚本，或先 <code>SET key 0 EX 60 NX</code> 再 <code>INCR</code>。</li>
+<li><em>&quot;怎么在 Redis Cluster 里跑限流 Lua 脚本？&quot;</em>
+→ 脚本涉及的所有 key 必须在同一个哈希槽。用 <strong>hash tag</strong>，比如 <code>rate_limit:{user:12345}</code>，花括号内的部分参与分片计算，保证同一用户的 key 落在同一槽上。</li>
+<li><em>&quot;滑动窗口计数器的误差有多大？&quot;</em>
+→ 误差来自&quot;上一个窗口的请求均匀分布&quot;这个假设。如果请求集中在窗口末尾，估算值会偏乐观（放过多余请求）。实际流量下误差通常在百分之几，远小于固定窗口在边界上可能达到的近 100% 超额。<strong>要严格精确就用滑动窗口日志，代价是内存。</strong></li>
+<li><em>&quot;限流规则怎么做到热更新？&quot;</em>
+→ 规则存配置中心（如 etcd、Apollo、Nacos），各节点订阅变更；本地缓存规则，避免每次请求都去查配置中心。<strong>规则查询本身不能成为新的性能瓶颈。</strong></li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://stripe.com/blog/rate-limiters" target="_blank" rel="noopener noreferrer">Stripe：Rate Limiters 工程博客</a> — 讲清了限流器作为&quot;可靠性工具&quot;的四层设计，非常推荐</li>
+<li><a href="https://blog.cloudflare.com/counting-things-a-lot-of-different-things/" target="_blank" rel="noopener noreferrer">Cloudflare：How we built rate limiting capable of scaling to millions of domains</a> — 边缘限流的工业级实现</li>
+<li><a href="https://nginx.org/en/docs/http/ngx_http_limit_req_module.html" target="_blank" rel="noopener noreferrer">Nginx <code>limit_req</code> 官方文档</a> — 漏桶实现的权威说明</li>
+<li><a href="https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ratelimit_filter" target="_blank" rel="noopener noreferrer">Envoy：Global Rate Limiting</a> — 含 <code>failure_mode_deny</code> 等故障策略配置</li>
+<li><a href="https://github.com/brandur/redis-cell" target="_blank" rel="noopener noreferrer">redis-cell（GCRA 限流模块）</a> — 单命令令牌桶实现，注意评估其维护状态</li>
+<li><a href="https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/" target="_blank" rel="noopener noreferrer">IETF：RateLimit header fields for HTTP（草案）</a> — <code>RateLimit-*</code> 响应头的标准来源</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc6585#section-4" target="_blank" rel="noopener noreferrer">RFC 6585：429 Too Many Requests</a> — 状态码的正式定义</li>
+<li><a href="https://github.com/uber-go/ratelimit" target="_blank" rel="noopener noreferrer">uber-go/ratelimit</a> — 原笔记提供的 Go 实现（漏桶式阻塞限流）</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../03/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">系统设计框架</span></a><a class="next" href="../05/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">一致性哈希</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-什么是限流器为什么需要它">1. 什么是限流器，为什么需要它</a>
+<a class="lv3" href="#顺带分清四个概念">顺带分清四个概念</a>
+<a class="lv2" href="#2-第一步理解问题明确需求">2. 第一步：理解问题、明确需求</a>
+<a class="lv3" href="#功能性需求key-features">功能性需求（Key Features）</a>
+<a class="lv3" href="#非功能性需求requirements">非功能性需求（Requirements）</a>
+<a class="lv3" href="#完整话术示例">完整话术示例</a>
+<a class="lv2" href="#3-第二步高层设计限流器放在哪里">3. 第二步：高层设计——限流器放在哪里</a>
+<a class="lv3" href="#位置一客户端实现">位置一：客户端实现</a>
+<a class="lv3" href="#位置二服务端实现">位置二：服务端实现</a>
+<a class="lv3" href="#位置三中间件api-网关">位置三：中间件（API 网关）</a>
+<a class="lv3" href="#怎么选原笔记给的选型指南">怎么选（原笔记给的选型指南）</a>
+<a class="lv2" href="#4-第三步深入设计五种限流算法">4. 第三步：深入设计——五种限流算法</a>
+<a class="lv3" href="#算法一令牌桶token-bucket">算法一：令牌桶（Token Bucket）</a>
+<a class="lv3" href="#算法二漏桶leaky-bucket">算法二：漏桶（Leaky Bucket）</a>
+<a class="lv3" href="#算法三固定窗口计数器fixed-window-counter">算法三：固定窗口计数器（Fixed Window Counter）</a>
+<a class="lv3" href="#算法四滑动窗口日志sliding-window-log">算法四：滑动窗口日志（Sliding Window Log）</a>
+<a class="lv3" href="#算法五滑动窗口计数器sliding-window-counter">算法五：滑动窗口计数器（Sliding Window Counter）</a>
+<a class="lv3" href="#五种算法对比与选型">五种算法对比与选型</a>
+<a class="lv2" href="#5-把算法落到系统上整体架构">5. 把算法落到系统上：整体架构</a>
+<a class="lv3" href="#数据存储">数据存储</a>
+<a class="lv3" href="#三步流程">三步流程</a>
+<a class="lv3" href="#限流规则定义在哪个维度上">限流规则定义在哪个维度上</a>
+<a class="lv2" href="#6-第三步续分布式限流性能与监控">6. 第三步（续）：分布式限流、性能与监控</a>
+<a class="lv3" href="#分布式环境的核心难题">分布式环境的核心难题</a>
+<a class="lv3" href="#性能优化">性能优化</a>
+<a class="lv3" href="#监控">监控</a>
+<a class="lv2" href="#7-第四步原笔记缺失收尾">7. 第四步（原笔记缺失）：收尾</a>
+<a class="lv3" href="#硬限流-vs-软限流hard-vs-soft-rate-limiting">硬限流 vs 软限流（Hard vs Soft Rate Limiting）</a>
+<a class="lv3" href="#不同接口用不同的限流规则">不同接口用不同的限流规则</a>
+<a class="lv3" href="#客户端如何优雅地应对被限流">客户端如何优雅地应对被限流</a>
+<a class="lv3" href="#关键决策限流器自身故障时放行还是拒绝">关键决策：限流器自身故障时，放行还是拒绝？</a>
+<a class="lv2" href="#8-补充工业界实现">8. 补充：工业界实现</a>
+<a class="lv3" href="#redisincr-expire固定窗口">Redis：INCR + EXPIRE（固定窗口）</a>
+<a class="lv3" href="#redis-cell用-gcra-实现令牌桶">redis-cell：用 GCRA 实现令牌桶</a>
+<a class="lv3" href="#nginxlimit-req漏桶">Nginx：limit_req（漏桶）</a>
+<a class="lv3" href="#envoy本地限流-全局限流">Envoy：本地限流 + 全局限流</a>
+<a class="lv3" href="#其他值得一提的实现">其他值得一提的实现</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1leaking-bucket-是错误的术语">勘误 1：Leaking Bucket 是错误的术语</a>
+<a class="lv3" href="#勘误-2章节结构断层缺少-step-4且-step-2-的内容被放到了-step-3-之后">勘误 2：章节结构断层——缺少 Step 4，且 Step 2 的内容被放到了 Step 3 之后</a>
+<a class="lv3" href="#勘误-3分布式限流只给了结论没有解释为什么">勘误 3：分布式限流只给了结论，没有解释&quot;为什么&quot;</a>
+<a class="lv3" href="#勘误-4leaky-bucket-的缺点描述不准确">勘误 4：Leaky Bucket 的缺点描述不准确</a>
+<a class="lv3" href="#补充-1五种算法的横向对比表与选型决策树">补充 1：五种算法的横向对比表与选型决策树</a>
+<a class="lv3" href="#补充-2限流规则的定义维度">补充 2：限流规则的定义维度</a>
+<a class="lv3" href="#补充-3被限流后的响应设计http-429-与响应头">补充 3：被限流后的响应设计（HTTP 429 与响应头）</a>
+<a class="lv3" href="#补充-4fail-open-与-fail-closed">补充 4：fail-open 与 fail-closed</a>
+<a class="lv3" href="#补充-5工业界实现清单">补充 5：工业界实现清单</a>
+<a class="lv3" href="#补充-6限流-vs-节流-vs-熔断-vs-降级">补充 6：限流 vs 节流 vs 熔断 vs 降级</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

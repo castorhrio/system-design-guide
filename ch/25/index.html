@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 25 章：实时游戏排行榜 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item active" href="./"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-25-章实时游戏排行榜">第 25 章：实时游戏排行榜</h1>
+<blockquote>
+<p>原章节：Real-time Gaming Leaderboard · 原项目路径 <code>25. Real-time Gaming Leaderboard/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>排行榜看起来是系统设计里最简单的一类需求：按分数排序，显示前 10 名，再告诉用户他排第几。</p>
+<p>把规模放大就完全不一样了：2500 万月活、峰值每秒 2500 次加分、必须实时、还要能查到<strong>任意一个玩家</strong>的名次。这时三个问题会接连冒出来——关系型数据库的 <code>ORDER BY score</code> 撑不住；单个 Redis 实例的内存会成为天花板；而一旦决定分片，&quot;全局排名怎么算&quot;就躲不开了。</p>
+<p>本章真正的重点不是&quot;用 Redis 的有序集合&quot;，而是搞清楚<strong>它为什么快、快到什么程度、在哪里会不够用</strong>。</p>
+<div align="center">
+  <img src="./images/leaderboard.png" alt="游戏内排行榜界面示意" width="520" loading="lazy" decoding="async">
+</div>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>排行榜题的需求怎么澄清，哪些问题必须问出来</li>
+<li>为什么&quot;按分数排序&quot;这件事，关系型数据库只能解决一半</li>
+<li>Redis 有序集合的底层结构（哈希表 + 跳表），以及为什么两者缺一不可</li>
+<li><code>ZADD</code> / <code>ZINCRBY</code> / <code>ZREVRANGE</code> / <code>ZRANK</code> 的时间复杂度与生产用法</li>
+<li>亿级成员下排名查询的真实成本，以及&quot;分桶排名&quot;能解决什么、不能解决什么</li>
+<li>分片之后，全局 Top-K 与全局排名分别怎么算</li>
+<li>实时性取舍、同分排名、防作弊、宕机恢复</li>
+</ul>
+<hr />
+<h2 id="1-需求澄清与量级估算">1. 需求澄清与量级估算</h2>
+<p>原文记录了一段访谈对话。逐条看它为什么重要：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>回答</th>
+<th>为什么必须问</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分数怎么算？</td>
+<td>赢一局得一分</td>
+<td>写入模式：高频、小增量、只增不减</td>
+</tr>
+<tr>
+<td>所有玩家都进榜吗？</td>
+<td>是</td>
+<td>成员基数 = 全量用户</td>
+</tr>
+<tr>
+<td>有周期吗？</td>
+<td>每月一个新赛季、新榜单</td>
+<td>数据有生命周期，老榜归档、新榜初始化</td>
+</tr>
+<tr>
+<td>只关心前 10 吗？</td>
+<td>前 10，<strong>外加指定用户的名次</strong>；时间够再聊&quot;前后各 4 名&quot;</td>
+<td>最关键一条：<strong>Top-K 和个人排名是两种完全不同的查询</strong></td>
+</tr>
+<tr>
+<td>多少用户？</td>
+<td>500 万日活、2500 万月活</td>
+<td>规模量级</td>
+</tr>
+<tr>
+<td>平均打多少局？</td>
+<td>每人每天 10 局</td>
+<td>写入 QPS</td>
+</tr>
+<tr>
+<td>同分怎么排？</td>
+<td>名次相同；时间够再聊打破平局</td>
+<td>决定了排名查询的实现方式（后面会看到这是个大坑）</td>
+</tr>
+<tr>
+<td>要实时吗？</td>
+<td>要，不能接受批量结果的滞后展示</td>
+<td>不能用&quot;定时重算&quot;作为主方案</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>功能需求</strong>：展示前 10 名；展示指定用户的名次；（加分项）展示指定用户上下各 4 名。</p>
+<p><strong>非功能需求</strong>：分数更新实时反映到榜单；可扩展、高可用、可靠。</p>
+<h3 id="量级估算">量级估算</h3>
+<p>500 万日活，一天按 10 万秒近似：</p>
+<pre><code>平均到达率：5,000,000 ÷ 100,000 = 50 人/秒
+得分写入：50 × 10 局 = 500 次/秒（平均），峰值按 5 倍算 = 2500 次/秒
+榜单读取：假设每人每天打开一次 = 50 次/秒（平均）
+</code></pre>
+<blockquote>
+<p><strong>这里有个概念必须分清</strong>
+<code>DAU ÷ 秒数</code> 得到的是<strong>到达率（人/秒）</strong>，是一个流量；而&quot;同时在线人数&quot;是一个<strong>存量</strong>。两者靠<strong>利特尔法则（Little's Law）</strong> 联系：<code>并发数 = 到达率 × 平均停留时长</code>。若玩家平均在线 10 分钟，则平均同时在线约 <code>50 × 600 = 30,000</code> 人。做容量规划（内存、连接数）要看并发数，做 QPS 规划才看到达率。原文把这两者混为一谈了。</p>
+</blockquote>
+<p><strong>结论</strong>：2500 QPS 对单个 Redis 实例（通常 10 万 QPS 量级）毫无压力，存储也在 GB 级。所以<strong>这个规模下性能不是难点，数据结构和排名算法才是</strong>。</p>
+<hr />
+<h2 id="2-接口设计">2. 接口设计</h2>
+<pre><code>POST /v1/scores                  # 提交分数
+GET  /v1/scores                  # 取前 10 名
+GET  /v1/scores/{:user_id}       # 取某个用户的名次
+</code></pre>
+<p>请求体包含 <code>user_id</code> 和本次赢得的 <code>points</code>。前 10 名的响应：</p>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    { &quot;user_id&quot;: &quot;user_id1&quot;, &quot;user_name&quot;: &quot;alice&quot;, &quot;rank&quot;: 1, &quot;score&quot;: 12543 },
+    { &quot;user_id&quot;: &quot;user_id2&quot;, &quot;user_name&quot;: &quot;bob&quot;,   &quot;rank&quot;: 2, &quot;score&quot;: 11500 }
+  ],
+  &quot;total&quot;: 10
+}
+</code></pre>
+<p>单个用户的响应：</p>
+<pre><code class="language-json">{ &quot;user_info&quot;: { &quot;user_id&quot;: &quot;user5&quot;, &quot;score&quot;: 1000, &quot;rank&quot;: 6 } }
+</code></pre>
+<blockquote>
+<p><strong>两个藏在接口里的决定</strong></p>
+<ol>
+<li><strong>写接口只能对游戏服务器开放，绝不能对终端客户端开放。</strong> 客户端若能直接调它，玩家只要挂一个代理就能把分数改成任意值——这不是&quot;可能被作弊&quot;，而是&quot;必然被作弊&quot;，成本为零。</li>
+<li>读接口返回 <code>rank</code> 而不是一条记录，暗示后端必须能高效回答&quot;有多少人比我高&quot;。这是第 7 节的主题。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="3-高层架构与安全边界">3. 高层架构与安全边界</h2>
+<div align="center">
+  <img src="./images/high-level-architecture.png" alt="排行榜系统高层架构：客户端、游戏服务、排行榜服务、排行榜存储" width="520" loading="lazy" decoding="async">
+</div>
+<p>一次&quot;玩家赢了&quot;的流程：</p>
+<ol>
+<li>客户端把结果上报给<strong>游戏服务（Game Service）</strong>。</li>
+<li>游戏服务<strong>校验这局是否合法</strong>（反作弊体系的根基），再调用排行榜服务加分。</li>
+<li>排行榜服务把新分数写进<strong>排行榜存储</strong>。</li>
+<li>玩家查询时，客户端直接调排行榜服务拿前 10 或自己的名次。</li>
+</ol>
+<h3 id="被否决的替代方案">被否决的替代方案</h3>
+<div align="center">
+  <img src="./images/alternative-design.png" alt="被否决的替代设计：客户端直接更新分数" width="520" loading="lazy" decoding="async">
+</div>
+<p>让客户端<strong>直接</strong>写排行榜服务被否决，理由是经不起<strong>中间人攻击（Man-in-the-Middle Attack）</strong>。</p>
+<blockquote>
+<p><strong>更根本的问题</strong>
+让客户端上报&quot;我赢了&quot;本身就不成立。<strong>服务端不能相信客户端对结果的任何陈述。</strong> 正确做法是游戏逻辑跑在服务端，服务端自己知道谁赢了，直接加分——客户端连&quot;我赢了&quot;都不用说。原文也提到：服务端管理游戏逻辑时，客户端无需显式上报胜利。</p>
+<p>这个原则叫<strong>永不信任客户端（Never Trust the Client）</strong>，是在线游戏和金融系统的第一条军规。</p>
+</blockquote>
+<h3 id="要不要加消息队列">要不要加消息队列</h3>
+<div align="center">
+  <img src="./images/message-queue-based-comm.png" alt="在游戏服务和排行榜服务之间加入消息队列" width="520" loading="lazy" decoding="async">
+</div>
+<p>原文的结论是：除非有其他服务也关心比赛结果，否则不引入。这在面试场景下是对的，补充两点工程视角：</p>
+<ul>
+<li><strong>队列能削峰</strong>：平均 500 QPS、峰值 2500 QPS，差 5 倍。缓冲后排行榜服务可按平均速率消费，机器规格能省一大截。</li>
+<li><strong>代价是排行榜变成最终一致</strong>：分数进了队列还没消费时，榜单是旧的。而需求明确要求实时。</li>
+</ul>
+<p>这是一笔明确的交易：<strong>要削峰就接受秒级延迟，要严格实时就让写入路径同步</strong>。在 2500 QPS 这个规模下，同步写入是更好的选择。</p>
+<hr />
+<h2 id="4-方案一关系型数据库">4. 方案一：关系型数据库</h2>
+<div align="center">
+  <img src="./images/leaderboard-table.png" alt="关系型数据库中的排行榜表结构" width="520" loading="lazy" decoding="async">
+</div>
+<p>原文在这里加了一句旁注：不该&quot;每月建一张新表&quot;，应该加一个 <code>month</code> 字段。<strong>这个旁注是对的，而且比它看起来更重要。</strong> 每月建表的代价是：表数量无限增长；查询要拼表名导致 SQL 无法参数化；跨月查询变成 UNION；建表这个 DDL 操作在高峰期执行有风险。</p>
+<p>正确做法是加 <code>tournament_id</code>（或 <code>month</code>）字段并建复合索引——<strong>用数据行上的一个维度区分逻辑集合，而不是用物理对象区分</strong>。</p>
+<h3 id="用户得分">用户得分</h3>
+<div align="center">
+  <img src="./images/user-wins-point.png" alt="用户赢得一分时更新数据库记录" width="520" loading="lazy" decoding="async">
+</div>
+<pre><code class="language-sql">-- 用户不存在时先插入
+INSERT INTO leaderboard (user_id, score) VALUES ('mary1934', 1);
+-- 之后累加
+UPDATE leaderboard SET score = score + 1 WHERE user_id = 'mary1934';
+</code></pre>
+<h3 id="查前-10-名">查前 10 名</h3>
+<div align="center">
+  <img src="./images/find-leaderboard-position.png" alt="在数据库中查询排行榜名次" width="520" loading="lazy" decoding="async">
+</div>
+<p>未优化的写法是全表排序再取前 10，代价 O(N log N)：2500 万行排序要几秒到几十秒。</p>
+<pre><code class="language-sql">SELECT (@rownum := @rownum + 1) AS rank, user_id, score
+FROM leaderboard ORDER BY score DESC LIMIT 10;
+</code></pre>
+<p><strong>这里必须说清一个常被误解的点</strong>：加上 <code>score</code> 索引之后，<code>ORDER BY score DESC LIMIT 10</code> 其实<strong>很快</strong>——数据库对索引做一次反向扫描，读 10 条就停，复杂度 O(log N + 10)。原文说它&quot;性能不好&quot;，严格说只对<strong>没有索引</strong>的版本成立。</p>
+<p>关系型数据库真正卡住的是<strong>两件事</strong>，原文只提到了第一件。</p>
+<p><strong>第一件：查某个人的名次。</strong></p>
+<pre><code class="language-sql">SELECT *, (SELECT COUNT(*) FROM leaderboard lb2
+           WHERE lb2.score &gt;= lb1.score) RANK
+FROM leaderboard lb1 WHERE lb1.user_id = {:user_id};
+</code></pre>
+<p>这个子查询要数出&quot;有多少人分数不低于我&quot;。即使 <code>score</code> 上有索引，这也是一次<strong>索引范围扫描</strong>——对中位数玩家要扫过约一半的索引条目，也就是上千万条。这是<strong>秒级</strong>查询，而每个用户查一次名次就触发一次。这才是真正的瓶颈。</p>
+<p><strong>第二件：写入。</strong> 2500 QPS 的 <code>UPDATE</code> 意味着每秒 2500 次 B+ 树二级索引维护：随机写、页分裂、redo log 与 binlog 追加。更麻烦的是<strong>争用</strong>——排行榜的更新天然集中在高分玩家所在的索引页上，这些页会成为热点。</p>
+<blockquote>
+<p><strong>一句话总结</strong>
+关系型数据库能高效回答&quot;前 10 名是谁&quot;，但<strong>不能高效回答&quot;我排第几&quot;</strong>，而且高频更新下索引维护成本很高。而排行榜的核心需求恰恰包括&quot;我排第几&quot;。
+这个判断在几千用户时无所谓，但到百万级就必须换方案。</p>
+</blockquote>
+<hr />
+<h2 id="5-方案二redis-有序集合">5. 方案二：Redis 有序集合</h2>
+<p>我们要找一个能支撑千万级玩家、又不需要写复杂 SQL 的方案。Redis 的<strong>有序集合（Sorted Set，ZSET）</strong> 正好命中。</p>
+<h3 id="底层结构哈希表-跳表缺一不可">底层结构：哈希表 + 跳表，缺一不可</h3>
+<div align="center">
+  <img src="./images/sorted-set.png" alt="Redis 有序集合由哈希表和跳表共同实现" width="520" loading="lazy" decoding="async">
+</div>
+<p>Redis 的有序集合内部同时维护<strong>两个</strong>结构：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>结构</th>
+<th>作用</th>
+<th>支撑的命令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>哈希表（Hash Table / dict）</strong></td>
+<td>成员 → 分数 的映射，O(1) 查分</td>
+<td><code>ZSCORE</code>；<code>ZADD</code> 时判断成员是否已存在</td>
+</tr>
+<tr>
+<td><strong>跳表（Skip List）</strong></td>
+<td>按分数排序的链表 + 多级索引</td>
+<td><code>ZRANGE</code>、<code>ZRANK</code>、<code>ZREVRANGE</code>、按分数范围查询</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>为什么两个都要？</strong> 因为短板刚好互补：</p>
+<ul>
+<li>只有哈希表：能 O(1) 查到某个人的分数，但完全不知道谁排在谁前面，做不了任何排序查询。</li>
+<li>只有跳表：能排序，但查某个成员的分数要 O(log N) 走一遍，也判断不了成员是否重复。</li>
+</ul>
+<p><strong>这是本章最值得记住的一句话</strong>：排行榜需要&quot;按分数排序 + 按成员定位&quot;，这是<strong>两种不同方向的访问模式</strong>，任何单一数据结构都只能高效支持其中一种。有序集合之所以是排行榜的标准答案，就是它用两个结构把两种访问模式都做成了对数级。</p>
+<h3 id="跳表怎么工作">跳表怎么工作</h3>
+<div align="center">
+  <img src="./images/skip-list.png" alt="跳表结构：底层有序链表加多级索引" width="520" loading="lazy" decoding="async">
+</div>
+<ul>
+<li>最底层是一条<strong>完整的有序链表</strong>，包含所有节点。</li>
+<li>上面叠若干层<strong>索引</strong>，每层都是下层的稀疏抽样（Redis 里每个节点以 1/4 的概率被提升到上一层）。</li>
+<li>查找从最高层开始，能往右就往右，不能往右就下一层。每层把范围缩小到约 1/4，总比较次数从 O(N) 降到 O(log N)。</li>
+</ul>
+<div align="center">
+  <img src="./images/skip-list-performance.png" alt="跳表性能对比：64 个节点下普通链表需 62 次遍历，跳表只需 11 次" width="520" loading="lazy" decoding="async">
+</div>
+<p>原文的例子：64 个节点里查找一个值，普通链表最坏走 62 步，跳表只需 11 步。这个数字可以验证——跳表的期望步数与 <code>log N</code> 成正比，N=64 时 <code>log₂64 = 6</code>，考虑约 2 倍的常数因子，10~12 步正好在预期内。</p>
+<blockquote>
+<p><strong>跳表里藏着一个关键字段：span</strong>
+跳表的每个前进指针上都附带一个 <strong><code>span</code>（跨度）</strong>，记录这个指针跨过了多少个节点。</p>
+<p><strong>这是排名查询能做成 O(log N) 的关键。</strong> 有了 span，从表头走到某个节点的过程中把沿途跨度累加，就能直接算出它是第几名，不需要从头数。没有 span，<code>ZRANK</code> 就退化成 O(N)。</p>
+<p>很多讲跳表的资料只讲&quot;多级索引加速查找&quot;，会漏掉 span，导致你理解不了 Redis 为什么能 O(log N) 查排名。</p>
+</blockquote>
+<blockquote>
+<p><strong>两个补充</strong>
+<strong>小集合不用跳表</strong>：成员数少时（Redis 7.2 前由 <code>zset-max-ziplist-entries</code> 控制、默认 128；7.2 后改名 <code>zset-max-listpack-entries</code>），Redis 用紧凑列表（listpack）存储，比跳表 + 哈希表更省内存、缓存更友好。超阈值才单向转成跳表。</p>
+<p><strong>为什么不用平衡树</strong>：红黑树同样能提供 O(log N)，Redis 选跳表主要是工程性考虑——实现比平衡树的旋转和再平衡简单得多，范围查询（<code>ZRANGEBYSCORE</code>）也天然友好，找到起点后顺着底层链表走即可。</p>
+</blockquote>
+<hr />
+<h2 id="6-redis-上的排行榜操作与容量估算">6. Redis 上的排行榜操作与容量估算</h2>
+<h3 id="四个核心命令">四个核心命令</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+<th>时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZADD</code></td>
+<td>成员不存在就插入，存在就更新分数</td>
+<td>O(log N)</td>
+</tr>
+<tr>
+<td><code>ZINCRBY</code></td>
+<td>给成员分数增加增量；不存在则从 0 开始</td>
+<td>O(log N)</td>
+</tr>
+<tr>
+<td><code>ZRANGE</code> / <code>ZREVRANGE</code></td>
+<td>按分数取区间，可指定升降序、偏移、数量</td>
+<td>O(log N + M)，M 是返回条数</td>
+</tr>
+<tr>
+<td><code>ZRANK</code> / <code>ZREVRANK</code></td>
+<td>取指定成员的排名（升/降序）</td>
+<td>O(log N)</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-bash">ZINCRBY leaderboard_feb_2021 1 'mary1934'            # 加分
+ZREVRANGE leaderboard_feb_2021 0 9 WITHSCORES        # 取前 10
+</code></pre>
+<p>每月新建一个 key，老 key 移到历史存储。</p>
+<h3 id="取某个用户前后各-4-名">取某个用户前后各 4 名</h3>
+<div align="center">
+  <img src="./images/leaderboard-position-of-user.png" alt="展示指定用户上下各 4 名的排行榜界面" width="520" loading="lazy" decoding="async">
+</div>
+<pre><code class="language-bash">ZREVRANGE leaderboard_feb_2021 357 365
+</code></pre>
+<p>这个闭区间是 9 个元素，正好覆盖&quot;本人 + 上面 4 个 + 下面 4 个&quot;。若用户的 1 基名次是 362，0 基下标就是 361，<code>357..365</code> 的中心正是 361。✓</p>
+<blockquote>
+<p><strong>两个生产环境必须处理的边界</strong></p>
+<ol>
+<li><strong>越界</strong>：用户排第 2 名时这个区间显然不对，要先做 <code>max(0, rank-5)</code> 和 <code>min(总人数-1, rank+3)</code> 的钳制。</li>
+<li><strong>下标 vs 名次</strong>：Redis 区间参数是 0 基下标，业务上的&quot;名次&quot;是 1 基，差 1。混用会让整个榜单整体偏移一位——非常常见的线上 bug。</li>
+</ol>
+<p>另外 <strong><code>ZREVRANGE</code> 在 Redis 6.2 已被废弃</strong>，官方推荐写 <code>ZRANGE key 0 9 REV WITHSCORES</code>。</p>
+</blockquote>
+<h3 id="容量估算">容量估算</h3>
+<p>原文的算法是：ID 是 24 字符、分数是 16 位整数，所以每条 26 字节：</p>
+<pre><code>26 字节 × 25,000,000 = 650,000,000 字节 ≈ 650 MB
+</code></pre>
+<p><strong>这个算法漏了两件事</strong>（详见【勘误与补充】）：</p>
+<ol>
+<li><strong>分数不是 2 字节。</strong> Redis 把分数存成 IEEE-754 双精度浮点，占 <strong>8 字节</strong>。裸数据是 <code>24 + 8 = 32 字节</code>。</li>
+<li><strong>忽略了内部开销。</strong> 每个成员还要付出哈希表节点（约 24 字节）、SDS 字符串头 + 内存对齐（24 字符约 32 字节）、跳表节点（头部约 32 字节 + 平均 1.33 层指针 ≈ 53 字节，对齐后约 64 字节）。</li>
+</ol>
+<p><strong>经验值约 120~150 字节/成员。重新估算：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>规模</th>
+<th>裸数据（32 字节）</th>
+<th>实际经验值（约 130 字节）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2500 万成员</td>
+<td>800 MB</td>
+<td><strong>约 3.2 GB</strong></td>
+</tr>
+<tr>
+<td>5 亿成员</td>
+<td>16 GB</td>
+<td><strong>约 65 GB</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>这个约 65 GB 恰好和原文后面&quot;用户涨到 500mil 时需要 65GB&quot;吻合——说明那处是按真实开销估的，只是前面 650MB 那步漏了开销，两处对不上。我们把它们接上了。</p>
+<p><strong>吞吐</strong>：2500 次写入/秒。每次 <code>ZINCRBY</code> 约 30 次内存跳转，按每次 100 纳秒算，一秒只消耗约 7.5 毫秒 CPU，占单核不到 1%。<strong>CPU 完全不是瓶颈，真正的约束是内存和单点。</strong></p>
+<hr />
+<h2 id="7-亿级规模下的排名查询">7. 亿级规模下的排名查询</h2>
+<p>这是本章最需要算清楚的一节。很多资料（包括原笔记）只说一句&quot;<code>ZRANK</code> 是 O(log N)&quot;就过去了，没告诉你这意味着什么。</p>
+<h3 id="zrank-到底要多少步"><code>ZRANK</code> 到底要多少步</h3>
+<p>假设榜单有 <strong>1 亿成员</strong>：</p>
+<pre><code>log₂(100,000,000) ≈ 26.6
+</code></pre>
+<p>考虑常数因子，实际跳转大概在<strong>几十次内存跳转</strong>量级。每次跳转都是指针解引用，而跳表节点内存分散，绝大多数是<strong>缓存未命中（Cache Miss）</strong>，一次主存访问约 100 纳秒：</p>
+<pre><code>50 次跳转 × 100 纳秒 ≈ 5 微秒
+</code></pre>
+<p><strong>结论：单次 <code>ZRANK</code> 在 1 亿成员上仍是微秒级，远低于 1 毫秒。</strong></p>
+<blockquote>
+<p><strong>这里必须纠正一个直觉</strong>
+很多人以为&quot;亿级数据查排名一定很慢&quot;，其实<strong>算法层面并不慢</strong>。从 2500 万到 1 亿，<code>log N</code> 只从 24.6 涨到 26.6，多了 2 次跳转。</p>
+</blockquote>
+<h3 id="真正的瓶颈不是算法是单-key">真正的瓶颈：不是算法，是单 key</h3>
+<ol>
+<li><strong>内存放不下一个 key。</strong> 1 亿成员 × 约 130 字节 ≈ <strong>13 GB</strong>，只为一个 key。加上复制缓冲区和持久化 fork 的写时复制（Copy-On-Write）开销，实际需要 25 GB 以上。而且这个 key <strong>无法拆分</strong>——它是一整体。</li>
+<li><strong>单线程串行执行。</strong> Redis 命令执行是单线程的（6.0 之后 I/O 多线程，但命令执行仍单线程），同一 key 的所有写入必须排队。2500 QPS 没问题，但峰值到几十万 QPS 时这个 key 就是硬瓶颈。</li>
+<li><strong>副本与故障转移代价高。</strong> 13 GB 的 key 首次全量同步要传 13 GB；fork 做 RDB 快照时写时复制会额外占内存。</li>
+<li><strong>热点 key。</strong> 前 10 查询和名次查询都打向同一个 key。排行榜天然是&quot;读多写少且高度集中&quot;的访问模式。</li>
+</ol>
+<h3 id="分桶排名分段排名">分桶排名（分段排名）</h3>
+<p>把分数区间切成多个桶，每个桶一个 key：</p>
+<pre><code>buckets: [0-100) [100-200) ... [900-1000)
+每个桶是独立的 sorted set，另有一个 hash 记录每桶成员数
+</code></pre>
+<p>排名公式：</p>
+<pre><code>rank(u) = 所有分数更高的桶的成员数之和
+        + u 所在桶内分数严格高于 u 的成员数
+        + 1
+</code></pre>
+<p>第二项用 <code>ZCOUNT bucket_key &quot;(score&quot; &quot;+inf&quot;</code>，复杂度 O(log(桶大小))。第一项用桶计数做<strong>前缀和</strong>。</p>
+<p><strong>关键要诚实地说清楚：分桶并不会降低渐近复杂度。</strong></p>
+<p>1 亿成员分成 1 万个桶，每桶 1 万人：</p>
+<ul>
+<li>桶内 <code>ZCOUNT</code>：<code>log₂(10,000) ≈ 13</code> 步；</li>
+<li>桶计数前缀和：朴素累加是 O(桶数) = 10000 次，反而更慢；用<strong>树状数组（Fenwick Tree）</strong> 或分层计数可做到 <code>log₂(10,000) ≈ 13</code> 步。</li>
+</ul>
+<p>合计约 26 步，和直接 <code>ZRANK</code> 的 27 步几乎一样。所以：</p>
+<blockquote>
+<p><strong>分桶的真实价值不是&quot;把 O(log N) 变低&quot;，而是：</strong></p>
+<ol>
+<li><strong>把内存和写入压力分散到多个 Redis 实例</strong>——这才是它解决的核心问题；</li>
+<li><strong>让 Top-K 只读顶部少数几个桶</strong>，不用碰全量数据；</li>
+<li><strong>让&quot;百分位&quot;这类近似指标变便宜</strong>（只读桶计数，误差上界是一个桶的容量）。</li>
+</ol>
+<p>如果有人说&quot;分桶能把排名查询降到 O(1)&quot;，那是错的——除非你愿意接受误差，放弃桶内精确排名。</p>
+</blockquote>
+<p><strong>分桶的两个真实难点</strong>（原文完全没提）：</p>
+<ul>
+<li><strong>分数分布是长尾的，等宽分桶会严重倾斜。</strong> 真实游戏里绝大多数玩家挤在低分段。按等宽切分，最低的桶可能有 2000 万人，最高的桶可能只有几百人，桶内查询又退化成大 key 问题。<strong>正确做法是按分位数（Quantile）切分</strong>，让每桶人数大致相等，代价是桶边界要定期重算，而边界一变，所有历史排名的口径都要重新解释。</li>
+<li><strong>每次加分都可能跨桶。</strong> 分数越过边界时需要&quot;从旧桶删除 + 插入新桶 + 更新两个桶计数&quot;，三步必须原子完成（可用 Lua 脚本），但脚本期间会阻塞主线程。而且<strong>计数结构本身会成为新的热点</strong>。</li>
+</ul>
+<hr />
+<h2 id="8-分片与全局聚合排名">8. 分片与全局聚合排名</h2>
+<p>当数据量必须分片时，最难的问题不是&quot;数据放哪&quot;，而是**&quot;全局排名怎么算&quot;**。这是原文着墨最少、面试官最可能追问的地方。</p>
+<h3 id="方式一按分数范围分片">方式一：按分数范围分片</h3>
+<div align="center">
+  <img src="./images/range-partition.png" alt="按分数范围把排行榜数据分片" width="520" loading="lazy" decoding="async">
+</div>
+<p>按分数区间切到不同实例，<code>user_id → 分片</code> 的映射放在应用层（或存在 MySQL / 另一个缓存里）。</p>
+<p><strong>取前 10 名</strong>：从分数最高的分片开始查。原文说&quot;查 <code>[900-1000]</code> 这个分片&quot;，这只在<strong>该分片至少有 10 个成员</strong>时成立。最高的桶往往是稀疏的，必须<strong>依次向下取直到凑够 10 个</strong>。</p>
+<p><strong>取某个人的排名</strong>：</p>
+<pre><code>rank(u) = Σ ZCARD(所有比 u 所在分片更高的分片)
+        + ZCOUNT(u 所在分片, &quot;(score(u)&quot;, &quot;+inf&quot;)
+        + 1
+</code></pre>
+<p>原文说这一步可以用 <code>INFO keyspace</code> 拿到分片总记录数，是 O(1)。<strong>这个说法是错的</strong>：<code>INFO keyspace</code> 返回的是 <strong>key 的数量</strong>（形如 <code>db0:keys=1,expires=0,avg_ttl=0</code>），不是 sorted set 的<strong>成员数</strong>。整个分片就是一个 sorted set 时，它会返回 <code>keys=1</code>。正确命令是 <strong><code>ZCARD key</code></strong>（O(1)）。</p>
+<p><strong>按分数范围分片的问题：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>倾斜</strong></td>
+<td>分数长尾分布 → 低分桶巨大、高分桶极小，与分片均衡的初衷相反</td>
+</tr>
+<tr>
+<td><strong>跨桶写入</strong></td>
+<td>分数越过边界要跨分片搬数据，不是原子操作</td>
+</tr>
+<tr>
+<td><strong>底部热点</strong></td>
+<td>绝大多数加分发生在低分玩家身上，写入压力集中在最低的桶</td>
+</tr>
+<tr>
+<td><strong>边界重算</strong></td>
+<td>分位数切分需定期重算，重算期间排名口径会变</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="方式二按哈希分片">方式二：按哈希分片</h3>
+<div align="center">
+  <img src="./images/hash-partition.png" alt="用 Redis Cluster 按哈希分片存储排行榜" width="520" loading="lazy" decoding="async">
+</div>
+<p><strong>取前 10 名</strong>：必须<strong>扇出到所有分片</strong>，每个分片取自己的前 10，再在应用层合并排序。</p>
+<div align="center">
+  <img src="./images/top-10-players-calculation.png" alt="从各分片取前 10 名后合并计算全局前 10" width="520" loading="lazy" decoding="async">
+</div>
+<p>这是经典的 <strong>scatter-gather（分散-聚合）</strong> 模式。代价随分片数线性增长：K 越大每分片返回越多；分片越多扇出越广，<strong>尾延迟（Tail Latency）</strong> 越差——一次请求的延迟等于<strong>最慢那个分片</strong>的延迟。</p>
+<p><strong>取某个人的排名</strong>：原文说&quot;没有直接办法确定用户排名&quot;。<strong>这个说法不准确。</strong></p>
+<p>分片按 <code>user_id</code> 哈希，每个成员<strong>恰好存在于一个分片</strong>中，所以：</p>
+<pre><code>rank(u) = 1 + Σ 所有分片 ZCOUNT(shard_i, &quot;(score(u)&quot;, &quot;+inf&quot;)
+</code></pre>
+<p>这个和式是<strong>精确的</strong>，不是估算。总复杂度是 <code>O(分片数 × log N)</code>。代价是<strong>网络往返次数</strong>：10 个分片并行约 1~2 毫秒，完全可接受；1000 个分片即使并行，尾延迟也会很难看。</p>
+<blockquote>
+<p><strong>准确的结论</strong>
+哈希分片下<strong>可以</strong>算出精确的全局排名，代价是<strong>扇出次数与分片数成正比</strong>。
+工程上更常见的选择是<strong>降低精度换性能</strong>——只采样部分分片估算，或者像原文说的，直接告诉用户&quot;你在前 X%&quot;。</p>
+</blockquote>
+<h3 id="方式三两套结构生产中最常用">方式三：两套结构（生产中最常用）</h3>
+<ul>
+<li><strong>精英榜</strong>：只放前 N 名（比如前 10,000 名）的 sorted set，永远在一个实例上，保证 Top-K 和头部用户的个人名次都是 O(log N)。</li>
+<li><strong>全量榜</strong>：按用户哈希分片，用于计算百分位、发放奖励、后台统计。</li>
+</ul>
+<p>因为<strong>用户真正会看的只有前几名和自己的名次</strong>，而自己的名次在头部之外时，展示&quot;前 5%&quot;和展示&quot;第 1,237,456 名&quot;的体验差别很小。</p>
+<h3 id="三种方案对比">三种方案对比</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>Top-K</th>
+<th>个人精确排名</th>
+<th>写入扩展性</th>
+<th>主要代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>单实例单 key</strong></td>
+<td>O(log N + K)</td>
+<td>O(log N)</td>
+<td>差（单 key）</td>
+<td>内存上限、单点</td>
+</tr>
+<tr>
+<td><strong>按分数范围分片</strong></td>
+<td>从高到低依次取</td>
+<td>O(分片数 + log N)</td>
+<td>中（有倾斜）</td>
+<td>倾斜、跨桶写、边界重算</td>
+</tr>
+<tr>
+<td><strong>按哈希分片</strong></td>
+<td>扇出 + 合并</td>
+<td>O(分片数 × log N)，精确</td>
+<td>好</td>
+<td>扇出延迟随分片数增长</td>
+</tr>
+<tr>
+<td><strong>精英榜 + 全量榜</strong></td>
+<td>O(log N + K)</td>
+<td>头部精确、其余近似</td>
+<td>好</td>
+<td>两套数据要同步</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>原文倾向&quot;固定分区（按分数范围）&quot;</strong>。前两条理由成立；第三条（难以确定用户排名）不成立，但**&quot;扇出成本随分片数增长&quot;这个更本质的理由已经足够支撑同样的结论**。</p>
+<hr />
+<h2 id="9-自建云托管与-nosql">9. 自建、云托管与 NoSQL</h2>
+<h3 id="自己管服务">自己管服务</h3>
+<div align="center">
+  <img src="./images/manage-services-ourselves.png" alt="自建方案：Redis 存排行榜、MySQL 存用户资料" width="520" loading="lazy" decoding="async">
+</div>
+<p>典型组合：Redis 存排行榜，MySQL 存用户资料（用户名、昵称），需要扩展数据库时再加一层缓存。</p>
+<h3 id="云托管-无服务器">云托管 / 无服务器</h3>
+<div align="center">
+  <img src="./images/api-gateway-mapping.png" alt="用 API Gateway 把请求路由到 Lambda 函数" width="520" loading="lazy" decoding="async">
+</div>
+<p>用 AWS API Gateway 把请求路由到 AWS Lambda：不用自己管理或预置服务器，按需运行、自动伸缩。</p>
+<div align="center">
+  <img src="./images/user-scoring-point-lambda.png" alt="用户加分时经 API Gateway 调用 Lambda" width="520" loading="lazy" decoding="async">
+</div>
+<div align="center">
+  <img src="./images/user-retrieve-leaderboard.png" alt="用户拉取排行榜时经 API Gateway 调用 Lambda" width="520" loading="lazy" decoding="async">
+</div>
+<p>Lambda 是<strong>无服务器架构（Serverless Architecture）</strong> 的一种实现。原文作者建议：如果从零开始做这个游戏，可以走这条路。</p>
+<blockquote>
+<p><strong>无服务器的代价，原文没提</strong></p>
+<ul>
+<li><strong>冷启动（Cold Start）</strong>：长时间不被调用后首次请求要等运行环境初始化，可能多出几百毫秒，对实时接口是抖动。</li>
+<li><strong>执行时长上限</strong>：Lambda 单次最长 15 分钟，且不适合长连接（如 WebSocket 推送）。</li>
+<li><strong>按请求计费</strong>：API Gateway 和 Lambda 都按请求数 + 执行时长计费。500 QPS 平均下一天约 4300 万次请求，<strong>持续高 QPS 场景下按量计费的总成本可能高于一台固定规格的服务器</strong>。要用真实流量算账单再决定，而不是凭&quot;无服务器更省钱&quot;的印象。</li>
+<li><strong>供应商锁定与调试困难</strong>。</li>
+</ul>
+<p>另外，<strong>&quot;无服务器&quot;不等于&quot;没有服务器&quot;</strong>，只是不用你管服务器。这句话说出来能体现你对术语的准确理解。</p>
+</blockquote>
+<h3 id="备选方案nosql">备选方案：NoSQL</h3>
+<div align="center">
+  <img src="./images/dynamo-db.png" alt="用 DynamoDB 存储排行榜数据" width="520" loading="lazy" decoding="async">
+</div>
+<p>针对&quot;写入量大 + 能在同一分区内按分数排序&quot;这两点优化的 NoSQL 都可以：DynamoDB、Cassandra、MongoDB。原文选了 DynamoDB：全托管、性能可靠、扩展性好，还支持<strong>全局二级索引（Global Secondary Index，GSI）</strong>。</p>
+<p>从一张棋类游戏的表开始：</p>
+<div align="center">
+  <img src="./images/chess-game-leaderboard-table-1.png" alt="DynamoDB 排行榜表设计第一版" width="520" loading="lazy" decoding="async">
+</div>
+<p>一旦要按分数查询就不行了，于是把分数设成排序键（Sort Key）：</p>
+<div align="center">
+  <img src="./images/chess-game-leaderboard-table-2.png" alt="DynamoDB 排行榜表设计第二版：分数作为排序键" width="520" loading="lazy" decoding="async">
+</div>
+<p>还有个问题：<strong>按月份做分区键会导致热点分区</strong>——最新月份被不成比例地访问，其他月份几乎没人碰。解决办法叫<strong>写分片（Write Sharding）</strong>：给每个 key 追加一个分区编号，通过 <code>user_id % num_partitions</code> 计算：</p>
+<div align="center">
+  <img src="./images/chess-game-leaderboard-table-3.png" alt="DynamoDB 排行榜表设计第三版：写分片" width="520" loading="lazy" decoding="async">
+</div>
+<p><strong>分片数量是一笔明确的交易</strong>：分片越多，写入扩展性越好；但读取扩展性越差——要收集聚合结果必须查询更多分区。</p>
+<div align="center">
+  <img src="./images/scatter-gather-2.png" alt="scatter-gather 模式：查询所有分区后聚合结果" width="520" loading="lazy" decoding="async">
+</div>
+<p>这就是前面说的 scatter-gather：<strong>时间复杂度随分区数增长</strong>。分片数必须靠基准测试确定，不能拍脑袋。</p>
+<p>这个方案还有一个硬伤：<strong>很难算出某个用户的具体名次</strong>，因为名次需要跨分区统计，而 DynamoDB 没有 Redis 那种带 span 的跳表。</p>
+<p>原文给出的折中是：既然规模大到必须分片，就干脆<strong>只告诉用户百分位（Percentile）</strong>，用定时任务周期性地分析分数分布：</p>
+<pre><code>第 10 百分位 = 分数 &lt; 100
+第 20 百分位 = 分数 &lt; 500
+...
+第 90 百分位 = 分数 &lt; 6500
+</code></pre>
+<blockquote>
+<p><strong>两点补充</strong></p>
+<ol>
+<li><strong>百分位在 Redis 上可以实时算</strong>，不需要定时任务：<code>百分位 = 1 - ZRANK(key, user) / ZCARD(key)</code>。定时任务只是&quot;没有跳表&quot;时的替代手段，而且它的输出是<strong>快照</strong>，严格说已不满足&quot;实时&quot;这条非功能需求——这个取舍必须向面试官说清楚。</li>
+<li><strong>百分位的误差来自桶的粒度。</strong> 用固定分数阈值划分，分布一变（赛季中期玩家普遍变强）阈值就失真。更稳的做法是按分位数定期重算阈值。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="10-实时性与一致性取舍">10. 实时性与一致性取舍</h2>
+<p>需求说&quot;实时&quot;，但&quot;实时&quot;到底指什么？这里有三个层面，分开讲会显得非常专业。</p>
+<h3 id="层面一写入路径写扩散-vs-定时重算">层面一：写入路径——写扩散 vs 定时重算</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>做法</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>写扩散（Fan-out on Write）</strong></td>
+<td>分数一变，立刻更新所有相关榜单</td>
+<td>读最快，榜单永远最新</td>
+<td>写放大：一次得分写 N 个榜单</td>
+</tr>
+<tr>
+<td><strong>定时重算（Periodic Recompute）</strong></td>
+<td>定期（如每 10 秒）重新扫描生成榜单</td>
+<td>写路径极轻</td>
+<td>有延迟；重算期间可能不一致</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>榜单少（如全局榜 + 赛季榜）时用写扩散</strong>，两个榜单的写放大完全可以接受。</p>
+<p><strong>派生视图很贵时用定时重算</strong>：</p>
+<ul>
+<li><strong>好友榜</strong>：每个用户有几百个好友，若给每人维护一个&quot;好友榜&quot;，一次得分要更新几百个榜单——写放大到不可接受。这时应用<strong>读扩散（Fan-out on Read）</strong>：读的时候取该用户好友的分数集合（几百到几千个）排序返回，因为好友数有上限，成本可控。</li>
+<li><strong>地区榜 / 模式榜 / 百分位</strong>：这些是聚合视图，定时重算是合理选择。</li>
+</ul>
+<blockquote>
+<p><strong>注意 Fan-out 的方向，很容易写反</strong>
+<strong>Fan-out on Write = 写扩散 / 推模式</strong>：写入时就扩散。
+<strong>Fan-out on Read = 读扩散 / 拉模式</strong>：读取时才聚合。
+写扩散优化读，读扩散优化写。选哪个取决于读写比例。</p>
+</blockquote>
+<h3 id="层面二读取路径">层面二：读取路径</h3>
+<p>即使 Redis 里是实时的，读到的也可能不是：</p>
+<ul>
+<li><strong>应用层缓存</strong>：把前 10 名缓存 1 秒，能挡掉大量重复请求（前 10 名一秒内通常不变）。</li>
+<li><strong>Redis 副本读取</strong>：Redis 主从复制是<strong>异步</strong>的，从副本读可能读到落后几毫秒到几秒的数据。</li>
+</ul>
+<p><strong>推荐策略</strong>：</p>
+<ul>
+<li><strong>前 10 名</strong>：可以从副本读，甚至加 1 秒缓存。用户对&quot;榜单少了我刚打的那局&quot;容忍度很高。</li>
+<li><strong>&quot;我的名次&quot;</strong>：刚打完一局立刻查自己名次，读副本就可能看不到刚加的分——这是典型的<strong>写后读（Read-Your-Writes）</strong> 问题。解决方式：用户自己的名次走主节点读，或用会话粘性，或等待副本追到指定位点。</li>
+</ul>
+<h3 id="层面三跨地域">层面三：跨地域</h3>
+<p>全球部署时跨区域复制延迟是几十到几百毫秒，且通常异步，全球榜单必然是<strong>最终一致</strong>的。合理取舍是：<strong>分区榜（Region Leaderboard）本地实时，全球榜最终一致</strong>。</p>
+<blockquote>
+<p><strong>面试时怎么回答&quot;这个系统是强一致还是最终一致&quot;</strong>
+正确答案是<strong>分层的</strong>：</p>
+<ul>
+<li>单个 Redis 主节点上的 <code>ZINCRBY</code> 是原子操作，对<strong>同一个 key 的读写是强一致的</strong>；</li>
+<li>但&quot;分数提交 → 榜单可见&quot;这条链路上如果有消息队列、应用缓存、跨区域复制，整体就是<strong>最终一致</strong>的；</li>
+<li>关键是把<strong>可接受的延迟窗口量化出来</strong>（比如&quot;前 10 名最多滞后 1 秒，个人名次不滞后&quot;），而不是笼统地说&quot;我们保证了实时&quot;。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="11-同分排名规则">11. 同分排名规则</h2>
+<p>原文在需求里问了这一点，回答是&quot;名次相同&quot;，收尾时说可以用&quot;最后一局的时间&quot;打破平局。这里有一个<strong>必须纠正的技术细节</strong>。</p>
+<h3 id="并列名次的两种定义">并列名次的两种定义</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>规则</th>
+<th>名次序列</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>标准竞赛排名（Standard Competition Ranking，1224）</strong></td>
+<td>1, 2, 2, 4</td>
+<td>并列后跳号，符合&quot;有多少人比我高&quot;的直觉</td>
+</tr>
+<tr>
+<td><strong>密集排名（Dense Ranking，1223）</strong></td>
+<td>1, 2, 2, 3</td>
+<td>并列不跳号</td>
+</tr>
+</tbody>
+</table></div>
+<p>游戏排行榜通常用<strong>标准竞赛排名</strong>：并列都发第 2 名的奖励，比&quot;第 3 名不存在&quot;更符合玩家直觉。</p>
+<h3 id="redis-的-zrank-不给并列名次">Redis 的 <code>ZRANK</code> 不给并列名次</h3>
+<p>这是原笔记里一个实实在在的矛盾：需求说&quot;同分名次相同&quot;，实现却说&quot;用 <code>ZREVRANK</code> 拿名次&quot;。</p>
+<p><strong>但 <code>ZRANK</code> / <code>ZREVRANK</code> 返回的是成员在有序序列中的位置（0 基下标），不是并列名次。</strong> 同分的两个成员，Redis 会按<strong>成员名的字典序</strong>给它们排出不同的位置——分数都是 1000 的 <code>user5</code> 和 <code>user9</code> 会拿到两个不同的值，而不是都返回 5。</p>
+<p><strong>正确做法</strong>是用 <code>ZCOUNT</code> 数出&quot;分数严格高于我&quot;的人数再加 1：</p>
+<pre><code class="language-bash">ZCOUNT leaderboard_feb_2021 &quot;(1000&quot; &quot;+inf&quot;   # 返回 N，名次 = N + 1
+</code></pre>
+<p>复杂度仍是 O(log N)，因为 Redis 官方文档明确说明 <code>ZCOUNT</code> 的复杂度只有 O(log N)，正是因为它借助了元素排名。</p>
+<blockquote>
+<p><strong>如果确实要打破平局</strong>（比如并列时按&quot;谁先达到该分数&quot;排），有两种做法：</p>
+<ol>
+<li><strong>复合分数</strong>：把分数和平局因子编码进一个浮点数，如 <code>score × 2²⁰ − 最后对局时间戳</code>。实现简单，但浮点数只有 53 位有效位（IEEE-754 双精度），分数很大且平局因子需要高分辨率时精度会被吃掉，出现意料之外的并列。</li>
+<li><strong>成员名里带平局信息</strong>：成员名编码成 <code>{时间戳}:{user_id}</code>，分数仍只用真实分数。同分时按成员名字典序就是按时间戳排。代价是每次更新分数都要 <code>ZREM</code> 旧成员 + <code>ZADD</code> 新成员（成员名变了），写入成本翻倍，且查询时必须能精确重建成员名。</li>
+</ol>
+<p><strong>实践建议</strong>：只需并列名次就用 <code>ZCOUNT</code>；确实要打破平局优先考虑方案 2，但要用 Lua 脚本保证 <code>ZREM</code> + <code>ZADD</code> 的原子性。</p>
+</blockquote>
+<hr />
+<h2 id="12-防作弊分数提交的校验">12. 防作弊：分数提交的校验</h2>
+<p>原文只有&quot;游戏服务校验这局是否合法&quot;一句。<strong>分数是这个系统里唯一有价值的资产，一旦能被伪造，整个排行榜就失去意义。</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>层次</th>
+<th>措施</th>
+<th>拦截什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>信任边界</strong></td>
+<td>分数只能由服务端写入，客户端无权调用写接口</td>
+<td>代理改包、直接调接口</td>
+</tr>
+<tr>
+<td><strong>身份认证</strong></td>
+<td>写接口要求服务端到服务端的双向认证（mTLS）或签名</td>
+<td>伪造服务端身份</td>
+</tr>
+<tr>
+<td><strong>请求完整性</strong></td>
+<td>请求体做 HMAC 签名 + 带 nonce 和时间戳</td>
+<td>重放攻击（Replay Attack）、篡改</td>
+</tr>
+<tr>
+<td><strong>业务校验</strong></td>
+<td>服务端<strong>重算</strong>这局结果，而不是相信上报的分数</td>
+<td>客户端伪造胜负</td>
+</tr>
+<tr>
+<td><strong>合理性校验</strong></td>
+<td>单次加分必须在合理范围（如 1~3 分），单位时间加分速率有上限</td>
+<td>异常高分</td>
+</tr>
+<tr>
+<td><strong>统计检测</strong></td>
+<td>离线分析分数增长曲线，识别离群用户</td>
+<td>慢速、分散的作弊</td>
+</tr>
+<tr>
+<td><strong>限流</strong></td>
+<td>按 <code>user_id</code> 限制提交频率</td>
+<td>批量刷分</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>服务端复算是关键</strong>：不要接受&quot;我赢了，加 1 分&quot;这样的陈述。服务端应自己持有对局信息、按规则算出谁赢该加多少分，只把自己算出来的结果写进排行榜。如果游戏逻辑确实跑在客户端，至少要做<strong>统计异常检测</strong>——正常玩家一天 10 局，一天刷 10000 分的必须被标记。</p>
+<p><strong>一个容易被忽略的点：重放攻击。</strong> 攻击者不需要伪造分数，只要把一次合法的加分请求重放 100 次就能刷 100 分。所以写接口<strong>必须</strong>带 nonce（一次性随机数）或幂等键，服务端记录已处理过的 nonce。这个机制和第 26 章支付系统的幂等键是同一个东西。</p>
+<hr />
+<h2 id="13-持久化与灾难恢复">13. 持久化与灾难恢复</h2>
+<h3 id="redis-的两种持久化">Redis 的两种持久化</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>机制</th>
+<th>数据丢失窗口</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RDB（快照）</strong></td>
+<td>定期 fork 子进程把内存数据写成快照</td>
+<td>上次快照之后的所有写入</td>
+<td>fork 时写时复制，大 key 有内存翻倍风险</td>
+</tr>
+<tr>
+<td><strong>AOF（追加日志）</strong></td>
+<td>每条写命令追加到日志</td>
+<td><code>appendfsync everysec</code> 下最多约 1 秒</td>
+<td>文件更大，恢复更慢</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>关键认知：持久化只能减少丢失，不能消除丢失。</strong> <code>everysec</code> 最坏丢 1 秒数据。对排行榜来说这是可接受的——因为<strong>排行榜数据可以从源头重建</strong>。</p>
+<h3 id="副本不等于不丢数据">副本不等于不丢数据</h3>
+<p>原文说&quot;可以起一个 Redis 副本来避免宕机时丢数据&quot;。这句话需要打补丁：<strong>Redis 的主从复制默认是异步的</strong>，主节点处理完写入就返回成功，不会等副本确认。主节点在复制完成前宕机，这部分数据就丢了。</p>
+<p>想要更强保证可以用 <code>WAIT numreplicas timeout</code>（阻塞到指定数量副本确认收到，但不保证副本已落盘），或 <code>min-replicas-to-write</code>（副本不足时拒绝写入，牺牲可用性换一致性）。</p>
+<p><strong>但对排行榜来说，不值得为强持久化付出性能代价</strong>，因为数据可重建。这是一个&quot;按数据价值分级&quot;的好例子：<strong>用户的钱必须强持久化，用户的游戏分数可以从源重建。</strong></p>
+<h3 id="从数据库重建">从数据库重建</h3>
+<p>原文提到用 MySQL 的第二张表在故障时重建排行榜，收尾里说通过遍历 <strong>MySQL 的 WAL（Write-Ahead Log，预写日志）</strong> 条目用脚本重建。</p>
+<blockquote>
+<p><strong>这个建议值得商榷</strong>
+解析 binlog 重建排行榜是可行的，但非常规：binlog 格式（ROW / STATEMENT / MIXED）和版本相关，解析脚本很脆弱；binlog 里混着所有表的变更，需要过滤和重放逻辑；binlog 还有保留期限（<code>binlog_expire_logs_seconds</code>），过期就没了。</p>
+<p><strong>更标准的做法是维护一个只追加的&quot;得分事件表&quot;</strong>：</p>
+<pre><code class="language-sql">CREATE TABLE score_events (
+  event_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id       VARCHAR(24) NOT NULL,
+  tournament_id VARCHAR(16) NOT NULL,
+  points        SMALLINT    NOT NULL,
+  created_at    TIMESTAMP   NOT NULL,
+  INDEX idx_tournament_user (tournament_id, user_id)
+);
+</code></pre>
+<p>重建时直接聚合，或按 <code>event_id</code> 顺序用管道（Pipeline）批量 <code>ZADD</code> 写入 Redis：</p>
+<pre><code class="language-sql">SELECT user_id, SUM(points) AS score
+FROM score_events WHERE tournament_id = '2021-02' GROUP BY user_id;
+</code></pre>
+<p>这样重建逻辑是显式的、可测试的，不依赖数据库内部格式。</p>
+</blockquote>
+<p><strong>重建要多久？</strong> 2500 万条记录，用管道批量 <code>ZADD</code>（每批 1000 条）在单实例上大约能到每秒几十万次操作，重建时间在<strong>分钟级</strong>。这个数字决定了你的 RTO（恢复时间目标）能不能接受。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>故障</th>
+<th>恢复手段</th>
+<th>目标恢复时间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单个 Redis 节点宕机</td>
+<td>副本提升</td>
+<td>秒级</td>
+</tr>
+<tr>
+<td>整个 Redis 集群不可用</td>
+<td>从 <code>score_events</code> 表重建</td>
+<td>分钟级</td>
+</tr>
+<tr>
+<td>数据库也丢了</td>
+<td>从备份恢复</td>
+<td>小时级</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>工程原则</strong>
+<strong>把排行榜当作&quot;派生数据&quot;（Derived Data），而不是&quot;源数据&quot;（Source of Truth）。</strong> 源数据是&quot;谁在何时赢了多少分&quot;这个事实，存在关系型数据库或事件日志里；排行榜只是它的<strong>物化视图</strong>。这个定位一明确，恢复策略就顺理成章了：缓存丢了就重建。</p>
+</blockquote>
+<h3 id="其他收尾话题">其他收尾话题</h3>
+<ul>
+<li><strong>更快的读取</strong>：用 Redis 哈希缓存用户对象（<code>user_id → user object</code>）。前 10 名的用户信息会被频繁读取，缓存收益很高。原文也提到可以缓存前 10 名用户详情。</li>
+<li><strong>赛季切换</strong>：让 key 里带赛季标识（<code>leaderboard_2021_02</code>），新旧榜天然隔离，不需要&quot;清空&quot;操作。</li>
+<li><strong>冷热分离</strong>：历史赛季榜单基本只读，可迁到更便宜的存储，只在用户查看历史战绩时加载。</li>
+<li><strong>监控告警</strong>：<code>ZINCRBY</code> 的 P99 延迟、Redis 内存使用率、主从复制延迟，以及&quot;榜单人数异常下降&quot;这类业务指标。</li>
+</ul>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>原笔记本章整体结构清晰、判断基本正确，但在几处数字、命令和结论上存在可核实的问题。</p>
+</blockquote>
+<h3 id="勘误-1量级估算里的-dau-前后不一致">勘误 1：量级估算里的 DAU 前后不一致</h3>
+<ul>
+<li><strong>原文说法</strong>：需求澄清里是&quot;5mil DAU and 25mil MAU&quot;，但量级估算一节开头写的是&quot;With 50mil DAU&quot;。</li>
+<li><strong>问题</strong>：两处相差 10 倍。从后续推算反推可以确定哪个对：原文算出&quot;50 users per second&quot;，而 <code>5,000,000 ÷ 100,000 = 50</code>、<code>50,000,000 ÷ 100,000 = 500</code>。所以正确值是 <strong>5mil（500 万）DAU</strong>。</li>
+<li><strong>正确说法</strong>：500 万 DAU，按每天 10 万秒近似，平均到达率 50 人/秒。</li>
+<li><strong>延伸</strong>：这类&quot;同一数字在不同段落不一致&quot;的错误在技术文档里很常见，通常是改了需求但没回头改估算。<strong>读任何系统设计资料时，遇到数字都应该自己反推一遍。</strong></li>
+</ul>
+<h3 id="勘误-2把到达率当成了同时在线人数">勘误 2：把&quot;到达率&quot;当成了&quot;同时在线人数&quot;</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;we'd have an average of 50 users per second... the peak online users would be 250 users per second&quot;。</li>
+<li><strong>问题</strong>：<code>DAU ÷ 秒数</code> 得到的是<strong>到达率（人/秒）</strong>，不是<strong>同时在线人数</strong>。原文用&quot;peak online users&quot;指代一个单位为&quot;人/秒&quot;的量，把存量和流量混为一谈了。</li>
+<li><strong>正确说法</strong>：两者靠<strong>利特尔法则</strong>联系：<code>并发数 = 到达率 × 平均停留时长</code>。若平均在线 10 分钟，平均同时在线约 <code>50 × 600 = 30,000</code> 人。容量规划（内存、连接数）看并发数，QPS 规划才看到达率。</li>
+<li><strong>延伸</strong>：利特尔法则不需要任何分布假设就能成立，在估算消息队列积压、连接池大小、线程池大小时都会用到。</li>
+</ul>
+<h3 id="勘误-3关系型数据库性能不好的说法不准确">勘误 3：关系型数据库&quot;性能不好&quot;的说法不准确</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>ORDER BY score DESC</code> 全表排序 &quot;is not performant though as it makes a table scan&quot;。</li>
+<li><strong>问题</strong>：原文把两件事混在一起了。<strong>加了 <code>score</code> 索引之后，<code>ORDER BY score DESC LIMIT 10</code> 本身是高效的</strong>——对索引做反向扫描，只读 10 条就停，复杂度 O(log N + 10)。</li>
+<li><strong>正确说法</strong>：真正的瓶颈是<strong>排名查询</strong>（<code>COUNT(*) WHERE score &gt;= X</code> 要扫过约一半的索引条目，中位数玩家要扫上千万条）和<strong>高频更新的索引维护成本</strong>。原文后面那句&quot;用户不在榜单头部又想定位名次时不好扩展&quot;其实说到了点子上，只是前面那句总结下错了。</li>
+<li><strong>延伸</strong>：面试里区分 <strong>Top-K 查询</strong>和<strong>排名查询</strong>很关键。Top-K 是 B+ 树索引的强项；排名查询需要&quot;数出比我大的有多少个&quot;，是索引结构的弱项——除非索引里存了子树大小（这正是跳表 span 字段做的事）。</li>
+</ul>
+<h3 id="勘误-4每条记录-26-字节的估算漏了两件事">勘误 4：每条记录 26 字节的估算漏了两件事</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;ID is 24-character string and score is 16-bit integer, we need 26 bytes * 25mil = ~650MB&quot;。</li>
+<li><strong>问题</strong>：
+<ol>
+<li><strong>分数不是 16 位。</strong> Redis 把分数存成 IEEE-754 双精度浮点，占 <strong>8 字节</strong>，不是 2 字节。裸数据至少是 <code>24 + 8 = 32 字节</code>。</li>
+<li><strong>完全忽略了 Redis 内部开销</strong>：哈希表节点约 24 字节、SDS 头 + 内存对齐约 32 字节、跳表节点约 64 字节。经验值合计约 <strong>120~150 字节/成员</strong>。</li>
+</ol>
+</li>
+<li><strong>正确说法</strong>：2500 万成员实际约 <strong>3~3.5 GB</strong>；5 亿成员约 <strong>65 GB</strong>。</li>
+<li><strong>延伸</strong>：原文后面写&quot;用户涨到 500mil 时需要 65gb&quot;——这个数字恰好和按真实开销算出的结果吻合。也就是说两处估算用了不同口径，一处漏了开销、一处算了开销。<strong>把两处接上之后，结论（需要分片）反而是成立的。</strong></li>
+</ul>
+<h3 id="勘误-5info-keyspace-拿不到-sorted-set-的成员数">勘误 5：<code>INFO keyspace</code> 拿不到 sorted set 的成员数</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;add up all users with higher scores in other shards. The latter is a O(1) operation as total records per shard can quickly be accessed via the info keyspace command.&quot;</li>
+<li><strong>问题</strong>：<code>INFO keyspace</code> 返回的是<strong>数据库里 key 的数量</strong>（形如 <code>db0:keys=1,expires=0,avg_ttl=0</code>），<strong>不返回 sorted set 的成员数</strong>。整个分片就是一个 sorted set 时它会返回 <code>keys=1</code>，而不是 2500 万。</li>
+<li><strong>正确说法</strong>：获取成员数的正确命令是 <strong><code>ZCARD key</code></strong>，复杂度 <strong>O(1)</strong>。所以&quot;这一步是 O(1)&quot;的结论对，但用错了命令。</li>
+<li><strong>延伸</strong>：<code>INFO</code> 是诊断命令，返回服务器级统计（内存、连接、命令统计、keyspace 概览），<strong>不是数据结构级元数据</strong>。要拿数据结构的元信息应该用该结构自己的命令：<code>ZCARD</code>、<code>LLEN</code>、<code>HLEN</code>、<code>SCARD</code>、<code>STRLEN</code>。</li>
+</ul>
+<h3 id="勘误-6redis-cluster-不是代理也不是一致性哈希">勘误 6：Redis Cluster 不是代理，也不是一致性哈希</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;we can use hash partitioning via Redis Cluster. It is a proxy which distributes data across redis nodes based on partitioning similar to consistent hashing, but not exactly the same&quot;。</li>
+<li><strong>问题</strong>：
+<ol>
+<li><strong>Redis Cluster 不是代理（proxy）。</strong> 它是<strong>去中心化</strong>集群：每个节点持有完整的槽位映射表，节点间通过 Gossip 协议交换状态；客户端连任意节点，key 不在该节点时节点返回 <code>MOVED</code> / <code>ASK</code> 重定向，客户端缓存映射后直连正确节点。<strong>整个链路上没有代理进程。</strong>（Twemproxy、Codis、Envoy 的 Redis 过滤器是另外的代理方案，不是 Redis Cluster 本身。）</li>
+<li><strong>它不是一致性哈希。</strong> Redis Cluster 用<strong>固定哈希槽（Hash Slot）</strong>：共 <strong>16384 个槽</strong>，用 <code>CRC16(key) mod 16384</code> 决定归属，槽再分配给节点。这是确定性哈希，<strong>没有哈希环、没有虚拟节点</strong>，和一致性哈希是两套机制。它还支持哈希标签 <code>{...}</code> 强制多个 key 落到同一槽。</li>
+</ol>
+</li>
+<li><strong>正确说法</strong>：Redis Cluster 使用 16384 个固定哈希槽 + 客户端重定向（<code>MOVED</code>/<code>ASK</code>）的架构，没有代理层，也不是一致性哈希。</li>
+<li><strong>延伸</strong>：为什么是 16384 而不是 65536？Redis 作者的公开解释是：节点心跳要携带槽位位图，16384 个槽对应 2 KB，65536 个槽对应 8 KB——每秒多次心跳下带宽代价不划算；而 Redis Cluster 的设计节点数上限在千级，16384 个槽足够均匀。这个细节在面试里提一句，能立刻区分出你是否真的读过文档。</li>
+</ul>
+<h3 id="勘误-7哈希分片下无法确定用户排名不成立">勘误 7：哈希分片下&quot;无法确定用户排名&quot;不成立</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;There is no straightforward approach to determine a user's rank&quot;。</li>
+<li><strong>问题</strong>：结论过于绝对。<strong>用 <code>ZCOUNT</code> 扇出可以精确算出全局排名。</strong> 分片按 <code>user_id</code> 哈希，每个成员恰好存在于一个分片中，所以&quot;分数严格高于某人的总人数&quot;等于各分片中该人数之和：<pre><code>rank(u) = 1 + Σ_i ZCOUNT(shard_i, &quot;(score(u)&quot;, &quot;+inf&quot;)
+</code></pre>
+这是<strong>精确值</strong>，不是估算。总代价是 O(分片数 × log N) 次操作加 N 次网络往返。</li>
+<li><strong>正确说法</strong>：哈希分片下可以精确计算全局排名，代价是<strong>扇出次数随分片数线性增长</strong>。</li>
+<li><strong>延伸</strong>：这个更正不改变原文的结论（作者仍推荐按分数范围分区），但<strong>理由要换掉</strong>。正确的理由是&quot;扇出成本随分片数增长、尾延迟受最慢分片拖累&quot;，而不是&quot;算不出来&quot;。面试里给出错误的理由比给不出理由更危险——面试官顺着追问，一旦发现其实能算，前面的判断就站不住了。</li>
+</ul>
+<h3 id="补充-1zrevrange-已被废弃">补充 1：<code>ZREVRANGE</code> 已被废弃</h3>
+<p>原文通篇使用 <code>ZREVRANGE</code>。该命令在 <strong>Redis 6.2 已被标记为废弃</strong>，官方推荐用带 <code>REV</code> 参数的 <code>ZRANGE</code>：</p>
+<pre><code class="language-bash">ZREVRANGE leaderboard_feb_2021 0 9 WITHSCORES   # 旧写法，仍可用但不建议
+ZRANGE    leaderboard_feb_2021 0 9 REV WITHSCORES  # 推荐写法（Redis 6.2+）
+</code></pre>
+<p>同类被废弃的还有 <code>ZREVRANGEBYSCORE</code>、<code>ZREVRANGEBYLEX</code>。另外 <code>ZRANK</code> / <code>ZREVRANK</code> 在较新版本（Redis 7.2+）支持 <code>WITHSCORE</code>，可一次拿到名次和分数，省掉一次 <code>ZSCORE</code>。</p>
+<h3 id="补充-2zrank-不返回并列名次与需求矛盾">补充 2：<code>ZRANK</code> 不返回并列名次（与需求矛盾）</h3>
+<p>需求明确说&quot;同分名次相同&quot;，实现却说&quot;用 <code>ZREVRANK</code> 拿名次&quot;——<strong>两者不能同时成立</strong>。<code>ZRANK</code> / <code>ZREVRANK</code> 返回的是序列<strong>位置（0 基下标）</strong>，同分成员会按成员名字典序拿到不同位置。</p>
+<p><strong>正确做法</strong>是 <code>1 + ZCOUNT(key, &quot;(myScore&quot;, &quot;+inf&quot;)</code>，复杂度仍是 O(log N)。详见第 11 节。这是本章最重要的一处实现级错误。</p>
+<h3 id="补充-3全局聚合排名的完整算法">补充 3：全局聚合排名的完整算法</h3>
+<p>原文对&quot;分片后怎么算全局排名&quot;几乎没有展开，这是本章最难的工程问题。完整讨论见第 8 节，核心结论：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>分片方式</th>
+<th>Top-K</th>
+<th>精确全局排名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>按分数范围</td>
+<td>从最高分片依次向下取，凑够 K 个</td>
+<td>Σ 更高分片 <code>ZCARD</code> + 本分片 <code>ZCOUNT</code> + 1</td>
+</tr>
+<tr>
+<td>按哈希</td>
+<td>所有分片各取 Top-K 后合并（scatter-gather）</td>
+<td>Σ 所有分片 <code>ZCOUNT</code> + 1（精确，但扇出 N 次）</td>
+</tr>
+<tr>
+<td>精英榜 + 全量榜</td>
+<td>只读精英榜</td>
+<td>头部精确，其余用百分位近似</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="补充-4分桶排名不会降低渐近复杂度">补充 4：分桶排名不会降低渐近复杂度</h3>
+<p>原文没提分桶。很多资料会说&quot;分桶能把排名查询从 O(log N) 降到 O(1)&quot;，这是<strong>错的</strong>。分桶的真实价值是把内存和写入压力分散到多个实例，以及让 Top-K 只读顶部桶。详见第 7 节。</p>
+<h3 id="补充-5实时性与一致性的三层分解">补充 5：实时性与一致性的三层分解</h3>
+<p>原文的非功能需求只写了&quot;实时更新&quot;，没有拆解。实际应分成写入路径（写扩散 vs 定时重算）、读取路径（缓存与副本延迟）、跨地域三层，并给出每层可接受的延迟窗口。详见第 10 节。</p>
+<h3 id="补充-6防作弊的分层设计">补充 6：防作弊的分层设计</h3>
+<p>原文只有&quot;游戏服务校验是否合法&quot;一句。完整防御包括信任边界、身份认证、请求完整性（签名 + nonce 防重放）、服务端复算、合理性校验、统计检测、限流。详见第 12 节。</p>
+<h3 id="补充-7持久化的真实保证与重建方式">补充 7：持久化的真实保证与重建方式</h3>
+<p>原文说&quot;起一个 Redis 副本可以避免宕机丢数据&quot;，但<strong>Redis 主从复制默认异步</strong>，主节点在复制完成前宕机仍会丢数据。另外原文建议&quot;遍历 MySQL 的 WAL 重建排行榜&quot;——binlog 解析脆弱、格式依赖版本、有保留期限。更标准的做法是维护只追加的 <code>score_events</code> 表，重建时聚合或重放。详见第 13 节。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;排行榜就是 <code>ORDER BY score</code>&quot;</td>
+<td>关系库能高效回答&quot;前 10 名&quot;，但回答不了&quot;我排第几&quot;——后者要数出所有比我高的人</td>
+<td>核心查询是<strong>排名查询</strong>，需要&quot;按分数排序 + 能算排名&quot;的数据结构</td>
+</tr>
+<tr>
+<td>&quot;Redis 快是因为它在内存里&quot;</td>
+<td>内存只是一半原因，MySQL 的缓冲池也在内存里。关键在于<strong>数据结构</strong>：跳表的 span 让 O(log N) 算排名成为可能</td>
+<td>选 Redis 是为了它的<strong>有序集合语义</strong>，不只是内存速度</td>
+</tr>
+<tr>
+<td>&quot;<code>ZRANK</code> 是 O(log N)，所以亿级也不怕&quot;</td>
+<td>算法确实不怕（2500 万到 1 亿只多 2 次跳转），但<strong>一个 key 占 13 GB</strong>、单线程串行、副本同步、热点争用都会崩</td>
+<td>亿级的瓶颈在<strong>内存与单点</strong>，不在算法。解法是分片，而分片带来全局排名问题</td>
+</tr>
+<tr>
+<td>&quot;分桶能把排名查询降到 O(1)&quot;</td>
+<td>桶内仍要精确排名，前缀和也要 O(log 桶数)，合计仍是 O(log N) 量级</td>
+<td>分桶的价值是<strong>分散内存与写入压力</strong>、让 Top-K 只读顶部桶、让百分位变便宜</td>
+</tr>
+<tr>
+<td>&quot;同分的人 <code>ZRANK</code> 会返回相同的值&quot;</td>
+<td><code>ZRANK</code> 返回序列位置，同分成员按成员名字典序拿到不同位置</td>
+<td>用 <code>1 + ZCOUNT(key, &quot;(score&quot;, &quot;+inf&quot;)</code> 才能得到并列名次</td>
+</tr>
+<tr>
+<td>&quot;分片后就没法算全局排名了&quot;</td>
+<td>哈希分片下每个成员只在一个分片，各分片 <code>ZCOUNT</code> 求和就是精确的全局排名</td>
+<td>能算，代价是<strong>扇出次数随分片数增长</strong>。真正的问题是尾延迟，不是可行性</td>
+</tr>
+<tr>
+<td>&quot;起了 Redis 副本就不会丢数据&quot;</td>
+<td>主从复制默认异步，主节点在复制完成前宕机仍会丢</td>
+<td>要减少窗口用 <code>WAIT</code> 或 <code>min-replicas-to-write</code>；但排行榜是派生数据，<strong>从源重建才是正解</strong></td>
+</tr>
+<tr>
+<td>&quot;等宽切分分数区间就能均衡分片&quot;</td>
+<td>游戏分数是长尾分布，低分玩家占绝大多数，等宽切分会让最低的桶巨大</td>
+<td>要按<strong>分位数</strong>切分，让每桶人数大致相等，代价是边界需要定期重算</td>
+</tr>
+<tr>
+<td>&quot;写扩散一定比读扩散好&quot;</td>
+<td>写扩散的写放大随&quot;榜单数量&quot;增长，好友榜这类场景会放大到不可接受</td>
+<td>榜单少用写扩散（简单、读快），榜单多且读者集合有上限时用读扩散</td>
+</tr>
+<tr>
+<td>&quot;无服务器一定更省钱&quot;</td>
+<td>按请求计费，持续高 QPS 下总成本可能高于固定规格服务器</td>
+<td>用真实流量算账单再决定；同时评估冷启动、执行时长上限、供应商锁定</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：本章设计的是一套&quot;实时 Top-K + 个人排名&quot;系统，核心是用 Redis 有序集合把排名查询做到 O(log N)，并在数据量超出单实例后用分片 + 聚合排名解决扩展性。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>写接口只能对游戏服务器开放</strong>，客户端绝不能直接提交分数；服务端要<strong>复算</strong>结果而不是相信上报。</li>
+<li><strong>Redis 有序集合 = 哈希表 + 跳表</strong>：哈希表负责 O(1) 按成员查分，跳表负责 O(log N) 排序与排名；跳表节点上的 <strong>span</strong> 字段是排名能做成 O(log N) 的关键。</li>
+<li><strong><code>ZINCRBY</code> 加分（O(log N)）、<code>ZREVRANGE</code> 取前 K（O(log N + K)）、<code>ZCOUNT</code> 算名次（O(log N)）</strong>。名次必须用 <code>ZCOUNT</code> 而不是 <code>ZRANK</code>，否则同分名次是错的。</li>
+<li><strong>亿级的瓶颈是内存和单 key，不是算法</strong>：2500 万成员约 3 GB，5 亿成员约 65 GB。</li>
+<li><strong>分片后全局排名</strong>：按分数范围分片则&quot;更高分片 <code>ZCARD</code> 之和 + 本分片 <code>ZCOUNT</code>&quot;；按哈希分片则&quot;全部分片 <code>ZCOUNT</code> 求和&quot;，精确但扇出 N 次。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动区分 <strong>Top-K 查询</strong>和<strong>排名查询</strong>，说明为什么关系型数据库只擅长前者。</li>
+<li>主动指出<strong>分桶不会降低渐近复杂度</strong>，它解决的是内存与写入分散问题。</li>
+<li>主动提出<strong>精英榜 + 全量榜</strong>的双结构，头部用户看精确名次、其余用户看百分位。</li>
+<li>主动提到<strong>排行榜是派生数据</strong>，源数据是得分事件表，因此恢复策略是&quot;重建&quot;而非&quot;抢救&quot;。</li>
+<li>主动用<strong>利特尔法则</strong>把 DAU 换算成同时在线人数。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;为什么不用 MySQL 直接 <code>ORDER BY score</code>？&quot;</em>
+→ 前 10 名其实可以（索引反向扫描，O(log N + 10)）。真正不行的是<strong>排名查询</strong>：<code>COUNT(*) WHERE score &gt;= X</code> 要扫过约一半索引条目，中位数玩家要扫上千万条，是秒级操作。加上 2500 QPS 的索引维护成本，就不合适了。</li>
+<li><em>&quot;1 亿成员的排行榜，<code>ZRANK</code> 要多久？&quot;</em>
+→ <code>log₂(10⁸) ≈ 27</code>，实际跳转约几十次，每次是缓存未命中的主存访问（约 100 纳秒），合计约 <strong>5 微秒</strong>。算法上完全没问题。问题是这一个 key 要占约 <strong>13 GB 内存</strong>，且无法拆分、无法并行写。</li>
+<li><em>&quot;分片之后怎么算全局排名？&quot;</em>
+→ 分情况。哈希分片下用 <code>ZCOUNT</code> 扇出求和，<strong>结果是精确的</strong>，代价是 N 次网络往返、尾延迟受最慢分片影响。分数范围分片下用&quot;更高分片 <code>ZCARD</code> 求和 + 本分片 <code>ZCOUNT</code>&quot;。规模再大就退化成百分位近似。</li>
+<li><em>&quot;两个人分数一样，Redis 返回的名次一样吗？&quot;</em>
+→ 不一样。<code>ZRANK</code> 返回序列位置，同分按成员名字典序排列，会拿到不同值。要并列名次必须用 <code>1 + ZCOUNT(key, &quot;(score&quot;, &quot;+inf&quot;)</code>。</li>
+<li><em>&quot;Redis 挂了排行榜数据怎么办？&quot;</em>
+→ 排行榜是派生数据。源数据是&quot;谁在何时赢了多少分&quot;的事件表。Redis 挂了就从事件表聚合重建，2500 万条约分钟级。副本和 AOF 只是减少丢失窗口，不承担&quot;不丢&quot;的责任。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://redis.io/docs/latest/develop/data-types/sorted-sets/" target="_blank" rel="noopener noreferrer">Redis 官方文档：Sorted Sets</a> — 有序集合的语义与命令全集</li>
+<li><a href="https://redis.io/tutorials/howtos/leaderboard/" target="_blank" rel="noopener noreferrer">Redis 官方教程：用有序集合构建实时排行榜</a> — 官方给出的排行榜实现范例</li>
+<li><a href="https://github.com/redis/redis/blob/unstable/src/t_zset.c" target="_blank" rel="noopener noreferrer">Redis 源码 <code>t_zset.c</code></a> — 跳表与 span 字段的实现，想彻底搞懂排名查询必读</li>
+<li><a href="https://redis.io/docs/latest/commands/zcount/" target="_blank" rel="noopener noreferrer">Redis 官方文档：ZCOUNT</a> — 文档明确说明其复杂度为 O(log N)，因为它借助了元素排名</li>
+<li><a href="https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/" target="_blank" rel="noopener noreferrer">Redis 官方文档：Cluster 规范</a> — 16384 个哈希槽、MOVED/ASK 重定向、无代理架构</li>
+<li><a href="https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/" target="_blank" rel="noopener noreferrer">Redis 官方文档：持久化</a> — RDB 与 AOF 的丢失窗口对比</li>
+<li><a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html" target="_blank" rel="noopener noreferrer">AWS：DynamoDB 最佳实践</a> — 含写分片与热点分区处理</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../24/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">类 S3 对象存储</span></a><a class="next" href="../26/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">支付系统</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求澄清与量级估算">1. 需求澄清与量级估算</a>
+<a class="lv3" href="#量级估算">量级估算</a>
+<a class="lv2" href="#2-接口设计">2. 接口设计</a>
+<a class="lv2" href="#3-高层架构与安全边界">3. 高层架构与安全边界</a>
+<a class="lv3" href="#被否决的替代方案">被否决的替代方案</a>
+<a class="lv3" href="#要不要加消息队列">要不要加消息队列</a>
+<a class="lv2" href="#4-方案一关系型数据库">4. 方案一：关系型数据库</a>
+<a class="lv3" href="#用户得分">用户得分</a>
+<a class="lv3" href="#查前-10-名">查前 10 名</a>
+<a class="lv2" href="#5-方案二redis-有序集合">5. 方案二：Redis 有序集合</a>
+<a class="lv3" href="#底层结构哈希表-跳表缺一不可">底层结构：哈希表 + 跳表，缺一不可</a>
+<a class="lv3" href="#跳表怎么工作">跳表怎么工作</a>
+<a class="lv2" href="#6-redis-上的排行榜操作与容量估算">6. Redis 上的排行榜操作与容量估算</a>
+<a class="lv3" href="#四个核心命令">四个核心命令</a>
+<a class="lv3" href="#取某个用户前后各-4-名">取某个用户前后各 4 名</a>
+<a class="lv3" href="#容量估算">容量估算</a>
+<a class="lv2" href="#7-亿级规模下的排名查询">7. 亿级规模下的排名查询</a>
+<a class="lv3" href="#zrank-到底要多少步">ZRANK 到底要多少步</a>
+<a class="lv3" href="#真正的瓶颈不是算法是单-key">真正的瓶颈：不是算法，是单 key</a>
+<a class="lv3" href="#分桶排名分段排名">分桶排名（分段排名）</a>
+<a class="lv2" href="#8-分片与全局聚合排名">8. 分片与全局聚合排名</a>
+<a class="lv3" href="#方式一按分数范围分片">方式一：按分数范围分片</a>
+<a class="lv3" href="#方式二按哈希分片">方式二：按哈希分片</a>
+<a class="lv3" href="#方式三两套结构生产中最常用">方式三：两套结构（生产中最常用）</a>
+<a class="lv3" href="#三种方案对比">三种方案对比</a>
+<a class="lv2" href="#9-自建云托管与-nosql">9. 自建、云托管与 NoSQL</a>
+<a class="lv3" href="#自己管服务">自己管服务</a>
+<a class="lv3" href="#云托管-无服务器">云托管 / 无服务器</a>
+<a class="lv3" href="#备选方案nosql">备选方案：NoSQL</a>
+<a class="lv2" href="#10-实时性与一致性取舍">10. 实时性与一致性取舍</a>
+<a class="lv3" href="#层面一写入路径写扩散-vs-定时重算">层面一：写入路径——写扩散 vs 定时重算</a>
+<a class="lv3" href="#层面二读取路径">层面二：读取路径</a>
+<a class="lv3" href="#层面三跨地域">层面三：跨地域</a>
+<a class="lv2" href="#11-同分排名规则">11. 同分排名规则</a>
+<a class="lv3" href="#并列名次的两种定义">并列名次的两种定义</a>
+<a class="lv3" href="#redis-的-zrank-不给并列名次">Redis 的 ZRANK 不给并列名次</a>
+<a class="lv2" href="#12-防作弊分数提交的校验">12. 防作弊：分数提交的校验</a>
+<a class="lv2" href="#13-持久化与灾难恢复">13. 持久化与灾难恢复</a>
+<a class="lv3" href="#redis-的两种持久化">Redis 的两种持久化</a>
+<a class="lv3" href="#副本不等于不丢数据">副本不等于不丢数据</a>
+<a class="lv3" href="#从数据库重建">从数据库重建</a>
+<a class="lv3" href="#其他收尾话题">其他收尾话题</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1量级估算里的-dau-前后不一致">勘误 1：量级估算里的 DAU 前后不一致</a>
+<a class="lv3" href="#勘误-2把到达率当成了同时在线人数">勘误 2：把&quot;到达率&quot;当成了&quot;同时在线人数&quot;</a>
+<a class="lv3" href="#勘误-3关系型数据库性能不好的说法不准确">勘误 3：关系型数据库&quot;性能不好&quot;的说法不准确</a>
+<a class="lv3" href="#勘误-4每条记录-26-字节的估算漏了两件事">勘误 4：每条记录 26 字节的估算漏了两件事</a>
+<a class="lv3" href="#勘误-5info-keyspace-拿不到-sorted-set-的成员数">勘误 5：INFO keyspace 拿不到 sorted set 的成员数</a>
+<a class="lv3" href="#勘误-6redis-cluster-不是代理也不是一致性哈希">勘误 6：Redis Cluster 不是代理，也不是一致性哈希</a>
+<a class="lv3" href="#勘误-7哈希分片下无法确定用户排名不成立">勘误 7：哈希分片下&quot;无法确定用户排名&quot;不成立</a>
+<a class="lv3" href="#补充-1zrevrange-已被废弃">补充 1：ZREVRANGE 已被废弃</a>
+<a class="lv3" href="#补充-2zrank-不返回并列名次与需求矛盾">补充 2：ZRANK 不返回并列名次（与需求矛盾）</a>
+<a class="lv3" href="#补充-3全局聚合排名的完整算法">补充 3：全局聚合排名的完整算法</a>
+<a class="lv3" href="#补充-4分桶排名不会降低渐近复杂度">补充 4：分桶排名不会降低渐近复杂度</a>
+<a class="lv3" href="#补充-5实时性与一致性的三层分解">补充 5：实时性与一致性的三层分解</a>
+<a class="lv3" href="#补充-6防作弊的分层设计">补充 6：防作弊的分层设计</a>
+<a class="lv3" href="#补充-7持久化的真实保证与重建方式">补充 7：持久化的真实保证与重建方式</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

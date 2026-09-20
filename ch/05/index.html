@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 5 章：设计一致性哈希 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item active" href="./"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-5-章设计一致性哈希">第 5 章：设计一致性哈希</h1>
+<blockquote>
+<p>原章节：Design Consistent Hashing · 原项目路径 <code>05. Consistent Hashing/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>你的缓存集群有 3 台机器，跑得好好的。业务涨了，你按计划加了一台，变成 4 台。</p>
+<p>然后监控告警炸了：<strong>数据库的 QPS 瞬间涨了 4 倍，缓存命中率从 95% 掉到 25%。</strong></p>
+<p>你没有改任何代码，只是加了一台机器，为什么反而把系统打垮了？</p>
+<p>原因藏在一个看起来人畜无害的公式里：<code>serverIndex = hash(key) % N</code>。当 <code>N</code> 从 3 变成 4 时，<strong>几乎所有的 key 都被映射到了不同的服务器上</strong>——原来缓存的数据全都在&quot;错误的&quot;机器上，等于全部失效。</p>
+<p>这一章讲的「一致性哈希（Consistent Hashing）」就是解决这个问题的技术。它被用在 Cassandra、DynamoDB、Discord、CDN、负载均衡器里，是分布式系统最基础的工具之一。</p>
+<p>学完这一章，你应该能回答：为什么取模哈希在扩容时会失效？哈希环是怎么工作的？虚拟节点为什么必要、该设多少个？一致性哈希在&quot;负载均衡&quot;和&quot;数据分区&quot;两种场景下有什么本质区别？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>取模哈希（<code>hash % N</code>）在节点增减时的灾难性后果，以及精确的失效比例</li>
+<li>哈希环的构造方式，以及&quot;顺时针找第一个节点&quot;这条规则的完整含义</li>
+<li>添加/移除服务器时，受影响 key 区间的<strong>严格推导</strong>（本章会逐字验算原笔记的结论）</li>
+<li>基本哈希环的两个缺陷，以及虚拟节点如何量化地解决它们</li>
+<li>为什么&quot;顺时针&quot;只是一个约定，以及虚拟节点数量的经验值</li>
+<li>一致性哈希在<strong>负载均衡</strong>与<strong>数据分区</strong>两种用途下的差异</li>
+<li>节点少时数据分布不均的量化表现，以及替代方案（Rendezvous、Jump、Maglev）</li>
+</ul>
+<hr />
+<h2 id="1-从一个真实故障开始加了一台服务器缓存全失效了">1. 从一个真实故障开始：加了一台服务器，缓存全失效了</h2>
+<p>我们先不讲方案，先看清楚问题。</p>
+<p>假设你有 3 台缓存服务器（s0、s1、s2），用一个哈希函数把每个 key 映射到某台服务器上。最朴素的做法是：</p>
+<pre><code>serverIndex = hash(key) % 3
+</code></pre>
+<ul>
+<li><code>hash(&quot;user:1001&quot;) % 3 = 1</code> → 存到 s1</li>
+<li><code>hash(&quot;user:1002&quot;) % 3 = 0</code> → 存到 s0</li>
+<li><code>hash(&quot;user:1003&quot;) % 3 = 2</code> → 存到 s2</li>
+</ul>
+<p>一切正常。</p>
+<div align="center"><img src="./images/server-hashing.png" alt="取模哈希：key 通过 hash(key) % N 映射到固定的服务器" width="520" loading="lazy" decoding="async"></div>
+<p>现在加一台服务器 s3，服务器数量变成 4，公式变成 <code>hash(key) % 4</code>。</p>
+<p><strong>同样的 key，算出来的结果全变了：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>key</th>
+<th><code>hash % 3</code>（旧）</th>
+<th><code>hash % 4</code>（新）</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user:1001</code></td>
+<td>1</td>
+<td>1</td>
+<td>命中</td>
+</tr>
+<tr>
+<td><code>user:1002</code></td>
+<td>0</td>
+<td>2</td>
+<td><strong>失效</strong></td>
+</tr>
+<tr>
+<td><code>user:1003</code></td>
+<td>2</td>
+<td>3</td>
+<td><strong>失效</strong></td>
+</tr>
+<tr>
+<td><code>user:1004</code></td>
+<td>1</td>
+<td>0</td>
+<td><strong>失效</strong></td>
+</tr>
+<tr>
+<td><code>user:1005</code></td>
+<td>0</td>
+<td>1</td>
+<td><strong>失效</strong></td>
+</tr>
+</tbody>
+</table></div>
+<div align="center"><img src="./images/server-hashing-miss.png" alt="扩容后大部分 key 被映射到不同的服务器，导致缓存大面积失效" width="520" loading="lazy" decoding="async"></div>
+<p><strong>这不是巧合，而是数学必然。</strong> 一个 key 在扩容后仍然命中原来的服务器，需要 <code>hash % 3 == hash % 4</code> 同时成立——这个概率只有约 <code>1/4</code>。</p>
+<p>严格地说，当服务器数从 <code>N</code> 变成 <code>N+1</code> 时，<strong>平均只有约 <code>1/(N+1)</code> 的 key 会留在原服务器上，其余 <code>N/(N+1)</code> 的 key 全部需要重新映射</strong>。</p>
+<ul>
+<li>从 3 台加到 4 台：<code>3/4 = 75%</code> 的 key 要迁移</li>
+<li>从 99 台加到 100 台：<code>99/100 = 99%</code> 的 key 要迁移</li>
+<li><strong>从 999 台加到 1000 台：99.9% 的 key 要迁移</strong></li>
+</ul>
+<blockquote>
+<p><strong>这就是本章要解决的核心问题</strong>：节点数量变化时，<strong>重新映射的 key 比例不应该依赖于节点总数</strong>，而应该只与&quot;新增/移除的那部分节点&quot;有关。</p>
+</blockquote>
+<p><strong>后果有多严重？</strong> 在上面的例子里，75% 的缓存请求会穿透到数据库。如果原来是 95% 命中率、数据库承受 5% 的流量，现在数据库要承受 80% 的流量——<strong>16 倍的压力</strong>，数据库几乎必然被打垮。</p>
+<p>这还不是最糟的。<strong>移除一台服务器比添加更危险</strong>：移除节点时，那台机器上的所有数据都必须在短时间内重新加载或迁移，同时还要承受来自其他节点的请求转移。</p>
+<h3 id="原笔记的表述需要补充一点">原笔记的表述需要补充一点</h3>
+<p>原笔记说：</p>
+<blockquote>
+<p>&quot;This approach works well when the size of the server pool is fixed. However, problems arise when new servers are added, or existing servers are removed.&quot;</p>
+<p>（译：这种做法在服务器池大小固定时工作得很好。但一旦新增服务器、或移除已有服务器，问题就会出现。）</p>
+</blockquote>
+<p>这个判断是对的，但它没有给出<strong>为什么</strong>会出问题，也没有量化。补上这句数学推导之后，你才能理解为什么这个问题值得专门设计一个算法来解决。</p>
+<hr />
+<h2 id="2-一致性哈希把哈希空间首尾相接成一个环">2. 一致性哈希：把哈希空间首尾相接成一个环</h2>
+<p><strong>一致性哈希（Consistent Hashing）</strong> 的核心承诺是：<strong>节点增减时，只有一小部分 key 需要重新映射</strong>。</p>
+<p>它的做法分三步。</p>
+<h3 id="第-1-步构造哈希环">第 1 步：构造哈希环</h3>
+<p>取一个哈希函数（比如 SHA-1），它的输出范围是固定的。SHA-1 输出 160 位，所以取值范围是 <code>0</code> 到 <code>2^160 - 1</code>。</p>
+<p>现在把这个取值范围的两端<strong>首尾相接</strong>——最大值 <code>2^160 - 1</code> 的下一个值回到 <code>0</code>。这样哈希空间就从一条线段变成了一个<strong>环（Ring）</strong>。</p>
+<div align="center"><img src="./images/hash-ring.png" alt="哈希环：哈希空间首尾相接形成 0 到 2^160-1 的环" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>这个环的大小由哈希函数决定，不是固定的 <code>2^160</code>。</strong>
+原笔记用 SHA-1 举例（160 位）是正确的，但要理解：换成 MD5 就是 <code>2^128</code>，换成 64 位的 MurmurHash 就是 <code>2^64</code>。<strong>环的大小不重要，重要的是&quot;它是一个环&quot;这个性质。</strong></p>
+<p>顺带一提，选择什么样的哈希函数很关键。要求是<strong>输出均匀分布</strong>——如果哈希函数本身分布不均，后面所有的均衡性都无从谈起。实践中常用 MurmurHash、xxHash 这类非加密哈希（快，且分布好）；Dynamo 用的是 MD5，Cassandra 用的是 Murmur3。</p>
+</blockquote>
+<h3 id="第-2-步把服务器放到环上">第 2 步：把服务器放到环上</h3>
+<p>用<strong>同一个</strong>哈希函数，对每台服务器的标识（IP 地址或主机名）做哈希，得到它在环上的位置。</p>
+<pre><code>position(s0) = hash(&quot;10.0.0.1&quot;)
+position(s1) = hash(&quot;10.0.0.2&quot;)
+position(s2) = hash(&quot;10.0.0.3&quot;)
+</code></pre>
+<div align="center"><img src="./images/server-ring.png" alt="把服务器按 IP 哈希后映射到哈希环上" width="520" loading="lazy" decoding="async"></div>
+<p><strong>注意：必须用同一个哈希函数。</strong> 如果服务器用一种哈希、key 用另一种，它们就不在同一个坐标系里，环上的位置关系毫无意义。</p>
+<h3 id="第-3-步把-key-也放到环上顺时针找服务器">第 3 步：把 key 也放到环上，顺时针找服务器</h3>
+<p>对一个 key 做同样的哈希，得到它在环上的位置。然后：</p>
+<blockquote>
+<p><strong>从这个位置出发，沿顺时针方向走，遇到的第一个服务器就是它所属的服务器。</strong></p>
+</blockquote>
+<div align="center"><img src="./images/server-lookup.png" alt="服务器查找：从 key 的位置顺时针前进，遇到的第一个服务器即为其归属" width="520" loading="lazy" decoding="async"></div>
+<p>这个规则是理解一致性哈希的<strong>全部关键</strong>。后面所有的推导都建立在它之上。</p>
+<hr />
+<h2 id="3-服务器查找把规则写成精确的形式">3. 服务器查找：把规则写成精确的形式</h2>
+<p>原笔记用一句话描述了查找规则：&quot;A key's server is determined by traversing clockwise on the ring until a server is found.&quot;</p>
+<p>这句话是对的，但为了后面能严格推导，我们需要把它写成更精确的形式：</p>
+<blockquote>
+<p><strong>规则（Key 归属规则）</strong>
+设环上服务器按顺时针排列。对于任意 key <code>k</code>，令 <code>s</code> 为&quot;从 <code>position(k)</code> 出发顺时针遇到的第一个服务器&quot;，则 <code>k</code> 归属于 <code>s</code>。</p>
+<p><strong>等价表述</strong>：服务器 <code>s</code> 负责环上从<strong>它的前驱节点（逆时针方向最近的服务器）<strong>到</strong>它自己</strong>之间、沿顺时针方向的那一段弧。用区间表示就是 <code>(pred(s), s]</code>。</p>
+</blockquote>
+<p>第二种表述非常重要，因为&quot;每台服务器负责一段连续的弧&quot;这个视角，才是分析数据分布的基础。</p>
+<p><strong>用一句话记住</strong>：</p>
+<blockquote>
+<p><strong>每台服务器负责它&quot;逆时针那一侧&quot;的一段弧。</strong></p>
+</blockquote>
+<p>原笔记没有给出这个等价表述。没有它，读者只能记住结论，无法自己推导&quot;添加/移除服务器时到底哪些 key 受影响&quot;。</p>
+<h3 id="为什么是顺时针">为什么是顺时针？</h3>
+<p>这个问题原笔记没有回答，但初学者一定会问：<strong>凭什么顺时针？逆时针不行吗？</strong></p>
+<p><strong>答案是：纯粹是约定，逆时针完全可以。</strong></p>
+<p>如果你把规则定义成&quot;逆时针遇到的第一个服务器&quot;，整个算法依然成立，只是每台服务器负责的弧变成了&quot;顺时针那一侧&quot;。两种定义的<strong>数学性质完全一样</strong>——迁移比例还是 <code>1/N</code>，分布不均的问题和虚拟节点的解法也都一样。</p>
+<p><strong>唯一必须满足的条件是：所有参与者（客户端、服务端、缓存库）必须约定同一个方向。</strong> 如果一半节点用顺时针、一半用逆时针，那整个系统就彻底乱套了。</p>
+<p>那为什么大家都用顺时针？因为<strong>它直观</strong>。哈希环的画法本身就像钟表，按&quot;顺时针&quot;描述和人们的阅读习惯一致。<strong>不要把一个约定当成算法的一部分——这是本章第一个容易被误解的点。</strong></p>
+<hr />
+<h2 id="4-添加与移除服务器">4. 添加与移除服务器</h2>
+<p>现在看一致性哈希最核心的收益。</p>
+<h3 id="添加服务器">添加服务器</h3>
+<p>假设环上原本有 s0、s1、s2、s3，现在加入 s4。假设 s4 的哈希位置落在 s3 和 s0 之间。</p>
+<p><strong>顺时针顺序变成</strong>：<code>s0 → s1 → s2 → s3 → s4 → (回到 s0)</code></p>
+<p><strong>发生什么？</strong></p>
+<ul>
+<li>s4 的前驱是 s3，所以 s4 负责区间 <code>(s3, s4]</code></li>
+<li>在 s4 加入之前，这段区间归属于谁？从这段区间里的任意位置出发顺时针走，遇到的第一台服务器是 <strong>s0</strong>（因为中间没有别的服务器）</li>
+<li>所以：<strong><code>(s3, s4]</code> 这段区间里的 key，从 s0 迁移到 s4</strong></li>
+</ul>
+<p><strong>其他 key 完全不受影响</strong>——因为它们的&quot;顺时针第一个服务器&quot;没变。</p>
+<div align="center"><img src="./images/adding-server.png" alt="添加服务器：只有新节点与其顺时针后继之间的一段 key 需要迁移" width="520" loading="lazy" decoding="async"></div>
+<h3 id="移除服务器">移除服务器</h3>
+<p>假设环上有 s0、s1、s2、s3，现在移除 s1。</p>
+<p><strong>顺时针顺序变成</strong>：<code>s0 → s2 → s3 → (回到 s0)</code></p>
+<p><strong>发生什么？</strong></p>
+<ul>
+<li>s1 原本负责区间 <code>(s0, s1]</code>（它的前驱是 s0）</li>
+<li>s1 被移除后，这段区间里的 key 顺时针遇到的第一个服务器变成了 <strong>s2</strong></li>
+<li>所以：<strong><code>(s0, s1]</code> 这段区间里的 key，从 s1 迁移到 s2</strong></li>
+</ul>
+<p><strong>其他 key 完全不受影响。</strong></p>
+<div align="center"><img src="./images/removing-server.png" alt="移除服务器：被移除节点负责的一段 key 交给其顺时针后继" width="520" loading="lazy" decoding="async"></div>
+<h3 id="统一成一条规则">统一成一条规则</h3>
+<p>上面两个例子可以用一条规则概括，这条规则原笔记没有总结出来，但非常有用：</p>
+<blockquote>
+<p><strong>新增节点，从它的顺时针后继手里接管一段区间。</strong>
+<strong>移除节点，把它持有的区间交给它的顺时针后继。</strong></p>
+</blockquote>
+<p>两次操作都只涉及<strong>两个节点</strong>和<strong>一段弧</strong>——这就是一致性哈希的全部威力。</p>
+<h3 id="迁移比例是多少">迁移比例是多少？</h3>
+<p>假设环上有 <code>N</code> 台服务器，位置随机分布。</p>
+<ul>
+<li><strong>添加一台</strong>：新节点从后继手里接管约 <code>1/(N+1)</code> 的环（因为新节点把后继的弧切成两段，平均一段占 <code>1/(N+1)</code>）</li>
+<li><strong>移除一台</strong>：被移除节点持有的弧约占 <code>1/N</code>，这段弧转移给后继</li>
+</ul>
+<p><strong>对比取模哈希</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>取模哈希的迁移比例</th>
+<th>一致性哈希的迁移比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3 台 → 4 台</td>
+<td>75%</td>
+<td>约 25%</td>
+</tr>
+<tr>
+<td>99 台 → 100 台</td>
+<td>99%</td>
+<td>约 1%</td>
+</tr>
+<tr>
+<td>999 台 → 1000 台</td>
+<td>99.9%</td>
+<td>约 0.1%</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>节点越多，一致性哈希的优势越明显。</strong> 这就是为什么大规模系统必须用它。</p>
+<hr />
+<h2 id="5-基本方案的两个问题与虚拟节点">5. 基本方案的两个问题与虚拟节点</h2>
+<p>上面讲的是&quot;教科书版本&quot;的一致性哈希。<strong>直接上线它，你会立刻遇到两个问题。</strong></p>
+<p>原笔记准确地指出了这两个问题：</p>
+<ol>
+<li><strong>分区大小不均（Uneven Partition Sizes）</strong>：服务器持有的数据分区大小不等</li>
+<li><strong>key 分布不均（Non-uniform Key Distribution）</strong>：有些服务器分到的 key 明显比别人多</li>
+</ol>
+<h3 id="问题有多严重原笔记没有量化">问题有多严重？（原笔记没有量化）</h3>
+<p>原笔记只说&quot;可能不均&quot;，但没说不均到什么程度。这里给出量化结果。</p>
+<p><strong>假设有 <code>N</code> 台服务器，位置在环上随机均匀分布。</strong></p>
+<p>数学上，<code>N</code> 个随机点把圆切成 <code>N</code> 段弧，这些弧的长度服从 <strong>Dirichlet(1,1,...,1)</strong> 分布。基于这个分布：</p>
+<ul>
+<li>每段弧的平均长度是 <code>1/N</code></li>
+<li><strong>每段弧的标准差也约为 <code>1/N</code></strong>——也就是说，<strong>变异系数（标准差 / 均值）接近 100%</strong></li>
+</ul>
+<p><strong>&quot;标准差等于均值&quot;意味着什么？</strong> 意味着某台服务器的负载是平均值的 2 倍、3 倍，是完全正常的事。</p>
+<p>更直观的指标是<strong>最大弧长</strong>。数学上有精确结果：<code>N</code> 个随机点形成的最大弧长，期望值约为：</p>
+<pre><code>E[最大弧长] ≈ (ln N + γ) / N        （γ ≈ 0.5772，是欧拉-马歇罗尼常数）
+</code></pre>
+<p>代入具体数字：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>服务器数量 N</th>
+<th>平均弧长</th>
+<th>最大弧长期望</th>
+<th><strong>最大 / 平均</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10</td>
+<td>10%</td>
+<td>28.8%</td>
+<td><strong>2.9 倍</strong></td>
+</tr>
+<tr>
+<td>100</td>
+<td>1%</td>
+<td>5.2%</td>
+<td><strong>5.2 倍</strong></td>
+</tr>
+<tr>
+<td>1000</td>
+<td>0.1%</td>
+<td>0.75%</td>
+<td><strong>7.5 倍</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>这个结果非常反直觉</strong>：服务器越多，最大的那台相对于平均值的负载倍数<strong>反而越大</strong>（因为 <code>ln N</code> 增长慢于 <code>N</code>，比值 <code>ln N + γ</code> 在增长）。</p>
+<p><strong>结论：如果每台服务器只在环上占一个点，必然会出现热点节点。</strong> 10 台机器里最忙的那台要扛 2.9 倍的负载——这足以让它先挂掉。</p>
+<h3 id="解法虚拟节点virtual-nodes">解法：虚拟节点（Virtual Nodes）</h3>
+<p><strong>「虚拟节点（Virtual Node，简称 vnode）」</strong> 的做法是：<strong>让每台物理服务器在环上占据多个位置，而不是一个。</strong></p>
+<p>具体做法：</p>
+<pre><code>for i in range(V):
+    position(s0, i) = hash(f&quot;s0#{i}&quot;)
+    position(s1, i) = hash(f&quot;s1#{i}&quot;)
+    ...
+</code></pre>
+<p>每台物理服务器生成 <code>V</code> 个虚拟节点（通常用 <code>服务器标识#序号</code> 作为哈希输入），把它们都放到环上。<strong>环上的&quot;服务器&quot;变成了虚拟节点，而一个物理服务器拥有 <code>V</code> 个虚拟节点。</strong></p>
+<div align="center"><img src="./images/virtual-nodes.png" alt="虚拟节点：每台物理服务器在环上占据多个位置，使数据分布更均匀" width="520" loading="lazy" decoding="async"></div>
+<h3 id="虚拟节点为什么有效">虚拟节点为什么有效？</h3>
+<p><strong>关键在于&quot;平均&quot;的力量。</strong></p>
+<ul>
+<li><strong>一个虚拟节点</strong>时：一台物理服务器的负载 = 一段随机弧长。标准差 ≈ 均值，波动极大。</li>
+<li><strong><code>V</code> 个虚拟节点</strong>时：一台物理服务器的负载 = <code>V</code> 段随机弧长之和。</li>
+</ul>
+<p>根据<strong>中心极限定理</strong>，<code>V</code> 个独立随机变量之和的相对波动会缩小。精确地说：</p>
+<blockquote>
+<p><strong>每台物理服务器负载的标准差 ≈ 均值的 <code>1/√V</code>。</strong></p>
+</blockquote>
+<p>代入具体数字：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>每台服务器的 vnode 数 V</th>
+<th>负载的相对标准差</th>
+<th>直观含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>100%</td>
+<td>负载可能翻倍或减半</td>
+</tr>
+<tr>
+<td>16</td>
+<td>25%</td>
+<td>仍有明显不均</td>
+</tr>
+<tr>
+<td>64</td>
+<td>12.5%</td>
+<td>基本可用</td>
+</tr>
+<tr>
+<td>128</td>
+<td>8.8%</td>
+<td>良好</td>
+</tr>
+<tr>
+<td><strong>256</strong></td>
+<td><strong>6.25%</strong></td>
+<td>很均匀，经典配置</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>3.1%</td>
+<td>非常均匀，但元数据开销大</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>原笔记说&quot;随着虚拟节点数量增加，分布会变得更均匀，因为标准差变小&quot;——这个结论是正确的。</strong> 上面这张表把&quot;变得更均匀&quot;量化了。</p>
+<h3 id="虚拟节点的代价">虚拟节点的代价</h3>
+<p><strong>vnode 不是免费的</strong>，代价有三点（原笔记没有提）：</p>
+<ol>
+<li><strong>元数据开销</strong>：环上要维护 <code>N × V</code> 个位置，每个客户端都要知道这个映射表。<code>N=1000、V=256</code> 就是 25.6 万个条目。</li>
+<li><strong>路由开销</strong>：查找时需要在一个有序结构里做二分查找，条目越多查找越慢（虽然 <code>O(log(NV))</code> 依然很快）。</li>
+<li><strong>数据迁移更零碎</strong>：移除一个节点时，它持有的数据分散在环上的 <code>V</code> 段弧里，要分别迁移给 <code>V</code> 个不同的后继节点——<strong>并发迁移的连接数变多，运维复杂度上升</strong>。</li>
+</ol>
+<p><strong>这就是为什么 vnode 数量不是越多越好。</strong> 256 已经是&quot;收益递减&quot;的区间了。</p>
+<hr />
+<h2 id="6-受影响-key-的精确推导">6. 受影响 key 的精确推导</h2>
+<p>这一节是本章最容易出错的地方。原笔记在 <code>Affected Keys</code> 一节里给出了两个例子，<strong>我逐字验算了一遍</strong>。先说结论，再给推导。</p>
+<h3 id="原笔记的原文">原笔记的原文</h3>
+<blockquote>
+<p><strong>Added Server:</strong> Affected keys are those between the new server and its predecessor. In the following example server 4 is added onto the ring. The affected range starts from s4 (newly added node) and moves anticlockwise around the ring until a server is found (s3). Thus, keys located between s3 and s4 need to be redistributed to s4.</p>
+<p><strong>Removed Server:</strong> Affected keys are those between the removed server and its predecessor. In the following example when a server (s1) is removed, the affected range starts from s1 (removed node) and moves anticlockwise around the ring until a server is found (s0). Thus, keys located between s0 and s1 must be redistributed to s2.</p>
+<p><strong>译文：</strong>
+<strong>新增服务器</strong>：受影响的 key 是&quot;新服务器与其前驱之间&quot;的那些。在下面的例子里，服务器 4 被加入环上。受影响的范围从 s4（新增节点）开始，沿逆时针方向在环上前进，直到找到一个服务器（s3）。因此，位于 s3 和 s4 之间的 key 需要重新分配给 s4。
+<strong>移除服务器</strong>：受影响的 key 是&quot;被移除服务器与其前驱之间&quot;的那些。在下面的例子里，服务器 s1 被移除。受影响的范围从 s1（被移除的节点）开始，沿逆时针方向在环上前进，直到找到一个服务器（s0）。因此，位于 s0 和 s1 之间的 key 必须重新分配给 s2。</p>
+</blockquote>
+<div align="center"><img src="./images/server-addition.png" alt="受影响 key 推导：新增 s4 时，s3 到 s4 之间的 key 迁移到 s4" width="520" loading="lazy" decoding="async"></div>
+<div align="center"><img src="./images/server-removed.png" alt="受影响 key 推导：移除 s1 时，s0 到 s1 之间的 key 迁移到 s2" width="520" loading="lazy" decoding="async"></div>
+<h3 id="验算一添加-s4受影响区间是-s3-s4迁移到-s4-正确">验算一：添加 s4，受影响区间是 <code>(s3, s4]</code>，迁移到 s4 —— <strong>正确</strong></h3>
+<p><strong>推导过程：</strong></p>
+<ol>
+<li>环上原有 s0、s1、s2、s3，顺时针顺序为 <code>s0 → s1 → s2 → s3 → (回到 s0)</code>。</li>
+<li>加入 s4，位置落在 s3 和 s0 之间。新顺序为 <code>s0 → s1 → s2 → s3 → s4 → (回到 s0)</code>。</li>
+<li>按第 3 节的归属规则，<strong>s4 负责的区间是 <code>(s3, s4]</code></strong>（前驱是 s3，到 s4 为止，沿顺时针）。</li>
+<li>在 s4 加入之前，区间 <code>(s3, s4]</code> 里的 key 归属谁？从区间内任意一点出发顺时针走，经过 s4 的位置（当时还没有节点）继续走，遇到的第一台服务器是 <strong>s0</strong>。</li>
+<li>所以 s4 加入前，<code>(s3, s4]</code> 属于 s0；加入后属于 s4。</li>
+<li><strong>结论：<code>(s3, s4]</code> 的 key 从 s0 迁移到 s4。</strong></li>
+</ol>
+<p><strong>与原笔记对比</strong>：原笔记说&quot;受影响范围从 s4 出发逆时针走，直到找到服务器 s3，所以 s3 和 s4 之间的 key 要迁移到 s4&quot;。</p>
+<blockquote>
+<p><strong>这个结论是正确的。</strong> &quot;从 s4 逆时针走到 s3&quot;描述的就是<strong>找前驱</strong>这个动作，得到的区间是 <code>(s3, s4]</code>；结论&quot;迁移到 s4&quot;也对。</p>
+<p>顺带说明：原笔记在更早的 &quot;Adding and Removing Servers&quot; 一节里写的是&quot;Only a fraction of keys are redistributed to the new server&quot;（只有一小部分 key 被重新分配给新服务器），这一句也和推导一致。</p>
+</blockquote>
+<h3 id="验算二移除-s1受影响区间是-s0-s1迁移到-s2-正确">验算二：移除 s1，受影响区间是 <code>(s0, s1]</code>，迁移到 s2 —— <strong>正确</strong></h3>
+<p><strong>推导过程：</strong></p>
+<ol>
+<li>环上有 s0、s1、s2、s3，顺时针顺序为 <code>s0 → s1 → s2 → s3 → (回到 s0)</code>。</li>
+<li>按归属规则，<strong>s1 负责的区间是 <code>(s0, s1]</code></strong>（前驱是 s0）。</li>
+<li>移除 s1 后，新顺序为 <code>s0 → s2 → s3 → (回到 s0)</code>。</li>
+<li>区间 <code>(s0, s1]</code> 里的 key，从任意一点顺时针走：原来遇到的第一台是 s1，现在 s1 没了，继续走，遇到的下一台是 <strong>s2</strong>。</li>
+<li><strong>结论：<code>(s0, s1]</code> 的 key 从 s1 迁移到 s2。</strong></li>
+</ol>
+<p><strong>与原笔记对比</strong>：原笔记说&quot;受影响范围从 s1 逆时针走到 s0，所以 s0 和 s1 之间的 key 必须重新分配给 s2&quot;。</p>
+<blockquote>
+<p><strong>这个结论同样是正确的</strong>，而且这里的细节值得表扬：原笔记明确写了&quot;迁移到 <strong>s2</strong>&quot;而不是&quot;迁移到 s0&quot;。这是一个容易搞错的地方——很多人会想当然地认为&quot;逆时针找到的 s0 是接收方&quot;，<strong>但接收方永远是顺时针方向的下一个节点</strong>。原笔记在这里没有出错。</p>
+</blockquote>
+<h3 id="验算总结">验算总结</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>例子</th>
+<th>受影响区间</th>
+<th>迁移方向</th>
+<th>原笔记结论</th>
+<th>验算结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>添加 s4（落在 s3 与 s0 之间）</td>
+<td><code>(s3, s4]</code></td>
+<td>s0 → s4</td>
+<td>区间 <code>(s3, s4]</code>，迁移到 s4</td>
+<td><strong>正确</strong></td>
+</tr>
+<tr>
+<td>移除 s1</td>
+<td><code>(s0, s1]</code></td>
+<td>s1 → s2</td>
+<td>区间 <code>(s0, s1]</code>，迁移到 s2</td>
+<td><strong>正确</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>结论：原笔记 <code>Affected Keys</code> 一节的推导自洽，两个结论都正确。</strong> 这一节没有需要勘误的地方。</p>
+<p><strong>但它有一个教学上的缺陷</strong>：原笔记只描述了&quot;怎么找区间&quot;（逆时针找前驱），<strong>没有给出背后的通用规则</strong>（&quot;key 归属于顺时针第一个服务器&quot;）。结果是读者只能死记这两个例子，遇到&quot;添加的节点落在别的位置&quot;就无法举一反三。</p>
+<p><strong>补上通用规则之后，两个例子都变成了它的直接推论</strong>，不需要单独记忆：</p>
+<pre><code>通用规则：key 归属于从它的位置顺时针走遇到的第一个服务器
+    ↓
+推论 A：新增节点 s_new 会从它的顺时针后继手里接管区间 (pred(s_new), s_new]
+    ↓
+推论 B：移除节点 s_old 会把区间 (pred(s_old), s_old] 交给它的顺时针后继
+</code></pre>
+<h3 id="两个容易混淆的点">两个容易混淆的点</h3>
+<p><strong>混淆点一：&quot;逆时针&quot;是用来找前驱的，不是数据流动的方向。</strong></p>
+<p>原笔记两次都用了&quot;逆时针&quot;这个词，容易让人以为数据是逆时针流动的。<strong>实际上：</strong></p>
+<ul>
+<li><strong>找区间</strong>：从节点出发逆时针走，找到前驱 → 确定区间</li>
+<li><strong>数据迁移</strong>：区间里的 key 迁移到&quot;顺时针方向的下一个节点&quot;</li>
+</ul>
+<p><strong>记忆口诀：逆时针划线，顺时针搬家。</strong></p>
+<p><strong>混淆点二：受影响的是&quot;节点负责的区间&quot;，不是&quot;节点上现有的 key&quot;。</strong></p>
+<p>这两个说法在稳态下等价，但概念上不同。<strong>一致性哈希迁移的是&quot;哈希空间的一段&quot;，而不是&quot;某台机器上的数据&quot;</strong>——因为一段区间里的 key 可能有很多还没被创建。理解这一点，才能理解为什么一致性哈希只保证&quot;映射关系变化最小&quot;，<strong>而不保证&quot;数据迁移量最小&quot;</strong>（见第 9 节）。</p>
+<hr />
+<h2 id="7-补充一致性哈希的边界与前提">7. 补充：一致性哈希的边界与前提</h2>
+<p>在进入对比之前，先把几个容易被忽略的前提说清楚。</p>
+<h3 id="前提一key-的数量必须远大于节点数量">前提一：key 的数量必须远大于节点数量</h3>
+<p>如果只有 100 个 key 和 10 个节点，哈希的随机性根本体现不出来，分布会很差。<strong>一致性哈希的均匀性是大数定律的结果</strong>，key 太少时它和取模哈希没有本质区别。</p>
+<h3 id="前提二一致性哈希只决定映射关系不负责搬数据">前提二：一致性哈希只决定&quot;映射关系&quot;，不负责&quot;搬数据&quot;</h3>
+<p>这是初学者最大的误解。</p>
+<p>一致性哈希告诉你&quot;这个 key 现在应该去哪个节点&quot;，但<strong>它不会自动把已经存在旧节点上的数据搬过去</strong>。数据迁移需要你自己实现：</p>
+<ul>
+<li>新增节点时，遍历后继节点上属于新区间的数据，复制过去</li>
+<li>或者让读请求在未命中时回源，逐步重建（缓存场景常用这种&quot;懒迁移&quot;）</li>
+</ul>
+<p><strong>在缓存场景里，&quot;迁移&quot;往往就是&quot;失效&quot;</strong>——旧数据直接丢弃，让请求重新回源填充。这也是为什么缓存场景下一致性哈希特别好用：因为<strong>丢数据的代价很低</strong>。</p>
+<h3 id="前提三一致性哈希不解决热点-key-问题">前提三：一致性哈希不解决热点 key 问题</h3>
+<p>这是原笔记的一个实质性错误，详见【勘误 2】。简单说：<strong>如果某个 key 本身就是超级热点（比如一个明星的主页），无论用什么哈希算法，它都会落在同一个节点上，那个节点必然过载。</strong> 一致性哈希解决的是&quot;分区大小不均&quot;，不是&quot;单个 key 过热&quot;。</p>
+<hr />
+<h2 id="8-补充负载均衡与数据分区两种用途的本质差异">8. 补充：负载均衡与数据分区——两种用途的本质差异</h2>
+<p>原笔记把一致性哈希的用途笼统地概括为&quot;分布式请求和数据&quot;，并把 Amazon DynamoDB、Cassandra、Discord、Akamai CDN、Maglev 列在一起。</p>
+<p><strong>但这五个系统其实分属两类完全不同的用法</strong>，它们的关注点、代价和实现细节都不一样。分清楚这一点，是理解一致性哈希的关键跃升。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th><strong>负载均衡（Load Balancing）</strong></th>
+<th><strong>数据分区（Data Partitioning）</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>哈希的对象</strong></td>
+<td>客户端 IP、连接 ID、请求 ID、用户 ID</td>
+<td>数据主键（<code>user_id</code>、<code>order_id</code>）</td>
+</tr>
+<tr>
+<td><strong>节点是什么</strong></td>
+<td>无状态的服务器 / 连接端点</td>
+<td>存储节点（持有真实数据）</td>
+</tr>
+<tr>
+<td><strong>重新映射的代价</strong></td>
+<td><strong>低</strong>：只是把新请求导向别的节点，已有的连接和请求通常不受影响</td>
+<td><strong>高</strong>：必须<strong>物理搬移数据</strong>，涉及网络传输、磁盘 IO、一致性保证</td>
+</tr>
+<tr>
+<td><strong>是否需要副本</strong></td>
+<td>通常不需要（后端无状态）</td>
+<td><strong>需要</strong>：复制因子 N，一份数据存 N 个节点</td>
+</tr>
+<tr>
+<td><strong>主要目标</strong></td>
+<td>请求均匀分布、会话粘性（同一用户稳定落到同一节点）</td>
+<td>数据均匀分布、可扩展、高可用</td>
+</tr>
+<tr>
+<td><strong>故障处理</strong></td>
+<td>直接把流量摘掉，重新分配</td>
+<td>触发副本提升、数据重建（rebalance），可能耗时数小时</td>
+</tr>
+<tr>
+<td><strong>典型实现</strong></td>
+<td>Envoy ring hash / Maglev、Nginx、HAProxy、LVS</td>
+<td>Cassandra、DynamoDB、Riak、Ceph</td>
+</tr>
+<tr>
+<td><strong>一致性的要求</strong></td>
+<td>弱（短暂不均可以接受）</td>
+<td>强（数据不能丢、不能重复）</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="为什么这个区分重要">为什么这个区分重要？</h3>
+<p><strong>因为两者的&quot;失败模式&quot;完全不同。</strong></p>
+<ul>
+<li><strong>负载均衡场景</strong>：一致性哈希出问题时，后果是&quot;某些节点收到更多请求&quot;。你可以随时重新调整，影响面是<strong>分钟级</strong>的。</li>
+<li><strong>数据分区场景</strong>：一致性哈希出问题时，后果是&quot;数据分布不均导致某些节点磁盘先满&quot;或者&quot;迁移过程中数据丢失&quot;。影响面是<strong>天级甚至不可逆</strong>的。</li>
+</ul>
+<p><strong>这也解释了为什么数据分区场景的 vnode 配置要谨慎得多</strong>：Cassandra 把默认 <code>num_tokens</code> 从 256 降到 16，正是因为 256 个 vnode 让每台机器持有大量碎片化的数据区间，<strong>修复（repair）和启动（bootstrap）的开销变得难以接受</strong>。</p>
+<blockquote>
+<p><strong>一句话总结两者的差异</strong>：
+<strong>负载均衡关心&quot;请求去哪&quot;，数据分区关心&quot;数据放哪&quot;。</strong> 前者可以随时改主意，后者改了要搬家。</p>
+</blockquote>
+<h3 id="数据分区场景的额外要求副本">数据分区场景的额外要求：副本</h3>
+<p>在数据分区场景里，一致性哈希还必须配合**副本（Replication）**使用。</p>
+<p>标准做法是：<strong>一个 key 存储在环上从它开始顺时针数的连续 <code>N</code> 个节点上</strong>（<code>N</code> 是复制因子）。这样：</p>
+<ul>
+<li>任何一个节点挂掉，数据在其他节点上还有副本</li>
+<li>读请求可以从多个副本中选一个（负载分摊）</li>
+<li>写请求需要满足<strong>法定人数（Quorum）</strong>——比如 <code>W + R &gt; N</code> 才能保证读到最新值</li>
+</ul>
+<p><strong>这是 Dynamo 论文的核心设计</strong>，也是 Cassandra、Riak 的基础。原笔记完全没有提到副本和 quorum，这是数据分区场景绕不过去的一环。</p>
+<hr />
+<h2 id="9-补充替代方案不只有一致性哈希">9. 补充：替代方案——不只有一致性哈希</h2>
+<p>一致性哈希不是唯一的答案。有三个值得知道的替代方案，面试中能提出来是明显的加分项。</p>
+<h3 id="rendezvous-hashinghrw最高随机权重">Rendezvous Hashing（HRW，最高随机权重）</h3>
+<p><strong>做法</strong>：对每个 key，计算它和<strong>每一台</strong>服务器的哈希值 <code>hash(key, server_i)</code>，取结果最大的那台。</p>
+<pre><code>target = argmax_i hash(key, server_i)
+</code></pre>
+<p><strong>性质</strong>：</p>
+<ul>
+<li><strong>不需要环，不需要虚拟节点</strong>，实现极其简单</li>
+<li>节点增减时，<strong>只有 <code>1/N</code> 的 key 需要迁移</strong>（和一致性哈希一样）</li>
+<li><strong>负载天然均匀</strong>——没有&quot;弧长不均&quot;的问题，所以不需要 vnode</li>
+</ul>
+<p><strong>代价</strong>：每次查找要计算 <code>N</code> 次哈希，复杂度 <code>O(N)</code>。节点数少时完全可接受；节点数上千时开销明显。</p>
+<p><strong>适用</strong>：节点数不多（几十台以内）、且希望实现简单的场景。</p>
+<h3 id="jump-consistent-hash">Jump Consistent Hash</h3>
+<p>Google 在 2014 年提出的算法。</p>
+<p><strong>性质</strong>：</p>
+<ul>
+<li><strong><code>O(ln N)</code> 时间、<code>O(1)</code> 内存</strong>（只需要存 bucket 数量）</li>
+<li><strong>负载完美均匀</strong>，不需要 vnode</li>
+<li>节点增减时只迁移 <code>1/N</code> 的 key</li>
+</ul>
+<p><strong>限制</strong>：<strong>只支持在&quot;桶列表的末尾&quot;增减节点</strong>——也就是说，桶必须编号为 <code>0..N-1</code>，只能整体扩缩。<strong>它无法处理&quot;中间某台机器挂了&quot;这种情况。</strong></p>
+<p><strong>适用</strong>：分片数只增不减的场景（比如&quot;逻辑分片&quot;的扩容）。这也是为什么它常被用在分片管理器里。</p>
+<h3 id="maglev-hashing">Maglev Hashing</h3>
+<p>Google 的 Maglev 负载均衡器（2016 年论文）使用的算法。</p>
+<p><strong>做法</strong>：不直接查环，而是预先生成一张<strong>固定大小的查找表</strong>（论文中使用 65537 个表项，取质数是为了减少冲突）。查找时只需一次数组索引，<strong>极快</strong>。</p>
+<p><strong>性质</strong>：</p>
+<ul>
+<li>查找是 <code>O(1)</code>，比二分查找更快</li>
+<li>节点增减时迁移比例很小（和一致性哈希同量级）</li>
+<li>表在节点变化时需要重新生成（有计算开销，但可以离线做）</li>
+</ul>
+<p><strong>适用</strong>：超大规模负载均衡，对查找延迟极敏感的场景。<strong>Envoy 内置了 Maglev 负载均衡策略</strong>，可以直接用。</p>
+<h3 id="四者对比">四者对比</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>查找复杂度</th>
+<th>内存</th>
+<th>负载均匀性</th>
+<th>能否任意删除节点</th>
+<th>典型使用方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>一致性哈希 + vnode</strong></td>
+<td><code>O(log(NV))</code></td>
+<td>中（<code>N×V</code> 个条目）</td>
+<td>好（V=256 时 CV≈6%）</td>
+<td>✅ 可以</td>
+<td>Cassandra、DynamoDB、Envoy ring hash</td>
+</tr>
+<tr>
+<td><strong>Rendezvous（HRW）</strong></td>
+<td><code>O(N)</code></td>
+<td><strong>极低</strong>（无需环）</td>
+<td><strong>很好</strong>（天然均匀）</td>
+<td>✅ 可以</td>
+<td>节点少的分布式缓存</td>
+</tr>
+<tr>
+<td><strong>Jump Consistent Hash</strong></td>
+<td><code>O(ln N)</code></td>
+<td><strong>极低</strong></td>
+<td><strong>完美</strong></td>
+<td>❌ 只能从末尾增删</td>
+<td>分片管理器、ShardedJedis</td>
+</tr>
+<tr>
+<td><strong>Maglev</strong></td>
+<td><code>O(1)</code></td>
+<td>高（查找表）</td>
+<td>好</td>
+<td>✅ 可以</td>
+<td>Google Maglev、Envoy</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>面试中的高价值回答</strong>：被问到一致性哈希时，<strong>主动提一句&quot;如果节点数不多，Rendezvous Hashing 更简单且天然均匀；如果只需要顺序扩容，Jump Consistent Hash 的性能更好&quot;</strong>。这说明你知道这不是唯一解，而是在做技术选型。</p>
+</blockquote>
+<hr />
+<h2 id="10-补充一致性哈希的收益与代价原笔记的-benefits-一节">10. 补充：一致性哈希的收益与代价（原笔记的 Benefits 一节）</h2>
+<p>原笔记列出了三条收益，这里逐条补充，并加上它没提的代价。</p>
+<h3 id="收益一最小化重新分布minimized-redistribution">收益一：最小化重新分布（Minimized Redistribution）</h3>
+<p><strong>准确。</strong> 节点增减时只迁移约 <code>1/N</code> 的 key，而不是取模哈希的 <code>N/(N+1)</code>。</p>
+<h3 id="收益二可扩展性scalability">收益二：可扩展性（Scalability）</h3>
+<p><strong>准确。</strong> 理论上可以无限加节点，迁移代价恒定在 <code>1/N</code>。</p>
+<h3 id="收益三缓解热点mitigates-hotspots">收益三：缓解热点（Mitigates Hotspots）</h3>
+<p><strong>不准确，需要修正。</strong> 详见【勘误 2】。</p>
+<p>一致性哈希缓解的是**&quot;分区不均&quot;造成的热点**（某台机器负责的哈希区间过大）。它<strong>不缓解&quot;单个 key 过热&quot;造成的热点</strong>——因为同一个 key 永远映射到同一个节点。</p>
+<p><strong>正确的表述应该是</strong>：&quot;一致性哈希通过虚拟节点让<strong>分区</strong>更均匀，从而避免了'某台机器因为区间太大而负载过高'这类热点。但它对<strong>热 key</strong>（比如超级明星的首页数据）无能为力，那需要缓存、key 加盐或单独分片来解决。&quot;</p>
+<h3 id="原笔记没提的代价">原笔记没提的代价</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>代价</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>实现复杂度</strong></td>
+<td>环的维护、vnode 的生成、节点的健康检查、环的版本同步，都比取模哈希复杂得多</td>
+</tr>
+<tr>
+<td><strong>元数据一致性</strong></td>
+<td>所有客户端和服务端必须对&quot;环长什么样&quot;达成一致。节点变更时，如何把新环推送给所有参与者是一个分布式一致性问题</td>
+</tr>
+<tr>
+<td><strong>迁移仍然需要实现</strong></td>
+<td>一致性哈希只决定映射，不负责搬数据。迁移逻辑、迁移过程中的双读/双写、迁移失败的回滚，都要自己写</td>
+</tr>
+<tr>
+<td><strong>vnode 的运维成本</strong></td>
+<td>数据碎片化导致修复（repair）和扩容（bootstrap）更慢</td>
+</tr>
+<tr>
+<td><strong>冷启动问题</strong></td>
+<td>一个全新的节点加入时，它负责的区间里没有任何数据，所有请求都会穿透到下游——需要限流或预热</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>最后一条（冷启动）在实践中非常重要</strong>。新增缓存节点后，它的命中率是 0，所有落在它身上的请求都会打到数据库。如果一次性加 10 台节点，可能瞬间产生一大波回源流量。<strong>对策是分批加节点，或者对新节点做预热。</strong></p>
+</blockquote>
+<hr />
+<h2 id="11-补充真实系统里的一致性哈希">11. 补充：真实系统里的一致性哈希</h2>
+<p>原笔记列了五个系统名。这里补充它们各自<strong>怎么用</strong>的，这是面试中能拉开差距的细节。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>怎么用的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apache Cassandra</strong></td>
+<td>用 Murmur3 哈希把 key 和节点映射到环上。历史上默认 <code>num_tokens=256</code>（即每节点 256 个 vnode）；<strong>从 4.0 版本开始默认值改为 16</strong>，因为大量 vnode 带来的元数据、修复和启动开销超过了它带来的均匀性收益。数据按复制因子存到环上连续的 N 个节点</td>
+</tr>
+<tr>
+<td><strong>Amazon Dynamo / DynamoDB</strong></td>
+<td><strong>2007 年的 Dynamo 论文</strong>是&quot;一致性哈希 + 虚拟节点 + 副本 + Quorum&quot;这套组合的经典来源，论文中用的是 MD5 哈希。<strong>DynamoDB 是它的商业化托管版本</strong>，但 DynamoDB 当前内部的分区策略官方并没有完整公开，不应把论文的细节直接当成 DynamoDB 的实现</td>
+</tr>
+<tr>
+<td><strong>Discord</strong></td>
+<td>用一致性哈希把大量&quot;服务器（Guild）&quot;进程分布到 Erlang 集群的节点上。这里的哈希对象是 Guild ID，属于<strong>负载均衡式</strong>的用法——目标是让每个进程均匀分布，而不是存数据</td>
+</tr>
+<tr>
+<td><strong>Akamai CDN</strong></td>
+<td>一致性哈希用于把 URL 映射到边缘缓存节点，保证同一个 URL 稳定地落在同一批节点上，从而提高缓存命中率。这是 CDN 场景里一致性哈希的经典用途</td>
+</tr>
+<tr>
+<td><strong>Google Maglev</strong></td>
+<td>不是直接用一致性哈希，而是用 Maglev Hashing（见第 9 节）——一张固定大小的查找表，查找 <code>O(1)</code>，用于超大规模的 L4 负载均衡</td>
+</tr>
+<tr>
+<td><strong>Envoy</strong></td>
+<td>内置 <code>ring_hash</code> 和 <code>maglev</code> 两种负载均衡策略，可以在配置里直接选。生产环境常用 ring hash 做&quot;会话粘性 + 均匀分布&quot;</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>原笔记本章在算法原理和 <code>Affected Keys</code> 的推导上<strong>都是正确的</strong>（这一点我在第 6 节逐字验算过）。问题集中在三处：<strong>术语拼写、对&quot;均匀分布&quot;和&quot;热点&quot;的过度承诺、以及关键内容缺失</strong>。</p>
+</blockquote>
+<h3 id="勘误-1introduction-声称一致性哈希保证均匀分布与后文自相矛盾">勘误 1：Introduction 声称一致性哈希&quot;保证均匀分布&quot;，与后文自相矛盾</h3>
+<ul>
+<li><strong>原文说法</strong>：Introduction 中写道：consistency hashing &quot;minimizes data redistribution when servers are added or removed and <strong>ensures an even distribution of data</strong> to mitigate issues like server hotspots.&quot;</li>
+<li><strong>问题</strong>：这句话<strong>过度承诺</strong>，而且和原笔记自己后面的内容直接矛盾。原笔记在 <code>Challenges and Solutions</code> 一节明确写了基本方案存在 &quot;Uneven Partition Sizes&quot; 和 &quot;Non-uniform Key Distribution&quot; 两个问题——也就是说，<strong>基本的一致性哈希并不保证均匀分布</strong>。正是因为它不保证，才需要引入虚拟节点来修补。</li>
+<li><strong>正确说法</strong>：一致性哈希保证的是**&quot;节点增减时迁移比例小&quot;**（约 <code>1/N</code>）。<strong>均匀分布不是它保证的，而是要靠虚拟节点去逼近的。</strong> 更准确的表述是：&quot;一致性哈希保证节点增减时的迁移代价最小；在配合虚拟节点使用时，它能让数据分布接近均匀。&quot;</li>
+<li><strong>延伸</strong>：<code>ensure</code>（保证）和 <code>improve</code>（改善）在系统设计的语境里差别很大。<strong>在面试中，把&quot;保证&quot;和&quot;改善&quot;用错，会被认为对技术边界理解不清。</strong> 一个通用原则：凡是涉及分布式数据分布的性质，几乎都只能说&quot;以高概率&quot;或&quot;趋于&quot;，很少能&quot;保证&quot;。</li>
+</ul>
+<h3 id="勘误-2mitigates-hotspots-的说法会误导初学者">勘误 2：<code>Mitigates Hotspots</code> 的说法会误导初学者</h3>
+<ul>
+<li>
+<p><strong>原文说法</strong>：Benefits 一节写 &quot;<strong>Mitigates Hotspots:</strong> Balances data distribution to avoid server overload.&quot;</p>
+</li>
+<li>
+<p><strong>问题</strong>：这句话把两类完全不同的问题混为一谈。</p>
+<ol>
+<li><strong>分区倾斜（Partition Skew）</strong>：因为哈希环上节点位置随机，某台机器负责的区间过大，导致它承载的数据量远超平均。<strong>一致性哈希 + 虚拟节点能有效缓解这一类。</strong></li>
+<li><strong>热点 key（Hot Key）</strong>：某个具体的 key 被高频访问（比如一个明星的主页、一个秒杀商品）。<strong>一致性哈希对此完全无能为力</strong>——因为无论用什么哈希函数，同一个 key 永远映射到同一个节点，那个节点必然被打爆。</li>
+</ol>
+<p>原笔记的说法会让读者以为&quot;上了一致性哈希就不会有热点了&quot;，这是错的。</p>
+</li>
+<li>
+<p><strong>正确说法</strong>：一致性哈希缓解的是<strong>分区倾斜</strong>导致的热点，<strong>不缓解热点 key</strong>。热点 key 要靠：</p>
+<ul>
+<li><strong>加缓存</strong>（最有效，热点数据放内存，根本不落到存储节点）</li>
+<li><strong>key 加盐（Key Salting）</strong>：把 <code>hot_key</code> 拆成 <code>hot_key_0</code> ~ <code>hot_key_9</code> 分散到 10 个节点，读取时合并</li>
+<li><strong>热点数据单独分配节点</strong>（本地缓存 + 副本读）</li>
+</ul>
+</li>
+<li>
+<p><strong>延伸</strong>：这个问题在第 1 章讨论分片的&quot;名人问题（Celebrity Problem）&quot;时也出现过。<strong>&quot;一致性哈希能解决热点问题&quot;是系统设计面试中最常见的错误陈述之一</strong>，一定要区分清楚是哪一类热点。</p>
+</li>
+</ul>
+<h3 id="勘误-3leaking-拼写与编号问题表述层面">勘误 3：<code>Leaking</code> / 拼写与编号问题（表述层面）</h3>
+<ul>
+<li><strong>原文说法</strong>：
+<ol>
+<li><code>Key Concepts</code> 一节的编号出错：第一个要点编号是 <code>1.</code>，紧接着 &quot;Server Lookup&quot; 也是 <code>1.</code>，然后 &quot;Adding and Removing Servers&quot; 是 <code>2.</code>——<strong>列表编号重复，Markdown 渲染出来的序号是错的</strong>。</li>
+<li>虚拟节点一节把 <code>distributed</code> 拼写成了 <strong><code>distrubuted</code></strong>。</li>
+<li>代码式表述 <code>serverIndex = hash(key) % N</code> 中的 <code>serverIndex</code> 用了驼峰命名，而其他地方用的是下划线命名，风格不统一。</li>
+</ol>
+</li>
+<li><strong>问题</strong>：这些是表述层面的小问题，不影响技术正确性，但在一个&quot;供人学习&quot;的教程里会降低可信度。</li>
+<li><strong>正确说法</strong>：编号应为 <code>1. Hash Space and Ring</code> → <code>2. Server Lookup</code> → <code>3. Adding and Removing Servers</code>；拼写应为 <code>distributed</code>；命名统一为 <code>server_index</code>。</li>
+<li><strong>延伸</strong>：这不算技术勘误，列出来是因为<strong>原笔记本身就是一份要给人读的资料</strong>。养成&quot;发布前通读一遍编号和拼写&quot;的习惯，在写技术文档时很值钱。</li>
+</ul>
+<h3 id="补充-1节点少时的分布不均需要量化">补充 1：节点少时的分布不均需要量化</h3>
+<p>原笔记只说&quot;服务器可能分到的分区大小不等&quot;&quot;某些服务器可能收到明显更多的 key&quot;，但没有说<strong>不均到什么程度</strong>。详见第 5 节——关键结论是：<strong>N 个随机节点时，最大弧长期望约为 <code>(ln N + γ)/N</code>，即最忙的节点要扛平均值的 <code>ln N + γ</code> 倍</strong>。10 台机器时是 2.9 倍，100 台时是 5.2 倍。<strong>这个数字是&quot;为什么必须用虚拟节点&quot;的量化依据。</strong></p>
+<h3 id="补充-2虚拟节点数量的经验值">补充 2：虚拟节点数量的经验值</h3>
+<p>原笔记只说&quot;虚拟节点越多，分布越均匀&quot;，没有给出该设多少个。详见第 5 节——核心结论是 <strong>负载的相对标准差 ≈ <code>1/√V</code></strong>，并给出了 V=64/128/256/1024 对应的具体数值，以及 <strong>Cassandra 从 256 改到 16 的原因</strong>（元数据、修复、启动开销）。</p>
+<h3 id="补充-3为什么是顺时针这只是一个约定">补充 3：为什么是&quot;顺时针&quot;——这只是一个约定</h3>
+<p>原笔记直接使用了&quot;顺时针&quot;这个说法，没有说明它的地位。详见第 3 节末尾。<strong>关键点是：顺时针和逆时针在数学上完全等价，唯一的要求是所有参与者约定一致。</strong> 不要把一个任意的约定当成算法的组成部分。</p>
+<h3 id="补充-4负载均衡与数据分区是两种不同的用法">补充 4：负载均衡与数据分区是两种不同的用法</h3>
+<p>原笔记把 DynamoDB、Cassandra、Discord、Akamai、Maglev 并列在一起，没有区分它们属于哪一类。详见第 8 节——<strong>两类用法在&quot;重新映射的代价&quot;&quot;是否需要副本&quot;&quot;故障处理方式&quot;上完全不同</strong>。此外，数据分区场景还必须配合<strong>副本与 Quorum</strong>，这是原笔记完全缺失的一环。</p>
+<h3 id="补充-5一致性哈希不是唯一解">补充 5：一致性哈希不是唯一解</h3>
+<p>原笔记只讲了一致性哈希。详见第 9 节：<strong>Rendezvous Hashing（HRW）</strong>、<strong>Jump Consistent Hash</strong>、<strong>Maglev Hashing</strong> 三个替代方案，含各自的复杂度、内存、均匀性和适用场景对比。<strong>面试中能主动提出替代方案，是明显的加分项。</strong></p>
+<h3 id="补充-6一致性哈希的代价与前提">补充 6：一致性哈希的代价与前提</h3>
+<p>原笔记只列了收益。详见第 7 节和第 10 节：一致性哈希<strong>只决定映射关系，不负责搬数据</strong>；它有元数据一致性、vnode 运维成本、新节点冷启动等代价。<strong>面试中只讲收益不讲代价，会被认为缺乏工程经验。</strong></p>
+<h3 id="补充-7真实系统的具体用法">补充 7：真实系统的具体用法</h3>
+<p>原笔记只列了五个系统名。详见第 11 节，补充了每个系统<strong>怎么用</strong>的细节，以及 DynamoDB 与 Dynamo 论文之间需要小心区分的地方。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一致性哈希保证数据均匀分布</td>
+<td>基本方案并不保证，原笔记自己就指出了&quot;分区不均&quot;的问题</td>
+<td>它保证的是<strong>迁移比例小</strong>；均匀分布要靠<strong>虚拟节点</strong>逼近</td>
+</tr>
+<tr>
+<td>一致性哈希能解决热点问题</td>
+<td>同一个 key 永远映射到同一个节点，热 key 依然会打爆单节点</td>
+<td>它缓解的是<strong>分区倾斜</strong>，不解决<strong>热 key</strong>。热 key 要靠缓存、key 加盐、独立分片</td>
+</tr>
+<tr>
+<td>一致性哈希会自动迁移数据</td>
+<td>它只决定&quot;key 应该去哪个节点&quot;</td>
+<td><strong>迁移逻辑要自己实现</strong>。缓存场景下通常直接用&quot;失效 + 回源&quot;代替迁移</td>
+</tr>
+<tr>
+<td>虚拟节点越多越好</td>
+<td>vnode 越多，元数据越大、修复和启动越慢、迁移越零碎</td>
+<td>有收益递减点。常见取值 64~256；<strong>Cassandra 从 256 改到 16 就是这个权衡的结果</strong></td>
+</tr>
+<tr>
+<td>必须顺时针，这是算法规定</td>
+<td>顺时针和逆时针在数学上完全等价</td>
+<td>顺时针只是<strong>约定</strong>。唯一要求是所有参与者约定一致</td>
+</tr>
+<tr>
+<td>加了机器，数据迁移量是 1/N</td>
+<td><code>1/N</code> 指的是<strong>哈希空间</strong>的迁移比例</td>
+<td>实际迁移的<strong>数据量</strong>取决于那段区间里真实存了多少数据，两者不一定相等</td>
+</tr>
+<tr>
+<td>一致性哈希没有缺点，比取模哈希全面更好</td>
+<td>它引入了环维护、元数据同步、冷启动、迁移实现等大量复杂度</td>
+<td>节点数固定、或节点数很少时，<strong>取模哈希更简单也更可靠</strong></td>
+</tr>
+<tr>
+<td>一致性哈希只能用在缓存上</td>
+<td>它在负载均衡和数据分区里都用得很广</td>
+<td>Cassandra、DynamoDB 用它做数据分区；Envoy、Discord 用它做负载均衡</td>
+</tr>
+<tr>
+<td>数据分区场景只要一致性哈希就够了</td>
+<td>还必须配合副本和 Quorum 才能保证不丢数据</td>
+<td>数据按复制因子存到环上<strong>连续的 N 个节点</strong>，写要满足 <code>W + R &gt; N</code></td>
+</tr>
+<tr>
+<td>新加的节点可以立刻分担流量</td>
+<td>新节点负责的区间里没有任何缓存数据，命中率为 0</td>
+<td>所有请求会<strong>穿透到下游</strong>。需要<strong>分批扩容或预热</strong></td>
+</tr>
+<tr>
+<td>Jump Consistent Hash 什么场景都能用</td>
+<td>它只支持在桶列表末尾增减节点</td>
+<td><strong>无法处理&quot;中间某台机器挂了&quot;</strong>。适合只增不减的分片场景</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：一致性哈希把哈希空间首尾相接成环，让&quot;key 归属于顺时针第一个节点&quot;，从而把节点增减时的迁移比例从 <code>N/(N+1)</code> 降到 <code>1/N</code>；它必须配合虚拟节点才能获得均匀的分布。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>问题起点</strong>：<code>hash(key) % N</code> 在 <code>N</code> 变化时会让约 <code>N/(N+1)</code> 的 key 重新映射，缓存大面积失效。</li>
+<li><strong>环与规则</strong>：哈希空间首尾相接成环，key 归属于<strong>顺时针方向的第一个服务器</strong>（等价说法：每台服务器负责它逆时针一侧的一段弧）。</li>
+<li><strong>迁移代价</strong>：添加节点时新节点从<strong>顺时针后继</strong>手里接管区间；移除节点时把区间交给<strong>顺时针后继</strong>。两种情况都只影响 <code>1/N</code> 的 key。</li>
+<li><strong>虚拟节点</strong>：每台物理服务器在环上占 <code>V</code> 个位置，负载的相对标准差从 100% 降到约 <code>1/√V</code>。常见取值 64~256。</li>
+<li><strong>边界</strong>：它只决定映射关系，<strong>不负责搬数据</strong>，也<strong>不解决热 key</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动量化<strong>节点少时的倾斜</strong>：最大弧长期望约 <code>(ln N + γ)/N</code>，10 台机器时最忙的节点要扛 2.9 倍负载。</li>
+<li>主动区分<strong>负载均衡</strong>与<strong>数据分区</strong>两种用法，并指出后者必须配合<strong>副本与 Quorum</strong>。</li>
+<li>主动提出替代方案：<strong>Rendezvous Hashing</strong>（无环、天然均匀、<code>O(N)</code>）、<strong>Jump Consistent Hash</strong>（<code>O(ln N)</code>、<code>O(1)</code> 内存、只能末尾增删）、<strong>Maglev</strong>（查找表、<code>O(1)</code>）。</li>
+<li>主动提到 <strong>Cassandra 把 <code>num_tokens</code> 默认值从 256 降到 16</strong>，说明 vnode 数量不是越多越好。</li>
+<li>主动指出<strong>新节点的冷启动问题</strong>（命中率为 0，会引发回源洪峰），以及分批扩容的对策。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;加了一台机器，缓存为什么大面积失效？怎么算？&quot;</em>
+→ 取模哈希下，key 留在原节点需要 <code>hash % N == hash % (N+1)</code>，概率只有约 <code>1/(N+1)</code>，所以约 <code>N/(N+1)</code> 的 key 要迁移。3 台加到 4 台是 75%，99 台加到 100 台是 99%。用一致性哈希可以降到约 <code>1/N</code>。</li>
+<li><em>&quot;为什么需要虚拟节点？设多少个合适？&quot;</em>
+→ 因为单点占环时，负载的相对标准差接近 100%——最忙的节点要扛平均值的 <code>ln N + γ</code> 倍（10 台时是 2.9 倍）。用 <code>V</code> 个虚拟节点后，相对标准差降到约 <code>1/√V</code>：V=64 约 12.5%，V=256 约 6.25%。但 vnode 越多，元数据和修复开销越大，所以要取折中——Cassandra 就从 256 调到了 16。</li>
+<li><em>&quot;移除一台服务器，它上面的数据去哪？&quot;</em>
+→ 交给它的<strong>顺时针后继</strong>。准确地说，被移除节点负责的区间 <code>(pred, s_old]</code> 里的 key，现在顺时针遇到的第一个服务器是后继节点，所以整段区间转移过去。注意<strong>接收方是顺时针方向的下一个节点</strong>，不是逆时针找到的前驱。</li>
+<li><em>&quot;一致性哈希能解决热点 key 吗？&quot;</em>
+→ 不能。同一个 key 永远映射到同一个节点，无论怎么哈希。它解决的是<strong>分区倾斜</strong>。热 key 要靠缓存、key 加盐（<code>hot_key_0</code>~<code>hot_key_9</code> 分散到多节点）或独立分片。</li>
+<li><em>&quot;除了加机器，还有别的方式解决扩容问题吗？&quot;</em>
+→ 有，而且工程上更常用：<strong>预先规划大量逻辑分片</strong>（比如 1024 个逻辑分片映射到少量物理节点），扩容时整片搬迁，不用重新哈希。这个思路和 Jump Consistent Hash 的适用场景一致——<strong>只增不减的分片场景</strong>。</li>
+<li><em>&quot;如果客户端和服务端的环视图不一致会怎样？&quot;</em>
+→ 请求会被路由到&quot;错误的&quot;节点，表现为缓存命中率下降、或者读到不该读的数据。对策是把环的版本化并集中分发（配置中心 / 一致性协调服务），变更时做双读过渡。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf" target="_blank" rel="noopener noreferrer">Amazon Dynamo 论文（2007）</a> — 一致性哈希 + 虚拟节点 + 副本 + Quorum 组合的原始出处</li>
+<li><a href="https://cassandra.apache.org/doc/latest/cassandra/configuration/cass_yaml_file.html" target="_blank" rel="noopener noreferrer">Cassandra <code>cassandra.yaml</code> 配置文档</a> — <code>num_tokens</code> 默认值的权威说明（4.0 起为 16）</li>
+<li><a href="https://arxiv.org/abs/1406.2294" target="_blank" rel="noopener noreferrer">Jump Consistent Hash（Google，2014）</a> — <code>O(ln N)</code>、<code>O(1)</code> 内存的无环方案</li>
+<li><a href="https://research.google/pubs/pub44824/" target="_blank" rel="noopener noreferrer">Maglev：A Fast and Reliable Software Network Load Balancer（Google，2016）</a> — Maglev Hashing 的原始论文</li>
+<li><a href="https://arxiv.org/abs/1608.01350" target="_blank" rel="noopener noreferrer">Consistent Hashing with Bounded Loads（Google，2017）</a> — 给每个节点加负载上限，解决&quot;某些节点仍然过载&quot;的残余问题</li>
+<li><a href="https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/load_balancers" target="_blank" rel="noopener noreferrer">Envoy：Ring Hash 与 Maglev 负载均衡策略</a> — 生产环境可直接使用的实现</li>
+<li><a href="../01/">第 1 章：从零到百万用户</a> — 分片与&quot;名人问题&quot;的背景，与本章的勘误 2 直接相关</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../04/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">限流器</span></a><a class="next" href="../06/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">键值存储</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-从一个真实故障开始加了一台服务器缓存全失效了">1. 从一个真实故障开始：加了一台服务器，缓存全失效了</a>
+<a class="lv3" href="#原笔记的表述需要补充一点">原笔记的表述需要补充一点</a>
+<a class="lv2" href="#2-一致性哈希把哈希空间首尾相接成一个环">2. 一致性哈希：把哈希空间首尾相接成一个环</a>
+<a class="lv3" href="#第-1-步构造哈希环">第 1 步：构造哈希环</a>
+<a class="lv3" href="#第-2-步把服务器放到环上">第 2 步：把服务器放到环上</a>
+<a class="lv3" href="#第-3-步把-key-也放到环上顺时针找服务器">第 3 步：把 key 也放到环上，顺时针找服务器</a>
+<a class="lv2" href="#3-服务器查找把规则写成精确的形式">3. 服务器查找：把规则写成精确的形式</a>
+<a class="lv3" href="#为什么是顺时针">为什么是顺时针？</a>
+<a class="lv2" href="#4-添加与移除服务器">4. 添加与移除服务器</a>
+<a class="lv3" href="#添加服务器">添加服务器</a>
+<a class="lv3" href="#移除服务器">移除服务器</a>
+<a class="lv3" href="#统一成一条规则">统一成一条规则</a>
+<a class="lv3" href="#迁移比例是多少">迁移比例是多少？</a>
+<a class="lv2" href="#5-基本方案的两个问题与虚拟节点">5. 基本方案的两个问题与虚拟节点</a>
+<a class="lv3" href="#问题有多严重原笔记没有量化">问题有多严重？（原笔记没有量化）</a>
+<a class="lv3" href="#解法虚拟节点virtual-nodes">解法：虚拟节点（Virtual Nodes）</a>
+<a class="lv3" href="#虚拟节点为什么有效">虚拟节点为什么有效？</a>
+<a class="lv3" href="#虚拟节点的代价">虚拟节点的代价</a>
+<a class="lv2" href="#6-受影响-key-的精确推导">6. 受影响 key 的精确推导</a>
+<a class="lv3" href="#原笔记的原文">原笔记的原文</a>
+<a class="lv3" href="#验算一添加-s4受影响区间是-s3-s4迁移到-s4-正确">验算一：添加 s4，受影响区间是 (s3, s4]，迁移到 s4 —— 正确</a>
+<a class="lv3" href="#验算二移除-s1受影响区间是-s0-s1迁移到-s2-正确">验算二：移除 s1，受影响区间是 (s0, s1]，迁移到 s2 —— 正确</a>
+<a class="lv3" href="#验算总结">验算总结</a>
+<a class="lv3" href="#两个容易混淆的点">两个容易混淆的点</a>
+<a class="lv2" href="#7-补充一致性哈希的边界与前提">7. 补充：一致性哈希的边界与前提</a>
+<a class="lv3" href="#前提一key-的数量必须远大于节点数量">前提一：key 的数量必须远大于节点数量</a>
+<a class="lv3" href="#前提二一致性哈希只决定映射关系不负责搬数据">前提二：一致性哈希只决定&quot;映射关系&quot;，不负责&quot;搬数据&quot;</a>
+<a class="lv3" href="#前提三一致性哈希不解决热点-key-问题">前提三：一致性哈希不解决热点 key 问题</a>
+<a class="lv2" href="#8-补充负载均衡与数据分区两种用途的本质差异">8. 补充：负载均衡与数据分区——两种用途的本质差异</a>
+<a class="lv3" href="#为什么这个区分重要">为什么这个区分重要？</a>
+<a class="lv3" href="#数据分区场景的额外要求副本">数据分区场景的额外要求：副本</a>
+<a class="lv2" href="#9-补充替代方案不只有一致性哈希">9. 补充：替代方案——不只有一致性哈希</a>
+<a class="lv3" href="#rendezvous-hashinghrw最高随机权重">Rendezvous Hashing（HRW，最高随机权重）</a>
+<a class="lv3" href="#jump-consistent-hash">Jump Consistent Hash</a>
+<a class="lv3" href="#maglev-hashing">Maglev Hashing</a>
+<a class="lv3" href="#四者对比">四者对比</a>
+<a class="lv2" href="#10-补充一致性哈希的收益与代价原笔记的-benefits-一节">10. 补充：一致性哈希的收益与代价（原笔记的 Benefits 一节）</a>
+<a class="lv3" href="#收益一最小化重新分布minimized-redistribution">收益一：最小化重新分布（Minimized Redistribution）</a>
+<a class="lv3" href="#收益二可扩展性scalability">收益二：可扩展性（Scalability）</a>
+<a class="lv3" href="#收益三缓解热点mitigates-hotspots">收益三：缓解热点（Mitigates Hotspots）</a>
+<a class="lv3" href="#原笔记没提的代价">原笔记没提的代价</a>
+<a class="lv2" href="#11-补充真实系统里的一致性哈希">11. 补充：真实系统里的一致性哈希</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1introduction-声称一致性哈希保证均匀分布与后文自相矛盾">勘误 1：Introduction 声称一致性哈希&quot;保证均匀分布&quot;，与后文自相矛盾</a>
+<a class="lv3" href="#勘误-2mitigates-hotspots-的说法会误导初学者">勘误 2：Mitigates Hotspots 的说法会误导初学者</a>
+<a class="lv3" href="#勘误-3leaking-拼写与编号问题表述层面">勘误 3：Leaking / 拼写与编号问题（表述层面）</a>
+<a class="lv3" href="#补充-1节点少时的分布不均需要量化">补充 1：节点少时的分布不均需要量化</a>
+<a class="lv3" href="#补充-2虚拟节点数量的经验值">补充 2：虚拟节点数量的经验值</a>
+<a class="lv3" href="#补充-3为什么是顺时针这只是一个约定">补充 3：为什么是&quot;顺时针&quot;——这只是一个约定</a>
+<a class="lv3" href="#补充-4负载均衡与数据分区是两种不同的用法">补充 4：负载均衡与数据分区是两种不同的用法</a>
+<a class="lv3" href="#补充-5一致性哈希不是唯一解">补充 5：一致性哈希不是唯一解</a>
+<a class="lv3" href="#补充-6一致性哈希的代价与前提">补充 6：一致性哈希的代价与前提</a>
+<a class="lv3" href="#补充-7真实系统的具体用法">补充 7：真实系统的具体用法</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

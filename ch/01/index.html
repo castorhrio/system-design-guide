@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 1 章：从零到百万用户 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item active" href="./"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-1-章从零到百万用户">第 1 章：从零到百万用户</h1>
+<blockquote>
+<p>原章节：Scale from Zero to Millions of Users · 原项目路径 <code>01. Scaling/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>几乎每一道系统设计题，最后都会落到同一个问题上：<strong>用户变多了怎么办？</strong></p>
+<p>这一章不讲某个具体系统，而是讲一条&quot;成长路线&quot;——从一台服务器开始，随着用户从 100 涨到 1 亿，架构是怎么一步步演化的。它是整本书的地基：后面 27 章反复用到的负载均衡、缓存、CDN、消息队列、分片，全都在这里第一次登场。</p>
+<p>学完这一章，你应该能回答：为什么单机扛不住？加机器为什么不是简单地&quot;再来一台&quot;？数据库为什么会成为瓶颈？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>一个请求从浏览器发出到拿到响应，中间经过了哪些环节</li>
+<li>垂直扩展与水平扩展的本质区别，以及为什么最终必须走向水平扩展</li>
+<li>数据库为什么会成为第一个瓶颈，以及复制、分片两种解法各自的代价</li>
+<li>缓存的正确用法，以及它带来的三个新问题</li>
+<li>什么让一台服务器变得&quot;无状态&quot;，为什么这件事如此重要</li>
+<li>各个组件如何组合成一个能支撑百万用户的完整架构</li>
+</ul>
+<hr />
+<h2 id="1-单机起步一切都跑在一台机器上">1. 单机起步：一切都跑在一台机器上</h2>
+<p>最开始，用户没几个，一台服务器就够了。Web 应用、数据库、缓存全部塞在同一台机器里。</p>
+<div align="center">
+  <img src="./images/single-server.png" alt="单服务器架构：用户、DNS、Web 服务器" width="520" loading="lazy" decoding="async">
+</div>
+<h3 id="一个请求的完整旅程">一个请求的完整旅程</h3>
+<p>你打开浏览器，输入 <code>api.mysite.com</code>，按下回车。接下来发生了什么？</p>
+<ol>
+<li><strong>DNS 解析</strong>：浏览器不认识域名，只认识 IP 地址。它去问 DNS 服务器：&quot;<code>api.mysite.com</code> 对应哪个 IP？&quot;</li>
+<li><strong>拿到 IP</strong>：DNS 返回 Web 服务器的 IP，比如 <code>15.125.23.214</code>。</li>
+<li><strong>发起 HTTP 请求</strong>：浏览器向这个 IP 发送请求。</li>
+<li><strong>返回响应</strong>：Web 服务器处理完，返回 HTML 页面或 JSON 数据。</li>
+</ol>
+<blockquote>
+<p><strong>为什么这里要讲 DNS？</strong>
+因为后面章节会反复出现一个设计手法：<strong>把某一层做成可替换的</strong>。DNS 就是最外层的&quot;可替换点&quot;——GeoDNS 能把用户导向最近的数据中心（见第 9 节），这在容灾和降低延迟上非常关键。</p>
+</blockquote>
+<h3 id="流量从哪来">流量从哪来</h3>
+<p>两类客户端，通信方式略有不同：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>客户端</th>
+<th>业务逻辑在哪</th>
+<th>与服务器怎么通信</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web 应用</td>
+<td>服务端语言（Python、Java 等）</td>
+<td>HTTP，返回 HTML 或 JSON</td>
+</tr>
+<tr>
+<td>移动应用</td>
+<td>客户端（iOS/Android）</td>
+<td>HTTP + JSON，只传数据不传页面</td>
+</tr>
+</tbody>
+</table></div>
+<p>移动端只交换 JSON 这点很重要：<strong>数据传输量小</strong>，意味着同样的带宽能服务更多用户。</p>
+<h3 id="单机的问题">单机的问题</h3>
+<p>只有一个问题，但是致命的：<strong>所有东西都在一起，任何一个坏了，全部玩完。</strong></p>
+<p>更要命的是，你没法单独给数据库加内存——因为 Web 应用也在同一台机器上抢资源。</p>
+<hr />
+<h2 id="2-第一步拆分把数据库搬出去">2. 第一步拆分：把数据库搬出去</h2>
+<p>用户多起来之后，第一个被拆出去的是数据库。</p>
+<div align="center">
+  <img src="./images/database.png" alt="Web 层与数据库层分离" width="520" loading="lazy" decoding="async">
+</div>
+<p><strong>为什么先拆数据库？</strong> 因为 Web 服务器基本是&quot;无记忆&quot;的——它收到请求、算一下、返回结果，不存东西。而数据库要存所有数据，是真正的资源消耗大户。把两者分开，就能<strong>各自独立扩展</strong>：Web 服务器不够就加 Web 服务器，数据库不够就升数据库，互不干扰。</p>
+<h3 id="选关系型还是非关系型">选关系型还是非关系型</h3>
+<p>这是初学者最容易纠结的问题。先记住一个判断原则：<strong>默认选关系型数据库（SQL）</strong>，除非有明确理由不选。</p>
+<p>关系型数据库（MySQL、PostgreSQL）的优势在于：有几十年的工程积累，支持事务、连接（JOIN）、复杂查询，社区成熟。</p>
+<p>非关系型数据库（NoSQL）分四类：</p>
+<ul>
+<li><strong>键值存储（Key-Value Store）</strong>：Redis、DynamoDB</li>
+<li><strong>文档存储（Document Store）</strong>：MongoDB</li>
+<li><strong>列存储（Column Store）</strong>：Cassandra、HBase</li>
+<li><strong>图数据库（Graph Database）</strong>：Neo4j</li>
+</ul>
+<p><strong>什么时候该考虑 NoSQL？</strong> 满足以下任一条：</p>
+<ol>
+<li>应用需要<strong>极低延迟</strong>（NoSQL 通常省掉了事务和 JOIN 的开销）</li>
+<li>数据是<strong>非结构化的</strong>，或者根本没有关联关系</li>
+<li>只需要<strong>序列化和反序列化</strong>数据（JSON、XML、YAML），不需要复杂查询</li>
+<li>需要存储<strong>海量数据</strong>，且关系型数据库的扩展成本无法接受</li>
+</ol>
+<blockquote>
+<p><strong>初学者常见误区</strong>
+&quot;NoSQL 比 SQL 先进 / 性能更好&quot;——错。NoSQL 是<strong>放弃了某些能力换取另一些能力</strong>。放弃了事务和 JOIN，换来的是更容易的水平扩展。如果你的业务需要跨表事务（比如转账），强行上 NoSQL 会让你的代码里充满手写的补偿逻辑，得不偿失。
+选型要看<strong>业务需要什么</strong>，不是看<strong>哪个更时髦</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="3-垂直扩展-vs-水平扩展">3. 垂直扩展 vs 水平扩展</h2>
+<div align="center">
+  <img src="./images/horizontal-scaling.png" alt="水平扩展：数据分片" width="520" loading="lazy" decoding="async">
+</div>
+<h3 id="垂直扩展vertical-scaling把机器换得更强">垂直扩展（Vertical Scaling）：把机器换得更强</h3>
+<p>给现有的服务器加 CPU、加内存、换更快的 SSD。</p>
+<p><strong>优点</strong>：简单，代码一行不用改。</p>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><strong>有物理上限</strong>。单台机器最多能塞多少 CPU、多少内存，是有天花板的。</li>
+<li><strong>没有冗余</strong>。这台机器挂了，服务就挂了。</li>
+<li><strong>成本不是线性的</strong>。性能翻倍的机器，价格往往远超两倍。</li>
+</ul>
+<h3 id="水平扩展horizontal-scaling用更多机器">水平扩展（Horizontal Scaling）：用更多机器</h3>
+<p>不再追求单台更强，而是加更多台普通机器。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>理论上无上限</strong>，加机器就行。</li>
+<li><strong>天然冗余</strong>，坏一台不影响整体。</li>
+<li><strong>成本线性</strong>，可以用便宜的商用机器。</li>
+</ul>
+<p><strong>代价</strong>：引入了新的复杂性。多台机器意味着：</p>
+<ul>
+<li>请求要<strong>分发</strong>给哪一台？→ 需要<strong>负载均衡器</strong></li>
+<li>数据要<strong>存在</strong>哪一台？→ 需要<strong>分片</strong>（见第 12 节）</li>
+<li>用户状态要<strong>记在</strong>哪一台？→ 需要<strong>无状态化</strong>（见第 8 节）</li>
+</ul>
+<blockquote>
+<p><strong>这就是整本书的主线</strong>
+系统设计的绝大部分复杂度，都来自&quot;从一台变成多台&quot;这件事。后面每一章，本质上都在解决这个转变带来的某个具体问题。</p>
+</blockquote>
+<hr />
+<h2 id="4-负载均衡器把请求分出去">4. 负载均衡器：把请求分出去</h2>
+<div align="center">
+  <img src="./images/load-balancer.png" alt="负载均衡器在多台 Web 服务器间分发流量" width="520" loading="lazy" decoding="async">
+</div>
+<p>负载均衡器（Load Balancer）站在用户和 Web 服务器之间，把请求分发给多台服务器。</p>
+<p>它带来两个直接好处：</p>
+<ol>
+<li><strong>冗余（Redundancy）</strong>：如果服务器 1 挂了，流量自动转到服务器 2，用户毫无感知。</li>
+<li><strong>可扩展（Scalability）</strong>：流量涨了，往后面再加几台服务器就行。</li>
+</ol>
+<p><strong>还有一个容易被忽略的好处</strong>：负载均衡器对外暴露一个固定 IP，用户只知道这一个地址。内部服务器怎么加、怎么减、IP 怎么变，用户完全不需要知道。这叫<strong>解耦</strong>。</p>
+<hr />
+<h2 id="5-数据库复制让数据也有备份">5. 数据库复制：让数据也有备份</h2>
+<p>Web 层可以随便加机器了，但数据库还是单点——它挂了，整个系统就挂了。</p>
+<p>解决方案是<strong>数据库复制（Replication）</strong>：把数据复制到多台数据库上。</p>
+<div align="center">
+  <img src="./images/database-replication.png" alt="主库写、从库读的复制模型" width="520" loading="lazy" decoding="async">
+</div>
+<h3 id="主副本模型primary-replica">主副本模型（Primary-Replica）</h3>
+<blockquote>
+<p><strong>术语勘误</strong>：原笔记使用的是 <strong>Master-Slave（主从）</strong>。这个叫法在业界已逐渐弃用，现在标准术语是 <strong>Primary-Replica（主副本）</strong> 或 <strong>Leader-Follower（主从）</strong>。下文统一使用新术语。详见文末【勘误与补充】。</p>
+</blockquote>
+<ul>
+<li><strong>主库（Primary）</strong>：处理所有<strong>写</strong>操作。插入、更新、删除都必须走主库。</li>
+<li><strong>副本库（Replica）</strong>：处理<strong>读</strong>操作。</li>
+</ul>
+<p><strong>为什么副本库可以有很多个，主库通常只有一个？</strong> 因为在绝大多数应用里，<strong>读远多于写</strong>。比如刷朋友圈，一百个人看，可能只有一个人发。所以你可以用很多台副本库来分担读压力，而主库只需要一台。</p>
+<h3 id="复制带来的两个好处">复制带来的两个好处</h3>
+<ol>
+<li><strong>性能提升</strong>：读操作可以并行分散到多台副本库上。</li>
+<li><strong>高可用与数据可靠</strong>：数据有多份拷贝，坏一台不丢数据。</li>
+</ol>
+<h3 id="出故障了怎么办">出故障了怎么办</h3>
+<ul>
+<li><strong>副本库挂了（只有一台）</strong>：读请求临时转到主库。</li>
+<li><strong>副本库挂了（有多台）</strong>：读请求转给其他健康的副本库，同时拉起一台新的替换。</li>
+<li><strong>主库挂了</strong>：从副本库里**提升（Promote）**一台成为新的主库。</li>
+</ul>
+<h3 id="主从延迟这里有个经典的坑">主从延迟：这里有个经典的坑</h3>
+<p>主库挂了要提升副本库时，<strong>选中的副本库可能还没有同步完最新的数据</strong>——这部分还没复制过去的数据就丢了。这是复制模型固有的取舍：<strong>要么保证不丢数据（同步复制，慢），要么保证速度（异步复制，可能丢）</strong>。</p>
+<blockquote>
+<p><strong>原笔记的说法需要更新</strong>
+原文写的是&quot;通过运行数据恢复脚本来补齐数据，可以用多主（multi-master）或环形复制（circular replication）来帮忙&quot;。这是比较旧的做法。现代工程实践是：</p>
+<ul>
+<li>使用<strong>半同步复制（Semi-Synchronous Replication）</strong>，至少保证一台副本收到数据后才向客户端确认；</li>
+<li>使用 <strong>GTID / WAL 位点</strong>做精确的故障切换，而不是靠脚本&quot;捞数据&quot;；</li>
+<li>使用 <strong>Patroni、Orchestrator、MHA</strong> 这类自动化故障转移工具，把切换时间从人工的几十分钟压到秒级。</li>
+</ul>
+<p><strong>多主和环形复制要慎用</strong>：多台机器都能写，就必然出现<strong>写冲突（Write Conflict）</strong>，需要额外的冲突解决逻辑（比如&quot;最后写入者胜出&quot;，但这会丢数据）。除非业务真的能接受，否则不要用。</p>
+</blockquote>
+<h3 id="主从延迟导致的读不到自己写的数据">主从延迟导致的&quot;读不到自己写的数据&quot;</h3>
+<p>这是初学者最容易踩的坑，也是面试常考点：</p>
+<blockquote>
+<p>用户发了一条评论，页面刷新后评论不见了。过几秒再刷新，又出现了。</p>
+</blockquote>
+<p><strong>原因</strong>：写请求走了主库，但读请求被路由到了还没同步完的副本库。</p>
+<p><strong>解决方案</strong>（按推荐程度）：</p>
+<ol>
+<li><strong>写后读走主库</strong>：用户自己刚写完的一段时间内（比如 1 秒），该用户的读请求强制走主库。</li>
+<li><strong>会话粘性</strong>：同一用户的读写都路由到同一节点。</li>
+<li><strong>等待位点</strong>：读之前先确认副本库已经追上了指定的 WAL 位点。</li>
+</ol>
+<hr />
+<h2 id="6-缓存用内存换时间">6. 缓存：用内存换时间</h2>
+<div align="center">
+  <img src="./images/cache.png" alt="缓存层位于 Web 服务器与数据库之间" width="520" loading="lazy" decoding="async">
+</div>
+<p><strong>缓存（Cache）</strong> 把频繁访问的数据放在内存里，减少数据库压力。内存的读取速度比磁盘快几个数量级，所以缓存层能极大提升响应速度。</p>
+<h3 id="什么时候该用缓存">什么时候该用缓存</h3>
+<p>判断标准很简单：<strong>读多写少</strong>。如果一个数据被读一万次才改一次，缓存收益极高。反过来，如果数据每秒都在变，缓存只会让你疲于同步，得不偿失。</p>
+<h3 id="缓存的五个考量点">缓存的五个考量点</h3>
+<p><strong>1. 使用场景</strong>
+读频繁、写稀少的场景。典型如：用户资料、商品详情、排行榜。</p>
+<p><strong>2. 过期策略（Expiration）</strong>
+缓存数据到期后被移除。<strong>如果不设过期时间，数据会永久占用内存</strong>，最终把内存撑爆。</p>
+<blockquote>
+<p><strong>工程实践</strong>：过期时间一定要<strong>加随机抖动</strong>。如果一万个 key 都是&quot;60 分钟后过期&quot;，它们会在同一秒集体失效，所有请求瞬间砸到数据库——这就是<strong>缓存雪崩</strong>。</p>
+</blockquote>
+<p><strong>3. 一致性（Consistency）</strong>
+让缓存和数据库保持同步。不一致的根源是：<strong>更新数据库和更新缓存不是一个原子操作</strong>。你先更新数据库、再删缓存，中间这段时间就有窗口期。</p>
+<blockquote>
+<p><strong>推荐做法：先更新数据库，再删除缓存</strong>（Cache-Aside 模式）。
+<strong>为什么不&quot;更新缓存&quot;而是&quot;删除缓存&quot;？</strong> 因为删除是幂等的、简单的；而更新缓存需要你算出新值，在并发下容易写入旧值（两个请求 A、B 同时更新，B 先写缓存，A 后写缓存，结果缓存里留了 A 的旧值）。
+删除缓存也会有极小概率出错，但概率远低于更新缓存。想彻底解决，需要配合<strong>延迟双删</strong>或<strong>订阅数据库变更日志（CDC）</strong>。</p>
+</blockquote>
+<p><strong>4. 故障缓解（Mitigating Failures）</strong>
+单台缓存服务器就是一个<strong>单点故障（SPOF）</strong>。应该部署多台缓存服务器，并跨数据中心分布。</p>
+<p><strong>5. 淘汰策略（Eviction Policy）</strong>
+缓存满了要淘汰数据。常见策略：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>含义</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LRU</strong>（Least Recently Used）</td>
+<td>淘汰最久未被访问的</td>
+<td>通用默认选择，最常用</td>
+</tr>
+<tr>
+<td><strong>LFU</strong>（Least Frequently Used）</td>
+<td>淘汰访问次数最少的</td>
+<td>访问频率差异大，且热点稳定</td>
+</tr>
+<tr>
+<td><strong>FIFO</strong>（First In First Out）</td>
+<td>先进先出</td>
+<td>简单场景</td>
+</tr>
+<tr>
+<td><strong>TTL</strong></td>
+<td>按过期时间淘汰</td>
+<td>配合其他策略使用</td>
+</tr>
+<tr>
+<td><strong>W-TinyLFU</strong></td>
+<td>LRU + LFU 的混合</td>
+<td>命中率最优，Caffeine 采用</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>原笔记说&quot;LRU 是最流行的淘汰策略&quot;</strong>——这话没错，但需要补充：LRU 有个致命弱点，<strong>它挡不住偶发的批量扫描</strong>（比如一次全表遍历会把所有热点数据挤出缓存）。所以现代高性能缓存（如 Caffeine）用的是 W-TinyLFU。</p>
+</blockquote>
+<h3 id="原笔记缺失的核心内容三种缓存读写模式">原笔记缺失的核心内容：三种缓存读写模式</h3>
+<p>这是本章最重要的补充。缓存和数据库怎么配合，有三种成熟模式：</p>
+<p><strong>① Cache-Aside（旁路缓存）—— 最常用</strong></p>
+<pre><code>读：先查缓存 → 命中就返回 → 未命中就查数据库 → 写入缓存
+写：先更新数据库 → 再删除缓存
+</code></pre>
+<p>应用代码自己管理缓存。简单、可控，是绝大多数业务的默认选择。</p>
+<p><strong>② Write-Through（写穿）</strong></p>
+<pre><code>写：同时写缓存和数据库，缓存层保证两者都成功才返回
+</code></pre>
+<p>写操作变慢，但缓存永远是新的。适合写少、但要求强一致的场景。</p>
+<p><strong>③ Write-Back（写回）</strong></p>
+<pre><code>写：只写缓存，标记为脏 → 后台异步批量刷回数据库
+</code></pre>
+<p>写入极快，但<strong>有丢数据的风险</strong>（缓存宕机时未刷盘的数据就没了）。适合写密集、能容忍少量丢失的场景（如计数器、日志）。</p>
+<h3 id="原笔记缺失的核心内容缓存三大故障">原笔记缺失的核心内容：缓存三大故障</h3>
+<p>这三个概念初学者极易混淆，务必分清：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>英文</th>
+<th>场景</th>
+<th>后果</th>
+<th>对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>缓存穿透</strong></td>
+<td>Cache Penetration</td>
+<td>查询一个<strong>数据库里也不存在</strong>的数据</td>
+<td>每次都绕过缓存打数据库</td>
+<td>布隆过滤器拦截、缓存空值并设短过期</td>
+</tr>
+<tr>
+<td><strong>缓存击穿</strong></td>
+<td>Cache Breakdown</td>
+<td><strong>某个热点 key</strong> 过期的瞬间，大量并发请求同时打过来</td>
+<td>单点压力瞬间飙升</td>
+<td>互斥锁重建、逻辑过期（不设物理过期）</td>
+</tr>
+<tr>
+<td><strong>缓存雪崩</strong></td>
+<td>Cache Avalanche</td>
+<td><strong>大量 key 同时过期</strong>，或缓存服务整体宕机</td>
+<td>数据库被瞬间压垮</td>
+<td>过期时间加随机抖动、多级缓存、熔断降级</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7-cdn把静态资源推到用户家门口">7. CDN：把静态资源推到用户家门口</h2>
+<div align="center">
+  <img src="./images/cdn.png" alt="CDN 就近提供静态资源" width="520" loading="lazy" decoding="async">
+</div>
+<p><strong>CDN（内容分发网络）</strong> 把静态内容（图片、CSS、JavaScript、视频）缓存到全球各地的边缘节点上，用户从<strong>最近的节点</strong>取数据，而不是从遥远的源站。</p>
+<p><strong>为什么能快这么多？</strong> 因为光速是有限的。从北京到美国西海岸一个来回至少 150 毫秒，而从北京到北京的 CDN 节点可能只要 5 毫秒。物理距离无法被优化掉，只能靠&quot;把内容搬近一点&quot;。</p>
+<h3 id="工作流程">工作流程</h3>
+<ol>
+<li>用户请求静态资源，DNS 把它导向最近的 CDN 节点。</li>
+<li>如果该节点有缓存，直接返回。</li>
+<li>如果没有，节点回源站拉取，缓存下来，再返回给用户。</li>
+</ol>
+<h3 id="cdn-的四个考量点">CDN 的四个考量点</h3>
+<ol>
+<li><strong>成本</strong>：CDN 由第三方运营，按流量计费，进出都要钱。</li>
+<li><strong>缓存过期时间</strong>：太短则频繁回源，太长则内容更新不及时。需要按资源类型分别设置。</li>
+<li><strong>CDN 回退（Fallback）</strong>：CDN 临时故障时，客户端要能检测到并回源站取。</li>
+<li><strong>缓存失效（Invalidation）</strong>：文件更新后要主动让 CDN 上的旧缓存失效。</li>
+</ol>
+<blockquote>
+<p><strong>补充：Pull CDN vs Push CDN</strong></p>
+<ul>
+<li><strong>Pull CDN（拉取型）</strong>：节点按需回源拉取。适合流量大、内容多但更新不频繁的场景。<strong>绝大多数网站用这个</strong>。</li>
+<li><strong>Push CDN（推送型）</strong>：你主动把内容推给 CDN。适合内容少、更新频繁、或访问量极低的场景（因为拉取型在低流量下会反复回源，浪费）。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="8-无状态-web-层让服务器可以随意增删">8. 无状态 Web 层：让服务器可以随意增删</h2>
+<div align="center">
+  <img src="./images/stateless.png" alt="无状态 Web 层与共享存储" width="520" loading="lazy" decoding="async">
+</div>
+<p>这是整章最重要的架构思想之一。</p>
+<p><strong>有状态（Stateful）</strong> 的服务器会&quot;记住&quot;用户——比如把 session 存在自己的内存里。问题来了：</p>
+<blockquote>
+<p>用户 A 登录后，session 存在服务器 1 的内存里。下一次请求被负载均衡器分到了服务器 2，服务器 2 不认识这个 session，<strong>用户被踢出登录</strong>。</p>
+</blockquote>
+<div align="center">
+  <img src="./images/statefull.png" alt="有状态服务器：session 绑定在单台机器上" width="520" loading="lazy" decoding="async">
+</div>
+<p><strong>无状态（Stateless）</strong> 的做法是：<strong>把 session 从服务器内存里搬到共享存储</strong>（比如 Redis 集群）。任何一台服务器收到请求，都能从共享存储里读出 session。这样每台服务器都是&quot;可替换的&quot;。</p>
+<h3 id="无状态带来的两个能力">无状态带来的两个能力</h3>
+<ol>
+<li><strong>容易水平扩展</strong>：加机器不需要做任何数据迁移。</li>
+<li><strong>可以自动伸缩（Auto-scaling）</strong>：流量高峰自动加机器，低谷自动减机器。<strong>这是有状态架构做不到的</strong>——因为你没法随意杀掉一台持有 session 的机器。</li>
+</ol>
+<blockquote>
+<p><strong>三种 session 方案的取舍</strong>（补充内容）</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>粘性会话（Sticky Session）</strong></td>
+<td>实现最简单，不用改代码</td>
+<td>负载不均；那台机器挂了用户就掉线；无法自动伸缩</td>
+</tr>
+<tr>
+<td><strong>集中式 session 存储（Redis）</strong></td>
+<td>无状态、可伸缩、可容灾</td>
+<td>引入一次网络往返；session 存储成了新的关键依赖</td>
+</tr>
+<tr>
+<td><strong>JWT 等自包含令牌</strong></td>
+<td>服务端完全不用存</td>
+<td>无法主动失效（除非引入黑名单）；令牌体积大</td>
+</tr>
+</tbody>
+</table></div>
+<p>生产环境<strong>推荐第二种</strong>。粘性会话只适合临时方案。</p>
+</blockquote>
+<hr />
+<h2 id="9-多数据中心离用户更近">9. 多数据中心：离用户更近</h2>
+<div align="center">
+  <img src="./images/data-center.png" alt="多数据中心部署与流量调度" width="520" loading="lazy" decoding="async">
+</div>
+<p>把服务部署到多个地理位置的数据中心，好处有两个：<strong>降低延迟</strong>（用户访问近的机房）和<strong>提高可用性</strong>（一个机房整体挂了还有其他机房）。</p>
+<h3 id="两个关键手段">两个关键手段</h3>
+<ol>
+<li><strong>GeoDNS 路由</strong>：根据用户的地理位置，把域名解析到最近的数据中心的 IP。</li>
+<li><strong>数据复制</strong>：跨数据中心同步数据，避免用户在不同机房看到不一致的数据。</li>
+</ol>
+<h3 id="三个必须解决的问题">三个必须解决的问题</h3>
+<ul>
+<li><strong>流量重定向</strong>：需要可靠的机制把用户导向正确的机房，并且能在机房故障时快速切换。</li>
+<li><strong>数据同步</strong>：跨机房复制的延迟远高于同机房。<strong>常用策略是&quot;异步复制 + 冲突解决&quot;</strong>，并且要接受跨机房场景下的最终一致性。</li>
+<li><strong>测试与部署</strong>：必须用自动化部署工具，保证所有机房的服务版本一致。手工部署多个机房，迟早会出现版本漂移。</li>
+</ul>
+<hr />
+<h2 id="10-消息队列把同步变成异步">10. 消息队列：把同步变成异步</h2>
+<div align="center">
+  <img src="./images/message-queue.png" alt="消息队列解耦生产者与消费者" width="520" loading="lazy" decoding="async">
+</div>
+<p><strong>消息队列（Message Queue）</strong> 是一个持久化的组件，支持<strong>异步通信</strong>。它充当缓冲区，把异步请求排队分发给下游。</p>
+<ul>
+<li><strong>生产者（Producer / Publisher）</strong>：创建消息并发送到队列。</li>
+<li><strong>消费者（Consumer / Subscriber）</strong>：从队列取消息并执行对应动作。</li>
+</ul>
+<h3 id="它解决了什么问题">它解决了什么问题</h3>
+<p>假设用户上传一张图片，你要做：压缩、生成缩略图、写数据库、发通知。如果全部同步执行，用户要等好几秒。</p>
+<p>用消息队列：</p>
+<ol>
+<li>用户上传 → 立即返回&quot;上传成功&quot;。</li>
+<li>后端把任务丢进队列。</li>
+<li>后台的工作进程慢慢处理。</li>
+</ol>
+<p><strong>用户体验立刻变好</strong>，而且后端处理能力可以独立扩展——任务堆积了就多加几个消费者。</p>
+<h3 id="核心价值解耦">核心价值：解耦</h3>
+<p>生产者不需要知道消费者是谁、有几个、在不在线。这个特性让系统可以<strong>独立演进</strong>：新加一个&quot;图片审核&quot;服务，只要订阅同一个队列就行，生产者代码一行不用改。</p>
+<blockquote>
+<p><strong>勘误：原笔记这里有一处技术错误</strong>
+原文写的是&quot;A message queue is a durable component, <strong>stored in memory</strong>&quot;（消息队列是一个持久化组件，存在内存中）。</p>
+<p><strong>这两句话自相矛盾，而且&quot;存在内存中&quot;是错的。</strong></p>
+<ul>
+<li><strong>durable（持久化）</strong> 和 <strong>in memory（仅存内存）</strong> 是互斥的。只存内存的东西，进程重启就没了，谈不上持久化。</li>
+<li>消息队列的<strong>核心价值就是消息不丢</strong>。如果只存内存，Broker 重启时正在排队的订单、支付回调全部丢失，这在生产环境是不可接受的。</li>
+</ul>
+<p><strong>正确说法</strong>：现代消息队列（Kafka、RabbitMQ、RocketMQ、Pulsar）都是<strong>把消息持久化到磁盘</strong>的。它们之所以快，不是因为&quot;存在内存里&quot;，而是因为：</p>
+<ul>
+<li><strong>顺序写磁盘</strong>（append-only log），比随机写快几个数量级；</li>
+<li><strong>页缓存（Page Cache）</strong>：操作系统会把最近读写的磁盘数据缓存在空闲内存里，所以&quot;写磁盘&quot;实际上大部分是写内存，由内核异步刷盘；</li>
+<li><strong>零拷贝（Zero-Copy）</strong>：用 <code>sendfile</code> 系统调用，数据不经过用户态，直接从页缓存发到网卡。</li>
+</ul>
+<p>内存确实会被用起来，但那是<strong>性能优化手段</strong>（缓存），不是<strong>存储方式</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="11-日志指标与自动化">11. 日志、指标与自动化</h2>
+<div align="center">
+  <img src="./images/logging.png" alt="日志、指标与自动化监控" width="520" loading="lazy" decoding="async">
+</div>
+<p>系统上线只是开始，你还得知道它跑得好不好。</p>
+<ul>
+<li><strong>日志（Logging）</strong>：记录错误和系统状态。出问题时，日志是唯一的线索。<strong>关键点：多台服务器要收集到统一的地方</strong>，否则排查故障时你得一台台登录去看。</li>
+<li><strong>指标（Metrics）</strong>：反映性能和用户行为。CPU、内存、QPS、响应延迟、错误率。指标能让你<strong>在用户投诉之前发现问题</strong>。</li>
+<li><strong>自动化（Automation）</strong>：把测试、部署、扩缩容自动化。<strong>手工操作是事故的主要来源</strong>——人在凌晨三点做紧急扩容时，一定会出错。</li>
+</ul>
+<blockquote>
+<p>这三样东西会在第 20 章（监控告警系统）展开讲成一整个系统。</p>
+</blockquote>
+<hr />
+<h2 id="12-数据库扩展最后的瓶颈">12. 数据库扩展：最后的瓶颈</h2>
+<p>Web 层可以随便加机器了，但<strong>数据库依然是瓶颈</strong>。为什么？因为 Web 服务器是无状态的，加一台就多一份算力；而数据库是<strong>有状态的</strong>，数据只有一份，加机器解决不了&quot;数据在哪&quot;的问题。</p>
+<h3 id="垂直扩展数据库">垂直扩展数据库</h3>
+<p>给数据库加硬件。缺点是：</p>
+<ul>
+<li><strong>单点故障风险更大</strong>（更贵的机器，坏了损失更大）</li>
+<li><strong>成本极高</strong></li>
+<li><strong>有物理上限</strong></li>
+</ul>
+<h3 id="水平扩展分片sharding">水平扩展：分片（Sharding）</h3>
+<div align="center">
+  <img src="./images/horizontal-scaling.png" alt="数据分片：按分片键拆分数据" width="520" loading="lazy" decoding="async">
+</div>
+<p>把大数据库拆成多个更小的部分，叫<strong>分片（Shard）</strong>。每个分片<strong>结构（schema）相同</strong>，但存放<strong>不同的数据</strong>。</p>
+<p><strong>分片键（Sharding Key）怎么选？</strong> 这是分片方案成败的关键。原则是：<strong>选一个能均匀分布数据的键</strong>。</p>
+<ul>
+<li>按 <code>user_id</code> 分片：用户数据天然均匀，且同一个用户的数据都在同一片，查询高效。</li>
+<li>按 <code>created_at</code> 分片：<strong>很糟糕</strong>。所有新写入都会集中在最新的那个分片，形成热点。</li>
+</ul>
+<h3 id="分片带来的三个新问题">分片带来的三个新问题</h3>
+<p><strong>1. 重新分片（Resharding）</strong></p>
+<p>两种情况下必须重新分片：</p>
+<ul>
+<li>单个分片增长太快，存不下了；</li>
+<li>数据分布不均，某些分片提前被写满（<strong>分片倾斜</strong>）。</li>
+</ul>
+<blockquote>
+<p>原笔记说&quot;用一致性哈希来解决&quot;——<strong>这个说法不完整，甚至有点误导</strong>。
+一致性哈希确实能把&quot;增加节点时受影响的数据比例&quot;从&quot;几乎全部&quot;降到&quot;1/N&quot;，但<strong>它不能自动解决分片倾斜</strong>——如果数据本身分布不均，一致性哈希也救不了你。而且一致性哈希只负责&quot;决定数据去哪个节点&quot;，<strong>不负责把已有数据搬过去</strong>，迁移逻辑还得自己写。
+更常见的做法是：<strong>一开始就规划足够多的逻辑分片</strong>（比如 1024 个），让逻辑分片数量远大于物理机器数量，将来扩容时只需要把整个逻辑分片搬走，不用重新哈希。这个思路会在第 5 章详细展开。</p>
+</blockquote>
+<p><strong>2. 名人问题（Celebrity Problem）</strong></p>
+<p>某个分片被过度访问，导致该分片过载。比如一个超级明星发了一条动态，所有粉丝都来访问他的数据，而这些数据都在同一个分片上。</p>
+<blockquote>
+<p><strong>注意</strong>：这其实是<strong>热点 key 问题</strong>，不是分片算法问题。一致性哈希解决不了它——因为无论怎么哈希，&quot;同一个人&quot;的数据总是在同一个分片上。</p>
+<p><strong>正确对策</strong>：</p>
+<ul>
+<li>给热点数据<strong>单独分配分片</strong>；</li>
+<li><strong>加缓存</strong>（最有效，热点数据放内存里，根本不打数据库）；</li>
+<li><strong>key 加盐</strong>（把 <code>celebrity_123</code> 拆成 <code>celebrity_123_0</code> ~ <code>celebrity_123_9</code> 分散到多个分片，读的时候合并）。</li>
+</ul>
+</blockquote>
+<p><strong>3. 跨分片 JOIN 与反范式化</strong></p>
+<p>数据分散到多台机器后，<strong>跨分片的 JOIN 变得极其困难</strong>——因为 JOIN 需要把数据拉到一起，而数据在不同机器上。</p>
+<p><strong>常见解法：反范式化（De-normalization）</strong>。把需要 JOIN 的数据冗余到同一张表里，让查询能在一张表内完成。代价是<strong>写放大</strong>和<strong>一致性维护成本</strong>——同一份数据存了多处，更新时要保证都更新到。</p>
+<hr />
+<h2 id="13-把所有零件拼起来百万用户架构全貌">13. 把所有零件拼起来：百万用户架构全貌</h2>
+<blockquote>
+<p><strong>原笔记缺失的内容</strong>
+原文从&quot;Section 12 数据库扩展&quot;直接跳到了结论，没有把前面 12 个组件拼成一张完整的架构图。这是本章最重要的收口，这里补上。</p>
+</blockquote>
+<div align="center">
+  <img src="./images/single-server.png" alt="从单机到分布式架构的演进" width="520" loading="lazy" decoding="async">
+</div>
+<p>把前面所有组件按用户规模的演进顺序串起来，就是一条清晰的成长路线：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>用户规模</th>
+<th>架构变化</th>
+<th>解决的核心问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1 ~ 1 千</td>
+<td>单机（Web + DB + Cache 同机）</td>
+<td>能跑起来</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1 千 ~ 1 万</td>
+<td>数据库拆分</td>
+<td>资源独立扩展</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1 万 ~ 10 万</td>
+<td>加负载均衡 + 多台 Web 服务器</td>
+<td>Web 层冗余与扩展</td>
+</tr>
+<tr>
+<td>4</td>
+<td>10 万 ~ 50 万</td>
+<td>数据库主副本复制</td>
+<td>数据库读扩展 + 高可用</td>
+</tr>
+<tr>
+<td>5</td>
+<td>50 万 ~ 100 万</td>
+<td>加缓存层 + CDN</td>
+<td>减少数据库压力、加速静态资源</td>
+</tr>
+<tr>
+<td>6</td>
+<td>100 万 +</td>
+<td>Web 层无状态化 + 多数据中心</td>
+<td>自动伸缩、就近访问</td>
+</tr>
+<tr>
+<td>7</td>
+<td>千万 +</td>
+<td>加消息队列</td>
+<td>解耦、削峰、异步化</td>
+</tr>
+<tr>
+<td>8</td>
+<td>亿级</td>
+<td>数据库分片</td>
+<td>突破单库存储与写入上限</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>最终形态的请求链路</strong>：</p>
+<pre><code>用户 → DNS/GeoDNS → CDN（静态资源）
+                  ↓
+              负载均衡器
+                  ↓
+        ┌─────────┼─────────┐
+     Web 服务器  Web 服务器  Web 服务器   ← 无状态，可任意增删
+        └─────────┼─────────┘
+                  ↓
+    ┌─────────────┼─────────────┐
+  缓存集群      消息队列      共享 Session 存储
+                  ↓
+        ┌─────────┼─────────┐
+      主库      副本库      副本库          ← 写走主，读走副本
+        ↓
+    分片 1     分片 2     分片 3           ← 突破单库上限
+</code></pre>
+<blockquote>
+<p><strong>注意这条路线不是&quot;必须按顺序走&quot;的清单</strong>，而是&quot;问题驱动&quot;的演化逻辑。
+现实中的架构决策永远从<strong>约束</strong>出发：用户量多大？读写比例如何？能容忍多少数据丢失？预算多少？<strong>没有约束就没有最优解</strong>——这也是第 3 章面试框架要教你的第一件事。</p>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<h3 id="勘误-1master-slave-是过时的术语">勘误 1：Master-Slave 是过时的术语</h3>
+<ul>
+<li><strong>原文说法</strong>：全文使用 &quot;Master-Slave Model&quot;、&quot;master database&quot;、&quot;slave database&quot;。</li>
+<li><strong>问题</strong>：<code>Master/Slave</code>（主/奴）这一术语因带有奴隶制隐喻，在技术社区已被广泛弃用。主流数据库厂商与开源社区均已改用新词。</li>
+<li><strong>正确说法</strong>：使用 <strong>Primary-Replica（主副本）</strong> 或 <strong>Leader-Follower（主从）</strong>。
+<ul>
+<li>MySQL 官方文档：<code>SOURCE/REPLICA</code>（旧称 <code>MASTER/SLAVE</code>）</li>
+<li>PostgreSQL：<code>Primary/Standby</code></li>
+<li>Redis：<code>Master/Replica</code>（Redis 保留了 master 一词，但已不用 slave）</li>
+<li>Kafka：<code>Leader/Follower</code></li>
+</ul>
+</li>
+<li><strong>延伸</strong>：这不是&quot;政治正确&quot;问题，而是<strong>沟通准确性问题</strong>。你在面试或写文档时说 <code>Primary-Replica</code>，面试官会认为你了解现代实践；说 <code>Master-Slave</code> 则可能被追问&quot;你知道这个术语已经被淘汰了吗&quot;。</li>
+</ul>
+<h3 id="勘误-2消息队列不是存在内存中">勘误 2：消息队列不是&quot;存在内存中&quot;</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>A message queue is a durable component, stored in memory</code>（消息队列是一个持久化组件，存在内存中）。</li>
+<li><strong>问题</strong>：自相矛盾且技术错误。仅存内存的组件无法提供持久性保证，Broker 重启即丢消息。</li>
+<li><strong>正确说法</strong>：消息队列<strong>持久化到磁盘</strong>。其高性能来自顺序写、页缓存和零拷贝，而非&quot;存在内存中&quot;。</li>
+<li><strong>延伸</strong>：这个区别在面试中很关键。当被问到&quot;消息队列如何保证消息不丢&quot;时，答案链条是：<strong>生产者确认（ack）→ Broker 持久化到磁盘（并多副本）→ 消费者手动提交 offset</strong>。任何一环缺失都可能丢消息。</li>
+</ul>
+<h3 id="勘误-3主库故障转移的数据恢复脚本是过时做法">勘误 3：主库故障转移的&quot;数据恢复脚本&quot;是过时做法</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;选中的从库可能不是最新的，因此需要运行数据恢复脚本来更新数据（多主和环形复制可能有帮助）&quot;。</li>
+<li><strong>问题</strong>：手工跑脚本&quot;捞数据&quot;的方式在现代系统中已不常见，且引入多主/环形复制会带来写冲突问题。</li>
+<li><strong>正确说法</strong>：使用<strong>半同步复制</strong>保证至少一台副本已收到数据；用 <strong>GTID / LSN</strong> 做精确位点切换；用 <strong>Patroni / Orchestrator / MHA</strong> 实现自动故障转移。</li>
+<li><strong>延伸</strong>：这里涉及一个核心概念——<strong>RPO（恢复点目标）和 RTO（恢复时间目标）</strong>。RPO 是&quot;能容忍丢多少数据&quot;，RTO 是&quot;能容忍停多久&quot;。选同步还是异步复制，本质上是在调这两个指标。</li>
+</ul>
+<h3 id="勘误-4一致性哈希不能解决分片倾斜和名人问题">勘误 4：一致性哈希不能解决分片倾斜和名人问题</h3>
+<ul>
+<li><strong>原文说法</strong>：分片的&quot;重新分片&quot;和&quot;名人问题&quot;可以&quot;用一致性哈希来克服&quot;。</li>
+<li><strong>问题</strong>：一致性哈希解决的是**&quot;节点增减时数据重新分布的比例&quot;<strong>问题（从 ~100% 降到 ~1/N）。它</strong>不解决<strong>数据本身分布不均导致的倾斜，也</strong>不解决**热点 key 问题——因为同一个人的数据无论怎么哈希都在同一个节点上。</li>
+<li><strong>正确说法</strong>：倾斜要靠<strong>预先规划大量逻辑分片</strong> + <strong>合理的分片键选择</strong>；热点要靠<strong>缓存</strong>、<strong>key 加盐</strong>、<strong>热点数据单独分片</strong>。</li>
+<li><strong>延伸</strong>：第 5 章会详细讲一致性哈希，学完再回来看这一条会更清楚。</li>
+</ul>
+<h3 id="勘误-5lru-不是唯一值得知道的淘汰策略">勘误 5：LRU 不是唯一值得知道的淘汰策略</h3>
+<ul>
+<li><strong>原文说法</strong>：&quot;LRU is the most popular cache eviction policy&quot;。</li>
+<li><strong>问题</strong>：说法本身没错，但对初学者有误导性——LRU 有一个致命弱点：<strong>无法抵抗顺序扫描</strong>。一次全表遍历会把所有热点数据挤出缓存，导致命中率骤降。</li>
+<li><strong>正确说法</strong>：应了解 <strong>LFU</strong>（抗扫描但会积累&quot;历史热点&quot;）、<strong>W-TinyLFU</strong>（Caffeine 采用，兼顾两者）。生产环境的缓存选型需要根据访问模式决定。</li>
+</ul>
+<h3 id="补充-1三种缓存读写模式">补充 1：三种缓存读写模式</h3>
+<p>原笔记完全没有提到 Cache-Aside / Write-Through / Write-Back。详见第 6 节表格。<strong>这是初级开发者最需要掌握、也最容易在面试中被问到的缓存知识。</strong></p>
+<h3 id="补充-2缓存三大故障穿透-击穿-雪崩">补充 2：缓存三大故障（穿透 / 击穿 / 雪崩）</h3>
+<p>原笔记只提了&quot;一致性&quot;和&quot;淘汰策略&quot;，完全没有覆盖缓存失效导致的故障场景。详见第 6 节表格。<strong>这三个概念必须分清，混用是面试中的减分项。</strong></p>
+<h3 id="补充-3主从延迟导致的读一致性问题">补充 3：主从延迟导致的读一致性问题</h3>
+<p>原笔记讲了复制，但没讲复制带来的<strong>副作用</strong>：用户写完立刻读，可能读到旧数据。详见第 5 节。这是真实业务中投诉率很高的一类 bug。</p>
+<h3 id="补充-4pull-cdn-vs-push-cdn">补充 4：Pull CDN vs Push CDN</h3>
+<p>原笔记只讲了 CDN 的一般工作流程（本质是 Pull 模式），没有区分两种 CDN 类型及各自的适用场景。详见第 7 节。</p>
+<h3 id="补充-5session-三种存储方案的取舍">补充 5：Session 三种存储方案的取舍</h3>
+<p>原笔记只说&quot;把 session 移到共享存储&quot;，没有对比其他方案。详见第 8 节表格。</p>
+<h3 id="补充-6百万用户架构的完整收口">补充 6：百万用户架构的完整收口</h3>
+<p>原笔记从 Section 12 直接跳到 Conclusion，缺少&quot;把 12 个组件拼成完整架构&quot;的收尾。详见第 13 节。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>加机器就能解决问题</td>
+<td>数据库是有状态的，加机器解决不了&quot;数据在哪&quot;；引入多台机器反而带来负载均衡、分片、状态同步等新问题</td>
+<td>扩展是<strong>分层</strong>的：Web 层加机器容易，数据层加机器难。瓶颈永远在数据层</td>
+</tr>
+<tr>
+<td>NoSQL 比 SQL 更先进</td>
+<td>NoSQL 是用事务和 JOIN 换取水平扩展能力，不是全面超越</td>
+<td>默认选 SQL，除非有明确理由（低延迟、无结构、超大规模）</td>
+</tr>
+<tr>
+<td>缓存就是为了快</td>
+<td>缓存引入了<strong>一致性</strong>、<strong>穿透/击穿/雪崩</strong>、<strong>内存成本</strong>三类新问题</td>
+<td>缓存是<strong>用一致性换性能</strong>的交易，必须同时设计失效与降级策略</td>
+</tr>
+<tr>
+<td>有了主从复制就不会丢数据</td>
+<td>异步复制下，主库挂了且未同步的数据会丢失</td>
+<td>是否丢数据取决于复制模式（同步/半同步/异步）与 RPO 目标</td>
+</tr>
+<tr>
+<td>一致性哈希能解决热点问题</td>
+<td>同一 key 的数据无论怎么哈希都在同一节点</td>
+<td>热点要靠缓存、key 加盐、独立分片</td>
+</tr>
+<tr>
+<td>分片键随便选一个 id 就行</td>
+<td>分片键决定了数据能否均匀分布、查询能否局部化</td>
+<td>分片键要<strong>基数高、分布均匀、且是查询的主要维度</strong></td>
+</tr>
+<tr>
+<td>消息队列就是把请求排队慢慢处理</td>
+<td>消息队列的核心价值是<strong>解耦</strong>和<strong>削峰</strong>，排队只是表象</td>
+<td>生产者与消费者互相不感知，才能独立演进和扩展</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：本章是系统设计的&quot;总纲&quot;——它描述了一个系统随用户规模增长而演化的标准路径，以及每一步引入的新组件和新技术债。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li>Web 层<strong>无状态化</strong>是水平扩展的前提（session 外置到 Redis）。</li>
+<li>数据库是<strong>有状态</strong>的，是扩展的真正瓶颈；解法是复制（读扩展）和分片（写/存储扩展）。</li>
+<li><strong>读写分离</strong>要处理主从延迟导致的读一致性问题。</li>
+<li>缓存是&quot;用一致性换性能&quot;，必须配套设计失效、穿透防护和降级策略。</li>
+<li><strong>每个组件都引入新的故障点</strong>——加冗余的同时要保证冗余本身可管理。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动区分<strong>同步 / 半同步 / 异步复制</strong>，并用 RPO/RTO 讨论取舍。</li>
+<li>主动指出<strong>一致性哈希解决什么、不解决什么</strong>。</li>
+<li>主动提到<strong>过期时间加随机抖动</strong>防雪崩、<strong>布隆过滤器</strong>防穿透。</li>
+<li>能说明<strong>为什么扩容时用&quot;逻辑分片&quot;而不是重新哈希</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;如果主库挂了，怎么保证不丢数据？&quot;</em>
+→ 半同步复制保证至少一台副本已落盘；用 GTID 精确定位切换位点；自动故障转移工具把 RTO 压到秒级。若业务要求 RPO=0，需要同步复制，代价是写延迟上升。</li>
+<li><em>&quot;缓存和数据库怎么保持一致？&quot;</em>
+→ 推荐 Cache-Aside：先更新数据库，再删除缓存。异步场景可用 CDC 订阅 binlog 做最终一致。强一致场景需要分布式锁或放弃缓存。</li>
+<li><em>&quot;为什么不用粘性会话（Sticky Session）？&quot;</em>
+→ 粘性会话让服务器变回有状态，导致负载不均、机器故障即掉线、无法自动伸缩。它是临时方案，不是架构方案。</li>
+<li><em>&quot;分片后怎么处理跨分片查询？&quot;</em>
+→ 优先反范式化把数据冗余到同表；其次用应用层聚合；最后才考虑引入 ES/数仓做异构索引。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://aws.amazon.com/nosql/" target="_blank" rel="noopener noreferrer">AWS：Relational vs NoSQL</a> — 官方选型对比</li>
+<li><a href="https://dev.mysql.com/doc/refman/8.0/en/replication.html" target="_blank" rel="noopener noreferrer">MySQL 复制官方文档</a> — 含半同步复制与 GTID</li>
+<li><a href="https://patroni.readthedocs.io/" target="_blank" rel="noopener noreferrer">Patroni</a> — PostgreSQL 高可用自动故障转移</li>
+<li><a href="https://github.com/ben-manes/caffeine" target="_blank" rel="noopener noreferrer">Caffeine 缓存库</a> — W-TinyLFU 淘汰算法的工业实现</li>
+<li><a href="https://redis.io/docs/manual/client-side-caching/" target="_blank" rel="noopener noreferrer">Redis 官方文档：客户端缓存与失效</a> — 缓存一致性实践</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../../guide/roadmap.html"><span class="pg-label">&larr; 上一页</span><span class="pg-title">学习路线图</span></a><a class="next" href="../02/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">粗略估算</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-单机起步一切都跑在一台机器上">1. 单机起步：一切都跑在一台机器上</a>
+<a class="lv3" href="#一个请求的完整旅程">一个请求的完整旅程</a>
+<a class="lv3" href="#流量从哪来">流量从哪来</a>
+<a class="lv3" href="#单机的问题">单机的问题</a>
+<a class="lv2" href="#2-第一步拆分把数据库搬出去">2. 第一步拆分：把数据库搬出去</a>
+<a class="lv3" href="#选关系型还是非关系型">选关系型还是非关系型</a>
+<a class="lv2" href="#3-垂直扩展-vs-水平扩展">3. 垂直扩展 vs 水平扩展</a>
+<a class="lv3" href="#垂直扩展vertical-scaling把机器换得更强">垂直扩展（Vertical Scaling）：把机器换得更强</a>
+<a class="lv3" href="#水平扩展horizontal-scaling用更多机器">水平扩展（Horizontal Scaling）：用更多机器</a>
+<a class="lv2" href="#4-负载均衡器把请求分出去">4. 负载均衡器：把请求分出去</a>
+<a class="lv2" href="#5-数据库复制让数据也有备份">5. 数据库复制：让数据也有备份</a>
+<a class="lv3" href="#主副本模型primary-replica">主副本模型（Primary-Replica）</a>
+<a class="lv3" href="#复制带来的两个好处">复制带来的两个好处</a>
+<a class="lv3" href="#出故障了怎么办">出故障了怎么办</a>
+<a class="lv3" href="#主从延迟这里有个经典的坑">主从延迟：这里有个经典的坑</a>
+<a class="lv3" href="#主从延迟导致的读不到自己写的数据">主从延迟导致的&quot;读不到自己写的数据&quot;</a>
+<a class="lv2" href="#6-缓存用内存换时间">6. 缓存：用内存换时间</a>
+<a class="lv3" href="#什么时候该用缓存">什么时候该用缓存</a>
+<a class="lv3" href="#缓存的五个考量点">缓存的五个考量点</a>
+<a class="lv3" href="#原笔记缺失的核心内容三种缓存读写模式">原笔记缺失的核心内容：三种缓存读写模式</a>
+<a class="lv3" href="#原笔记缺失的核心内容缓存三大故障">原笔记缺失的核心内容：缓存三大故障</a>
+<a class="lv2" href="#7-cdn把静态资源推到用户家门口">7. CDN：把静态资源推到用户家门口</a>
+<a class="lv3" href="#工作流程">工作流程</a>
+<a class="lv3" href="#cdn-的四个考量点">CDN 的四个考量点</a>
+<a class="lv2" href="#8-无状态-web-层让服务器可以随意增删">8. 无状态 Web 层：让服务器可以随意增删</a>
+<a class="lv3" href="#无状态带来的两个能力">无状态带来的两个能力</a>
+<a class="lv2" href="#9-多数据中心离用户更近">9. 多数据中心：离用户更近</a>
+<a class="lv3" href="#两个关键手段">两个关键手段</a>
+<a class="lv3" href="#三个必须解决的问题">三个必须解决的问题</a>
+<a class="lv2" href="#10-消息队列把同步变成异步">10. 消息队列：把同步变成异步</a>
+<a class="lv3" href="#它解决了什么问题">它解决了什么问题</a>
+<a class="lv3" href="#核心价值解耦">核心价值：解耦</a>
+<a class="lv2" href="#11-日志指标与自动化">11. 日志、指标与自动化</a>
+<a class="lv2" href="#12-数据库扩展最后的瓶颈">12. 数据库扩展：最后的瓶颈</a>
+<a class="lv3" href="#垂直扩展数据库">垂直扩展数据库</a>
+<a class="lv3" href="#水平扩展分片sharding">水平扩展：分片（Sharding）</a>
+<a class="lv3" href="#分片带来的三个新问题">分片带来的三个新问题</a>
+<a class="lv2" href="#13-把所有零件拼起来百万用户架构全貌">13. 把所有零件拼起来：百万用户架构全貌</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1master-slave-是过时的术语">勘误 1：Master-Slave 是过时的术语</a>
+<a class="lv3" href="#勘误-2消息队列不是存在内存中">勘误 2：消息队列不是&quot;存在内存中&quot;</a>
+<a class="lv3" href="#勘误-3主库故障转移的数据恢复脚本是过时做法">勘误 3：主库故障转移的&quot;数据恢复脚本&quot;是过时做法</a>
+<a class="lv3" href="#勘误-4一致性哈希不能解决分片倾斜和名人问题">勘误 4：一致性哈希不能解决分片倾斜和名人问题</a>
+<a class="lv3" href="#勘误-5lru-不是唯一值得知道的淘汰策略">勘误 5：LRU 不是唯一值得知道的淘汰策略</a>
+<a class="lv3" href="#补充-1三种缓存读写模式">补充 1：三种缓存读写模式</a>
+<a class="lv3" href="#补充-2缓存三大故障穿透-击穿-雪崩">补充 2：缓存三大故障（穿透 / 击穿 / 雪崩）</a>
+<a class="lv3" href="#补充-3主从延迟导致的读一致性问题">补充 3：主从延迟导致的读一致性问题</a>
+<a class="lv3" href="#补充-4pull-cdn-vs-push-cdn">补充 4：Pull CDN vs Push CDN</a>
+<a class="lv3" href="#补充-5session-三种存储方案的取舍">补充 5：Session 三种存储方案的取舍</a>
+<a class="lv3" href="#补充-6百万用户架构的完整收口">补充 6：百万用户架构的完整收口</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 10 章：设计通知系统 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item active" href="./"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-10-章设计通知系统">第 10 章：设计通知系统</h1>
+<blockquote>
+<p>原章节：Design a Notification System · 原项目路径 <code>10. Notification System/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>通知系统看起来是全套系统设计题里最简单的一道——不就是&quot;调个第三方接口，把消息推给用户&quot;吗？但把规模拉到一天 1600 万条、要同时对接苹果、谷歌、短信网关和邮件服务商、还要保证一条都不能丢、不能重复发的时候，问题就变得有意思了。</p>
+<p>这一章要解决的核心问题是：<strong>如何把一个&quot;调 API&quot;的小功能，做成一个能扛住亿级用户、还能处理&quot;一条公告发给一亿人&quot;这种极端场景的分布式系统。</strong></p>
+<p>学完这一章，你应该能回答：推送、短信、邮件三种渠道的本质区别是什么？设备令牌为什么会失效、失效了怎么办？为什么&quot;去重&quot;必须在消费端做，而不能在生产端做？一条营销公告要怎么发，才不会把验证码短信挤掉？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>三种通知渠道（APNs / FCM / SMS / Email）的本质差异与选型依据</li>
+<li>设备令牌（device token）的完整生命周期：获取、刷新、失效、清理</li>
+<li>用消息队列解耦通知生产与投递的架构，以及它解决了什么问题</li>
+<li>通知去重的正确做法：为什么去重键是 <code>event_id</code> + <code>user_id</code>，为什么必须在消费端做幂等</li>
+<li>用户通知偏好（opt-out）与合规要求（GDPR、CAN-SPAM、TCPA）</li>
+<li>扇出风暴：一条公告发给一亿用户时的分批、限速与优先级队列</li>
+</ul>
+<hr />
+<h2 id="1-需求与规模">1. 需求与规模</h2>
+<p>任何系统设计都从&quot;要做什么、要做多大&quot;开始。通知系统的需求可以拆成四块。</p>
+<h3 id="功能需求">功能需求</h3>
+<ul>
+<li><strong>通知渠道</strong>：推送（Push）、短信（SMS）、邮件（Email）三种。</li>
+<li><strong>投递时效</strong>：软实时（soft real-time），允许秒级延迟，但不允许分钟级、更不允许丢失。</li>
+<li><strong>覆盖平台</strong>：iOS、Android、桌面端。</li>
+<li><strong>触发方式</strong>：既可能由客户端行为触发（比如&quot;你的订单已发货&quot;），也可能由服务端定时任务触发（比如&quot;你的会员明天到期&quot;）。</li>
+<li><strong>用户偏好</strong>：用户可以关闭某一类通知（opt-out）。</li>
+</ul>
+<h3 id="规模估算">规模估算</h3>
+<p>原笔记给出的日发送量是：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>渠道</th>
+<th>日发送量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>推送</td>
+<td>1000 万</td>
+</tr>
+<tr>
+<td>短信</td>
+<td>100 万</td>
+</tr>
+<tr>
+<td>邮件</td>
+<td>500 万</td>
+</tr>
+<tr>
+<td><strong>合计</strong></td>
+<td><strong>1600 万</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>我们来算一下 QPS（Queries Per Second，每秒请求数）：</p>
+<pre><code>日均 QPS = 16,000,000 / 86,400 ≈ 185 QPS
+峰值 QPS ≈ 185 × 3 ≈ 555 QPS
+</code></pre>
+<blockquote>
+<p><strong>为什么要算这个数？</strong>
+因为 185 QPS 这个量级意味着：<strong>单台服务器扛不住，但也不是特别夸张</strong>——一个设计得当的集群，几十台机器就能处理。真正难的不是平均负载，而是两个极端：<strong>流量尖峰</strong>（比如电商大促时所有订单同时发货）和<strong>扇出风暴</strong>（一条公告发给一亿人）。这两个场景会在第 6 节展开。</p>
+</blockquote>
+<h3 id="一个容易被忽略的约束">一个容易被忽略的约束</h3>
+<p><strong>通知是&quot;尽力而为&quot;（best-effort）的。</strong> 这一点非常关键，很多初学者会误以为&quot;调用 APNs 接口返回成功 = 用户收到了&quot;。事实是：</p>
+<ul>
+<li>APNs 和 FCM 都<strong>不保证送达</strong>。设备关机、无网络、用户关闭了通知权限，消息就静静消失了。</li>
+<li>短信网关也不保证送达，运营商层面的过滤、手机停机都会导致丢失。</li>
+<li>邮件更不可靠，可能进垃圾箱、被企业防火墙拦截。</li>
+</ul>
+<p>所以，<strong>如果业务要求&quot;用户一定能看到&quot;（比如验证码、支付结果），就不能只依赖推送</strong>。正确的做法是&quot;推送 + 应用内消息箱（inbox）&quot;双保险：推送只负责&quot;提醒用户去看&quot;，真正的消息存在服务端，用户打开 App 时拉取。这条原则会在第 4 节和第 6 节反复出现。</p>
+<hr />
+<h2 id="2-高层设计三种渠道与核心组件">2. 高层设计：三种渠道与核心组件</h2>
+<h3 id="三种渠道的本质区别">三种渠道的本质区别</h3>
+<p>初学者最容易犯的错，是把三种渠道当成&quot;同一个接口的三个参数&quot;。它们的实现机制、成本、可靠性完全不同。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>APNs</th>
+<th>FCM</th>
+<th>SMS</th>
+<th>Email</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全称</td>
+<td>Apple Push Notification service</td>
+<td>Firebase Cloud Messaging</td>
+<td>Short Message Service</td>
+<td>电子邮件</td>
+</tr>
+<tr>
+<td>覆盖平台</td>
+<td>iOS / macOS / watchOS / tvOS</td>
+<td>Android / iOS / Web</td>
+<td>所有手机</td>
+<td>所有平台</td>
+</tr>
+<tr>
+<td>寻址标识</td>
+<td>device token（64 位十六进制字符串）</td>
+<td>registration token（约 150 字符）</td>
+<td>手机号</td>
+<td>邮箱地址</td>
+</tr>
+<tr>
+<td>通信协议</td>
+<td>HTTP/2 provider API</td>
+<td>HTTP v1（REST）</td>
+<td>SMPP 或服务商 HTTP API</td>
+<td>SMTP 或服务商 API</td>
+</tr>
+<tr>
+<td>鉴权方式</td>
+<td>证书（<code>.p12</code>）或 Token（<code>.p8</code> + JWT）</td>
+<td>OAuth2 服务账号</td>
+<td>服务商 API Key</td>
+<td>SMTP 凭据 / API Key</td>
+</tr>
+<tr>
+<td>载荷上限</td>
+<td>4 KB（VoIP 类 5 KB）</td>
+<td>4 KB</td>
+<td>单条 160 字符（长短信拼接）</td>
+<td>通常 25 MB（含附件）</td>
+</tr>
+<tr>
+<td>批量能力</td>
+<td>一个请求对应一个 token（靠 HTTP/2 多路复用提效）</td>
+<td>一个请求最多 500 个 token</td>
+<td>逐条发送</td>
+<td>逐条发送</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>免费</td>
+<td>免费</td>
+<td>按条计费</td>
+<td>极低</td>
+</tr>
+<tr>
+<td>典型延迟</td>
+<td>亚秒级</td>
+<td>亚秒级</td>
+<td>秒级</td>
+<td>秒到分钟级</td>
+</tr>
+<tr>
+<td>送达保证</td>
+<td>尽力而为</td>
+<td>尽力而为</td>
+<td>尽力而为</td>
+<td>尽力而为（可能进垃圾箱）</td>
+</tr>
+<tr>
+<td>典型用途</td>
+<td>通知、角标、静默推送</td>
+<td>同左</td>
+<td>验证码、紧急告警</td>
+<td>营销、账单、周报</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>APNs 和 FCM 的关键差异</strong>，面试里被问到要能答上来：</p>
+<ul>
+<li><strong>APNs 是苹果自建的、只服务苹果设备的通道</strong>。开发者通过 HTTP/2 长连接把消息交给苹果，苹果再分发到设备。因为苹果掌控了从操作系统到硬件的全链路，所以它支持一些 FCM 没有的能力，比如静默推送（silent push，不弹通知但唤醒 App 后台拉数据）和角标（badge）的精确控制。</li>
+<li><strong>FCM 是谷歌的跨平台通道</strong>，同时支持 Android、iOS 和 Web。在 iOS 上，FCM 实际上是把消息<strong>再转发给 APNs</strong>——也就是说，给 iOS 发 FCM 消息，链路上多了一跳。FCM 的优势是支持<strong>主题（topic）订阅</strong>和<strong>设备组（device group）</strong>，一次请求可以发给一大批订阅了同一主题的设备。</li>
+<li><strong>两者都要求 App 在前台/后台保持与厂商服务的注册关系</strong>，而这个关系是通过 token 维系的——token 一旦失效，推送就发不出去。</li>
+</ul>
+</blockquote>
+<h3 id="组件一联系信息收集">组件一：联系信息收集</h3>
+<p>要发通知，先得有&quot;地址&quot;。</p>
+<div align="center"><img src="./images/contact-info-gathering.png" alt="联系信息收集：App 安装或注册时上报 device token、手机号、邮箱" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li><strong>App 安装时</strong>：客户端向 APNs / FCM 注册，拿到一个 device token，然后上报给通知服务器。</li>
+<li><strong>用户注册时</strong>：收集手机号和邮箱。</li>
+</ul>
+<p>这些信息存两张表：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>表</th>
+<th>存什么</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Device Tokens 表</strong></td>
+<td><code>user_id</code>、<code>device_token</code>、<code>platform</code>、<code>device_id</code>、<code>updated_at</code></td>
+<td>推送</td>
+</tr>
+<tr>
+<td><strong>User 表</strong></td>
+<td><code>user_id</code>、<code>phone</code>、<code>email</code></td>
+<td>短信、邮件</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>这里有个工程细节值得注意</strong>：<code>device_tokens</code> 表的主键<strong>不能是 <code>user_id</code></strong>，因为一个用户可能有多台设备（手机 + 平板 + 桌面端），一个用户对应多行。反过来，<strong>同一个 token 也可能绑定过多个 <code>user_id</code></strong>——用户在同一台设备上切换账号时，如果 App 没有正确注销旧 token，就会出现&quot;给 A 发推送，结果 B 的手机也响了&quot;的事故。所以推送前必须按 <code>user_id</code> 精确过滤，并且要在用户登出时主动解绑。</p>
+</blockquote>
+<h3 id="组件二通知发送流程">组件二：通知发送流程</h3>
+<div align="center"><img src="./images/high-level-design.png" alt="高层设计：触发服务、通知服务器、第三方服务" width="520" loading="lazy" decoding="async"></div>
+<p>三个角色：</p>
+<ol>
+<li><strong>触发服务（Trigger Service）</strong>：产生通知事件的源头。它可能是一个微服务（订单服务发&quot;已发货&quot;）、一个定时任务（cron job 发&quot;会员到期提醒&quot;），或者一个分布式系统。<strong>关键点：触发服务不关心通知怎么发，它只负责&quot;抛出一个事件&quot;。</strong></li>
+<li><strong>通知服务器（Notification Server）</strong>：对外提供 API，接收触发服务的请求。它负责：
+<ul>
+<li>基础校验（邮箱格式、手机号格式是否合法）；</li>
+<li>查询数据库或缓存，补齐渲染通知所需的数据（用户昵称、订单号等）；</li>
+<li>把通知事件投递到下游。</li>
+</ul>
+</li>
+<li><strong>第三方服务（Third-Party Service）</strong>：APNs、FCM、Twilio/Nexmo（短信）、SendGrid/Mailchimp（邮件），真正把消息送到用户手上。</li>
+</ol>
+<h3 id="这个初步设计的三个问题">这个初步设计的三个问题</h3>
+<p>原笔记很诚实地列出了它的缺陷：</p>
+<ul>
+<li><strong>单点故障（SPOF, Single Point of Failure）</strong>：一台通知服务器挂了，整个通知链路瘫痪。</li>
+<li><strong>难以独立扩展</strong>：数据库、缓存、处理逻辑全耦合在一台机器上，没法按瓶颈分别扩容。</li>
+<li><strong>性能瓶颈</strong>：发通知是资源密集型操作，同步等待第三方 API 返回会拖垮服务器。</li>
+</ul>
+<hr />
+<h2 id="3-改进设计用消息队列解耦">3. 改进设计：用消息队列解耦</h2>
+<div align="center"><img src="./images/improved-design.png" alt="改进设计：多台通知服务器 + 消息队列 + worker" width="520" loading="lazy" decoding="async"></div>
+<p>改进思路是三个动作：</p>
+<ol>
+<li><strong>把数据库和缓存搬出通知服务器</strong>，让它们成为独立的、可各自扩展的组件。</li>
+<li><strong>部署多台通知服务器</strong>，前面加负载均衡，消除单点故障。</li>
+<li><strong>引入消息队列（Message Queue）解耦</strong>。</li>
+</ol>
+<h3 id="为什么消息队列是这里的关键">为什么消息队列是这里的关键</h3>
+<p>假设没有消息队列：通知服务器收到&quot;给 100 万个用户发大促提醒&quot;的请求，就得同步地一个个调第三方 API。这会带来三个后果：</p>
+<ul>
+<li>通知服务器被长时间占用，无法响应其他请求；</li>
+<li>第三方 API 限流或超时时，请求失败，需要重试逻辑，而重试逻辑写在同步链路里极其脆弱；</li>
+<li>流量洪峰直接打到第三方，可能被对方封禁。</li>
+</ul>
+<p>引入消息队列之后，链路变成：</p>
+<pre><code>通知服务器 → 投递到消息队列（立即返回）→ worker 从队列拉取 → 调第三方 API
+</code></pre>
+<p><strong>通知服务器只负责&quot;把事件写进队列&quot;，这个操作很快，写完就能返回。</strong> 真正的发送工作交给下游的 worker（工作进程）。好处是：</p>
+<ul>
+<li><strong>削峰</strong>：洪峰先堆在队列里，worker 按自己的节奏消费，不会打垮第三方。</li>
+<li><strong>解耦</strong>：通知服务器不需要知道有几个 worker、worker 部署在哪。</li>
+<li><strong>可独立扩展</strong>：队列积压了就多加几个 worker，通知服务器一行代码不用改。</li>
+</ul>
+<blockquote>
+<p><strong>消息队列必须持久化。</strong> 这一点在第 1 章已经强调过：Kafka、RabbitMQ、RocketMQ 都把消息写到磁盘。如果队列只存在内存里，Broker 重启就会丢掉正在排队的通知——而这些通知里可能有用户正在等的验证码。</p>
+</blockquote>
+<h3 id="消息队列的分区设计">消息队列的分区设计</h3>
+<p>一个实用细节：<strong>队列要按渠道（或按优先级）分区（Partition）</strong>。</p>
+<p>如果把推送、短信、邮件全塞进同一个队列，一个 worker 池要同时处理三种完全不同的下游（HTTP/2 长连接、SMPP、SMTP），代码会变得非常难维护，而且<strong>一种渠道的下游变慢会拖垮所有渠道</strong>。</p>
+<p>合理的做法是按渠道拆队列：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>队列</th>
+<th>消费者</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>push_queue</code></td>
+<td>Push Worker</td>
+<td>量大，走 APNs/FCM</td>
+</tr>
+<tr>
+<td><code>sms_queue</code></td>
+<td>SMS Worker</td>
+<td>量小，成本高，需要严格限速</td>
+</tr>
+<tr>
+<td><code>email_queue</code></td>
+<td>Email Worker</td>
+<td>量大，延迟容忍度高</td>
+</tr>
+</tbody>
+</table></div>
+<p>再叠加一层<strong>优先级</strong>，就得到了第 6 节要讲的优先级队列。</p>
+<hr />
+<h2 id="4-深入设计可靠性">4. 深入设计：可靠性</h2>
+<p>可靠性要解决两个方向相反的问题：<strong>不能丢</strong>（漏发），和<strong>不能重</strong>（多发）。</p>
+<h3 id="41-防丢失持久化-重试">4.1 防丢失：持久化 + 重试</h3>
+<div align="center"><img src="./images/data-loss.png" alt="防数据丢失：通知日志库 + 重试机制" width="520" loading="lazy" decoding="async"></div>
+<p>原笔记的做法是：<strong>把通知数据持久化到数据库，并实现重试机制。</strong></p>
+<p>具体来说，要引入一个<strong>通知日志库（Notification Log DB）</strong>。每次要发一条通知，先往日志表里写一条记录（状态为&quot;待发送&quot;），worker 发送成功后再更新为&quot;已发送&quot;。</p>
+<pre><code>通知日志表
+├── event_id        事件 ID
+├── user_id         接收者
+├── channel         渠道（push / sms / email）
+├── status          pending / sent / failed
+├── retry_count     已重试次数
+├── next_retry_at   下次重试时间
+└── created_at      创建时间
+</code></pre>
+<p>有了这张表，才能实现<strong>指数退避重试（Exponential Backoff）</strong>：第一次失败后等 1 秒重试，第二次等 2 秒，第三次等 4 秒……避免下游短暂抖动时疯狂重试把它打垮。</p>
+<blockquote>
+<p><strong>重试必然带来重复。</strong> 这是分布式系统的基本规律：只要允许重试，投递语义就是&quot;至少一次（at-least-once）&quot;，而不是&quot;恰好一次（exactly-once）&quot;。比如 worker 调用 APNs 超时了——它不知道对方到底收到没有，只能重试，于是用户可能收到两条。
+所以<strong>重试和去重必须成对出现</strong>。下一小节讲去重。</p>
+</blockquote>
+<h3 id="42-去重key-的设计才是重点">4.2 去重：key 的设计才是重点</h3>
+<p>原笔记说：</p>
+<blockquote>
+<p>Check event IDs to avoid sending duplicate notifications. When a notification event first arrives, check if it is seen before by checking the event ID. If seen before discard it, otherwise send out the notification.</p>
+</blockquote>
+<p>翻译过来就是&quot;用事件 ID 去重，见过就丢弃&quot;。<strong>这个思路方向是对的，但 key 设计错了，而且错得很典型。</strong></p>
+<blockquote>
+<p><strong>勘误：只用一个 event ID 去重会漏发</strong>
+假设运营要发一条&quot;双十一大促&quot;公告给 100 万个用户，触发服务产生的<strong>是一个事件</strong>，event ID 是 <code>evt_20241111_promo</code>。
+如果去重键就是 <code>event_id</code>，那么第一个用户被发送后，这个 ID 就被标记为&quot;已处理&quot;——<strong>后面 999,999 个用户全部会被误判为重复而丢弃</strong>。
+<strong>正确做法</strong>：去重键是 <strong>(<code>event_id</code>, <code>user_id</code>) 的组合</strong>。它的语义是&quot;<strong>这个事件对这个用户</strong>是否已经发过&quot;，粒度才是对的。</p>
+</blockquote>
+<p>于是去重逻辑变成：</p>
+<pre><code class="language-python">def handle(notification):
+    key = f&quot;notif_dedup:{notification.event_id}:{notification.user_id}&quot;
+    # SETNX + 过期时间：如果 key 不存在则写入并返回 True，否则返回 False
+    is_first_time = redis.set(key, &quot;1&quot;, nx=True, ex=86400)
+    if not is_first_time:
+        return  # 重复通知，丢弃
+    send_to_third_party(notification)
+</code></pre>
+<p>用 Redis 的 <code>SET key value NX EX ttl</code> 一条命令同时完成&quot;判断是否存在&quot;和&quot;写入&quot;，天然原子。TTL（过期时间）设成 24 小时，既覆盖了重试窗口，又不会让去重表无限膨胀。</p>
+<h3 id="43-为什么幂等必须做在消费端而不是生产端">4.3 为什么幂等必须做在消费端，而不是生产端</h3>
+<p>这是本章最值得琢磨的一个设计问题。</p>
+<p><strong>生产端（触发服务）做不了可靠的去重</strong>，原因有三：</p>
+<ol>
+<li><strong>生产端自己就会重试。</strong> 触发服务调用通知服务器超时了，它不知道请求到底成功没有，只能重试——重试就会产生重复事件。<strong>你没法用一个会产生重复的组件去消除重复。</strong></li>
+<li><strong>同一个逻辑事件可能有多个生产端。</strong> 比如订单服务有两个实例，故障转移时都可能触发一次&quot;订单已发货&quot;通知。</li>
+<li><strong>消息队列本身只保证&quot;至少一次&quot;。</strong> Kafka 的消费者如果处理完消息但还没提交 offset 就崩溃了，重启后会重新消费这条消息。这是 at-least-once 语义的必然结果，不是 bug。</li>
+</ol>
+<p><strong>消费端（worker）才是唯一能拿到&quot;权威状态&quot;的地方</strong>：它在真正调用第三方 API 之前，才第一次知道&quot;这条通知到底发出去了没有&quot;。所以：</p>
+<ul>
+<li><strong>去重检查放在 worker 里</strong>，紧挨着第三方调用；</li>
+<li><strong>用 (event_id, user_id) 作为幂等键</strong>；</li>
+<li>检查与发送之间要尽量缩短时间窗口。</li>
+</ul>
+<blockquote>
+<p><strong>一个绕不开的取舍：先标记还是后标记？</strong></p>
+<ul>
+<li><strong>先写去重键、再发送</strong>（check-then-act）：如果 worker 写完键就崩溃，这条通知会<strong>永远丢失</strong>（因为键已存在，重试时会被当成重复丢弃）。这是&quot;至多一次（at-most-once）&quot;。</li>
+<li><strong>先发送、再写去重键</strong>：如果发送成功后 worker 崩溃，重试时键不存在，会<strong>重复发送</strong>。这是&quot;至少一次（at-least-once）&quot;。
+现实中的选择取决于业务：<strong>营销通知宁可重复也别丢</strong>（选后者），<strong>验证码宁可丢失让用户重新点一次也别重复</strong>（选前者，或者干脆不走这套去重、靠验证码本身的时效性）。没有银弹。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="5-通知偏好与合规">5. 通知偏好与合规</h2>
+<p>原笔记在需求里提了一句&quot;用户可以 opt-out&quot;，在附加组件里提了一句&quot;通知设置表&quot;，但<strong>完全没有展开</strong>。这是一个真实的缺口——通知偏好不只是产品功能，更是法律要求。</p>
+<h3 id="51-偏好的维度渠道-类别">5.1 偏好的维度：渠道 × 类别</h3>
+<p>一个常见的设计错误是把偏好做成&quot;开/关推送&quot;。真实场景里，用户想表达的是：</p>
+<blockquote>
+<p>&quot;我不想收营销推送，但订单状态、验证码还是要发给我。&quot;</p>
+</blockquote>
+<p>所以偏好必须是<strong>两个维度的笛卡尔积</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>推送</th>
+<th>短信</th>
+<th>邮件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>事务类</strong>（验证码、订单、安全）</td>
+<td>通常不可关</td>
+<td>通常不可关</td>
+<td>可关</td>
+</tr>
+<tr>
+<td><strong>社交类</strong>（点赞、评论、关注）</td>
+<td>可关</td>
+<td>可关</td>
+<td>可关</td>
+</tr>
+<tr>
+<td><strong>营销类</strong>（活动、优惠券）</td>
+<td>可关</td>
+<td>可关</td>
+<td>可关</td>
+</tr>
+</tbody>
+</table></div>
+<p>存储上就是一张设置表：</p>
+<pre><code>notification_settings
+├── user_id
+├── channel      push / sms / email
+├── category     transactional / social / marketing
+├── enabled      boolean
+└── updated_at
+</code></pre>
+<h3 id="52-偏好检查应该放在哪里">5.2 偏好检查应该放在哪里</h3>
+<p><strong>必须在发送前检查，而且是在 worker 里检查，不是只在入队时检查。</strong></p>
+<p>原因：用户可能在&quot;事件入队&quot;和&quot;worker 真正发送&quot;之间修改了偏好。这个窗口在高负载时可能长达几分钟。如果在入队时就锁定了，用户会收到他刚刚关掉的通知，体验很差（也可能违规）。</p>
+<p>但反过来，<strong>每条通知都查一次数据库会拖垮 DB</strong>。折中方案：</p>
+<ol>
+<li>偏好数据<strong>缓存到 Redis</strong>，key 是 <code>notif_pref:{user_id}</code>，TTL 设短一些（比如 5 分钟）；</li>
+<li>用户修改偏好时<strong>主动删除缓存</strong>（Cache-Aside 模式，见第 1 章）；</li>
+<li>接受<strong>秒级的不一致</strong>——这在业务上完全可以接受。</li>
+</ol>
+<h3 id="53-合规不是可选项">5.3 合规：不是可选项</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>法规</th>
+<th>地区</th>
+<th>对通知系统的要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GDPR</strong>（通用数据保护条例）</td>
+<td>欧盟</td>
+<td>处理个人数据需有合法依据；营销通知必须<strong>明确同意（opt-in）</strong>；必须提供便捷退订；用户有权要求删除数据（right to erasure），删除时要一并清理 device token 和通知记录</td>
+</tr>
+<tr>
+<td><strong>CAN-SPAM</strong></td>
+<td>美国（邮件）</td>
+<td>商业邮件必须有<strong>清晰的退订链接</strong>；退订请求须在 <strong>10 个工作日内</strong>生效；邮件头（From / Reply-To）必须真实；必须标注为广告</td>
+</tr>
+<tr>
+<td><strong>TCPA</strong></td>
+<td>美国（短信/电话）</td>
+<td>营销短信需要<strong>事先书面同意（prior express written consent）</strong>；限制发送时段（当地时间 8:00–21:00）；违规罚金极高</td>
+</tr>
+<tr>
+<td><strong>CASL</strong></td>
+<td>加拿大</td>
+<td>需明示或默示同意；退订须在 10 个工作日内生效</td>
+</tr>
+<tr>
+<td><strong>《个人信息保护法》</strong></td>
+<td>中国</td>
+<td>需告知并取得同意；《通信短信息服务管理规定》要求商业短信须经用户同意并提供退订方式</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>工程上的落地</strong>：合规要求最终都会变成几个具体的字段和检查点。</p>
+<ul>
+<li>设置表里加 <code>consent_at</code>（同意时间）和 <code>consent_source</code>（同意来源，比如&quot;注册页勾选框&quot;）——<strong>这是被审计时要拿出来的证据</strong>。</li>
+<li>退订必须<strong>端到端打通</strong>：用户在 App 里点了退订，或者回复了短信&quot;TD&quot;，都要能写回偏好表，并且<strong>立即影响正在排队的通知</strong>。</li>
+<li>删除账号时，device token、通知日志、偏好记录要<strong>一并删除</strong>，不能只删用户表。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="6-扇出风暴一条公告发给一亿用户">6. 扇出风暴：一条公告发给一亿用户</h2>
+<p>这是原笔记完全没覆盖、但生产环境一定会遇到的场景。</p>
+<p><strong>场景</strong>：运营要给全站 1 亿用户发一条营销公告。</p>
+<h3 id="61-直接循环会发生什么">6.1 直接循环会发生什么</h3>
+<p>假设最朴素的做法是&quot;遍历 1 亿个 user_id，逐个调用发送接口&quot;：</p>
+<ul>
+<li>单次调用按 50 毫秒（网络往返 + 第三方处理）算，一个 worker 每秒只能发 <strong>20 次</strong>；</li>
+<li>总共需要 <code>100,000,000 / 20 = 5,000,000</code> <strong>worker 秒</strong>；</li>
+<li>即使上 1000 个 worker，也要 <code>5,000,000 / 1000 = 5000 秒 ≈ 83 分钟</code>；</li>
+<li>更糟的是，这 1 亿次调用会<strong>瞬间打满 APNs / FCM 的配额</strong>，导致正常业务的验证码、订单通知全部被限流——<strong>这才是真正的灾难</strong>。</li>
+</ul>
+<h3 id="62-五个正确的做法">6.2 五个正确的做法</h3>
+<p><strong>① 分批（Batching）</strong></p>
+<p>不要一个用户一条消息，而是把用户列表切成批次：</p>
+<pre><code>1 亿用户 → 切成 10 万批，每批 1000 人 → 每批一条队列消息
+</code></pre>
+<p>队列里的消息数从 1 亿降到 10 万，<strong>降低了 1000 倍</strong>。worker 拿到一批后，用第三方支持的批量接口一次发出去——比如 FCM 一个请求可以带 500 个 token，那么 1 亿条推送只需要 <code>100,000,000 / 500 = 200,000</code> 个请求，比逐条发送减少了 500 倍。</p>
+<p><strong>② 限速（Rate Limiting）</strong></p>
+<p>总发送速率必须被主动钳制在第三方配额之下。假设 APNs 允许 5000 请求/秒：</p>
+<pre><code>200,000 个请求 / 5000 = 40 秒（理论下限）
+</code></pre>
+<p>限速的实现方式通常是<strong>令牌桶（Token Bucket）</strong>：worker 每次调第三方前先从桶里取一个令牌，取不到就等待。这样即使队列里堆了 10 万条消息，出口速率也是平稳的。</p>
+<p><strong>③ 优先级队列（Priority Queue）</strong></p>
+<p>这是<strong>保证&quot;营销不挤掉验证码&quot;的关键</strong>。把所有通知按业务重要性分成几档：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>典型通知</th>
+<th>处理策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>P0</strong></td>
+<td>验证码、安全告警、支付结果</td>
+<td>永不限速、永不降级，独立 worker 池</td>
+</tr>
+<tr>
+<td><strong>P1</strong></td>
+<td>订单状态、物流更新</td>
+<td>正常处理</td>
+</tr>
+<tr>
+<td><strong>P2</strong></td>
+<td>社交互动（点赞、评论）</td>
+<td>系统繁忙时降速</td>
+</tr>
+<tr>
+<td><strong>P3</strong></td>
+<td>营销、活动、推荐</td>
+<td>系统繁忙时暂停，只占用空闲产能</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>P0 必须有独立的队列和独立的 worker 池</strong>，物理隔离。如果只是&quot;同一个队列里排优先级&quot;，那么 P3 的 10 万条消息堵在前面，P0 照样要等——优先级就形同虚设。</p>
+<p><strong>④ 按用户限流</strong></p>
+<p>单个用户每天收到的营销通知要有上限（比如 3 条）。这既是防骚扰，也是防止某个 bug 导致同一用户被狂轰滥炸。实现上是一个 <code>user_id → 今日已发营销条数</code> 的计数器，放在 Redis 里，按天重置。</p>
+<p><strong>⑤ 按本地时间发送</strong></p>
+<p><strong>不要在凌晨 3 点给用户发营销推送。</strong> 按用户所在时区（或粗略按国家/地区）把发送任务排到当地时间的合理时段（比如 9:00–20:00）。实现上是把受众按地域分桶，每个桶用定时任务在自己的时间窗口内触发。</p>
+<blockquote>
+<p><strong>顺带一提</strong>：即使做了分批，<strong>去重依然要做</strong>。因为批量任务本身可能因为故障转移被触发两次，所以每个批次的处理也要带幂等键（<code>event_id</code> + 批次 ID，或者干脆在 worker 内对每个用户再做一次 <code>(event_id, user_id)</code> 去重）。</p>
+</blockquote>
+<hr />
+<h2 id="7-其他组件安全与完整流程">7. 其他组件、安全与完整流程</h2>
+<h3 id="71-原笔记提到的其余组件">7.1 原笔记提到的其余组件</h3>
+<div align="center"><img src="./images/events-tracking.png" alt="事件追踪：打开率、点击率、转化率" width="520" loading="lazy" decoding="async"></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+<th>工程要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>通知模板（Template）</strong></td>
+<td>预置模板，保证格式一致、渲染高效</td>
+<td>模板要做<strong>版本管理</strong>；渲染时注意<strong>变量转义</strong>，防止用户昵称里带恶意内容导致注入</td>
+</tr>
+<tr>
+<td><strong>通知设置</strong></td>
+<td>用户的 opt-in / opt-out</td>
+<td>见第 5 节</td>
+</tr>
+<tr>
+<td><strong>限流（Rate Limiting）</strong></td>
+<td>限制给单个用户发通知的频率</td>
+<td>用户级 + 全局级双层限流</td>
+</tr>
+<tr>
+<td><strong>重试机制</strong></td>
+<td>第三方失败时重试</td>
+<td>指数退避 + 最大重试次数 + 死信队列（DLQ）</td>
+</tr>
+<tr>
+<td><strong>队列监控</strong></td>
+<td>跟踪队列积压，动态扩缩 worker</td>
+<td>积压量是关键指标，可以驱动自动伸缩</td>
+</tr>
+<tr>
+<td><strong>事件追踪（Event Tracking）</strong></td>
+<td>收集打开率、点击率、参与度</td>
+<td>归因困难：用户可能在多个渠道收到同一条通知，要设计好归因窗口</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>关于事件追踪的一个坑</strong>：打开率（open rate）这个指标很容易被高估。因为推送的&quot;打开&quot;往往只能通过&quot;App 被启动&quot;来推断，而用户可能只是因为别的通知启动了 App。要更准确，需要用**深度链接（deep link）**把用户带到具体页面，再记录页面到达事件。</p>
+</blockquote>
+<h3 id="72-安全">7.2 安全</h3>
+<p>原笔记只写了一句&quot;用 AppKey 和 AppSecret 来认证和保护推送 API&quot;。这里需要说清楚，因为<strong>它其实混淆了两个不同的鉴权层次</strong>：</p>
+<ul>
+<li><strong>自家 API 的鉴权</strong>（AppKey / AppSecret）：这是<strong>你的服务对外</strong>的鉴权。触发服务调用通知服务器时，用 AppKey 标识身份、AppSecret 签名，防止未授权方调用你的通知接口。这属于常规的 API 网关鉴权。</li>
+<li><strong>对接第三方通道的鉴权</strong>（另一个层次）：
+<ul>
+<li><strong>APNs</strong>：用<strong>证书认证</strong>（<code>.p12</code> 证书，需要定期续期）或<strong>令牌认证</strong>（<code>.p8</code> 私钥签发 JWT，苹果推荐，一个 key 可覆盖所有 App，且不过期）。</li>
+<li><strong>FCM</strong>：用 <strong>OAuth2 服务账号</strong>（下载 JSON 凭据，换取 access token）。</li>
+<li><strong>短信/邮件服务商</strong>：各自的 API Key。</li>
+</ul>
+</li>
+</ul>
+<p><strong>这两层不能混为一谈。</strong> AppKey/AppSecret 保护的是你自己的入口，APNs 证书/令牌保护的是你与苹果之间的通道。原笔记只提了前者，容易让初学者以为&quot;配好 AppKey 就能推送了&quot;。</p>
+<h3 id="73-完整的通知流程">7.3 完整的通知流程</h3>
+<div align="center"><img src="./images/updated-design.png" alt="更新后的设计：完整通知链路" width="520" loading="lazy" decoding="async"></div>
+<p>把前面的组件串起来，一条通知的完整旅程是：</p>
+<ol>
+<li><strong>触发服务</strong>调用通知服务器 API，提交一个通知事件（含 <code>event_id</code>、<code>user_id</code>、模板 ID、变量）。</li>
+<li><strong>通知服务器</strong>校验请求合法性，从缓存或数据库补齐渲染所需的数据（用户昵称、订单号等），做基础校验（邮箱/手机号格式）。</li>
+<li><strong>通知服务器</strong>把通知事件投递到对应的<strong>消息队列</strong>（按渠道 + 优先级分区），立即返回。</li>
+<li><strong>Worker</strong> 从队列拉取事件，执行：
+<ul>
+<li>去重检查（<code>(event_id, user_id)</code>）；</li>
+<li>偏好检查（用户是否关闭了该渠道 × 该类别的通知）；</li>
+<li>限流检查（用户级 + 全局级）；</li>
+<li>渲染模板；</li>
+<li>调用第三方服务；</li>
+<li>更新通知日志状态。</li>
+</ul>
+</li>
+<li><strong>第三方服务</strong>把通知投递到用户设备。</li>
+</ol>
+<hr />
+<h2 id="8-关键优化与小结">8. 关键优化与小结</h2>
+<p>原笔记列出的优化项，逐条点评：</p>
+<ol>
+<li><strong>水平扩展（Horizontal Scaling）</strong>：加更多通知服务器分摊负载。✅ 正确，但要注意通知服务器本身应该是<strong>无状态</strong>的，状态都在数据库、缓存和队列里（呼应第 1 章）。</li>
+<li><strong>消息队列</strong>：解耦处理，应对高并发。✅ 本章第 3 节已展开。</li>
+<li><strong>缓存</strong>：缓存频繁访问的数据，降低延迟。✅ 特别是用户偏好和模板，见第 5 节。</li>
+<li><strong>&quot;Distributed Crawling&quot;</strong>：❌ <strong>这条是错的</strong>，与通知系统毫无关系，详见文末勘误。</li>
+</ol>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<h3 id="勘误-1只用一个-event-id-去重会导致大面积漏发">勘误 1：只用一个 event ID 去重会导致大面积漏发</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Check event IDs to avoid sending duplicate notifications. When a notification event first arrives, check if it is seen before by checking the event ID. If seen before discard it, otherwise send out the notification.</code></li>
+<li><strong>问题</strong>：一个通知事件（比如一条全站公告）通常会<strong>扇出给多个用户</strong>。如果去重键就是全局的 <code>event_id</code>，那么第一个用户被发送后，这个 ID 就被标记为&quot;已处理&quot;，后续所有用户都会被误判为重复而<strong>全部丢弃</strong>。这不是小概率 bug，而是必然发生的功能故障。</li>
+<li><strong>正确说法</strong>：去重键必须是 <strong>(<code>event_id</code>, <code>user_id</code>) 的组合</strong>，语义是&quot;这个事件对这个用户是否已经发过&quot;。存储上用 Redis 的 <code>SET key value NX EX ttl</code> 保证原子性。</li>
+<li><strong>延伸</strong>：这类&quot;幂等键选错粒度&quot;的问题在分布式系统里非常常见。判断幂等键是否正确的方法：<strong>问自己&quot;这个 key 唯一标识的是哪一次'副作用'&quot;</strong>。这里副作用是&quot;给某个用户发一条通知&quot;，所以 key 必须包含用户维度。</li>
+</ul>
+<h3 id="勘误-2key-optimizations-里的-distributed-crawling-与通知系统无关">勘误 2：Key Optimizations 里的 &quot;Distributed Crawling&quot; 与通知系统无关</h3>
+<ul>
+<li><strong>原文说法</strong>：Key Optimizations 第 4 条 —— <code>Distributed Crawling: Optimize message delivery geographically for better performance.</code></li>
+<li><strong>问题</strong>：<strong>通知系统里没有&quot;爬虫&quot;（crawling）</strong>。&quot;Distributed Crawling&quot; 显然是<strong>从其他章节（如网页爬虫章节）误抄过来的</strong>，与通知投递没有任何逻辑关系。把&quot;分布式爬取&quot;当成通知系统的优化项，会误导初学者。</li>
+<li><strong>正确说法</strong>：这一条应当删除。如果想说&quot;地理就近投递&quot;，正确的表述是：<strong>把发送 worker 部署在离第三方服务接入点较近的区域</strong>，或者利用 APNs / FCM 自带的全球接入点。这属于<strong>部署拓扑优化</strong>，与爬虫无关。</li>
+<li><strong>延伸</strong>：原项目是个人读书笔记，出现跨章节抄写残留是正常的。<strong>读笔记时保持判断力，比记住笔记内容更重要</strong>——这也是本项目做&quot;勘误&quot;的意义。</li>
+</ul>
+<h3 id="勘误-3appkey-appsecret-不是对接-apns-fcm-的鉴权方式">勘误 3：AppKey / AppSecret 不是对接 APNs / FCM 的鉴权方式</h3>
+<ul>
+<li><strong>原文说法</strong>：Security 一节 —— <code>Use AppKey and AppSecret to authenticate and secure APIs for push notifications.</code></li>
+<li><strong>问题</strong>：这句话把<strong>两个不同层次的鉴权混为一谈</strong>。AppKey/AppSecret 是<strong>你自己的服务对外提供的 API 的鉴权</strong>；而对接 APNs / FCM 需要的是完全不同的凭据（APNs 证书或 <code>.p8</code> 令牌、FCM 的 OAuth2 服务账号）。只说 AppKey/AppSecret，会让初学者以为配好它就能推送。</li>
+<li><strong>正确说法</strong>：鉴权分两层——<strong>对外</strong>用 AppKey/AppSecret（或 OAuth2）保护你的通知 API；<strong>对下</strong>用 APNs 证书/令牌、FCM 服务账号、短信/邮件服务商的 API Key。两层都要配置，且凭据的轮换周期不同。</li>
+<li><strong>延伸</strong>：APNs 的证书认证需要<strong>每年续期</strong>，忘记续期会导致推送集体失败——这是运维事故的经典原因。苹果推荐改用<strong>基于令牌（token-based）的认证</strong>，<code>.p8</code> 私钥不过期，且一个 key 可用于多个 App。</li>
+</ul>
+<h3 id="勘误-4apns-的正确缩写以及推送保证送达的错误预期">勘误 4：APNs 的正确缩写，以及&quot;推送保证送达&quot;的错误预期</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>iOS Push Notifications: Use Apple Push Notification Service (APNS)</code>；整体设计默认&quot;调用第三方成功即送达&quot;。</li>
+<li><strong>问题</strong>：① 苹果官方缩写是 <strong>APNs</strong>（小写 s），不是 APNS；② 更重要的问题是，全文没有指出<strong>推送是&quot;尽力而为&quot;的，不保证送达</strong>。设备离线、用户关闭通知权限、token 失效都会导致静默丢失。</li>
+<li><strong>正确说法</strong>：APNs 和 FCM 都是 best-effort 通道。如果业务要求&quot;用户一定能看到&quot;，必须做<strong>推送 + 应用内消息箱</strong>双保险：推送只负责提醒，真正的消息存在服务端，用户打开 App 时同步。</li>
+<li><strong>延伸</strong>：这个认知直接决定了架构——如果以为推送可靠，就不会设计消息箱；等线上发现&quot;用户投诉没收到验证码&quot;时再补，成本高得多。</li>
+</ul>
+<h3 id="补充-1设备令牌device-token的完整生命周期">补充 1：设备令牌（device token）的完整生命周期</h3>
+<p>原笔记只说&quot;收集 device token&quot;，完全没有讲它的生命周期管理。这是生产环境<strong>最容易出事故</strong>的地方。</p>
+<p><strong>① 获取（Registration）</strong></p>
+<p>App 首次启动时，向 APNs / FCM 注册，拿到 token：</p>
+<ul>
+<li>iOS：<code>registerForRemoteNotifications()</code> → 回调 <code>didRegisterForRemoteNotificationsWithDeviceToken</code></li>
+<li>Android：<code>FirebaseMessaging.getInstance().getToken()</code></li>
+</ul>
+<p>App 把 token 连同 <code>user_id</code>、<code>device_id</code>、平台、App 版本上报给通知服务器。</p>
+<p><strong>② 刷新（Refresh）</strong></p>
+<p><strong>token 不是永久的，它会变。</strong> 变化时机包括：重装 App、从备份恢复、清除数据、系统升级、长期未使用。所以客户端<strong>必须监听刷新回调</strong>并重新上报：</p>
+<ul>
+<li>iOS：每次启动都调用注册方法，拿到新 token 就上报；</li>
+<li>Android：监听 <code>onNewToken()</code> 回调。</li>
+</ul>
+<blockquote>
+<p><strong>最常见的线上 bug</strong>：客户端只在首次安装时上报 token，从不监听刷新。结果用户换手机后，推送发到了旧 token 上——<strong>用户再也收不到通知，而且没有任何报错</strong>。</p>
+</blockquote>
+<p><strong>③ 失效（Invalidation）</strong></p>
+<p>token 会在以下情况失效：用户卸载 App、注销账号、关闭通知权限、长时间未活跃。</p>
+<p><strong>通知服务器怎么知道 token 失效了？</strong> 靠发送时的错误响应：</p>
+<ul>
+<li><strong>APNs</strong>：返回 <code>410 Unregistered</code>（并在响应体里带上&quot;该 token 失效的时间戳&quot;），或 <code>400 BadDeviceToken</code>。</li>
+<li><strong>FCM</strong>：返回 <code>UNREGISTERED</code> 或 <code>NOT_FOUND</code> 错误码。</li>
+</ul>
+<p><strong>④ 清理（Cleanup）</strong></p>
+<p>收到失效响应后，要<strong>立即从 <code>device_tokens</code> 表删除该 token</strong>。如果不清，每次发送都会白白调用一次第三方接口，浪费配额、拖慢发送速度。</p>
+<p>除了被动清理，还要<strong>主动清理</strong>：定期删除&quot;超过 N 天（比如 90 天）没有任何 token 刷新、且用户从未打开 App&quot;的记录。</p>
+<p><strong>⑤ 多账号 / 多设备的边界情况</strong></p>
+<ul>
+<li>一个用户多台设备 → 一个 <code>user_id</code> 对应多行 token，发送时全部要发。</li>
+<li>一台设备多个账号 → 同一 token 可能绑定过多个 <code>user_id</code>。<strong>用户登出时必须解绑</strong>，否则会出现&quot;A 的消息推到了 B 的手机上&quot;这种隐私事故。</li>
+<li>给同一用户的多台设备发通知时，可以考虑<strong>只给最近活跃的一台发</strong>（比如用户正在用平板，就不给手机弹），避免多设备同时响铃。</li>
+</ul>
+<h3 id="补充-2用户通知偏好与合规">补充 2：用户通知偏好与合规</h3>
+<p>原笔记在需求里提了 opt-out，在组件里提了通知设置表，但<strong>完全没有展开</strong>，更没有提合规。详见第 5 节。<strong>核心要点</strong>：偏好要按&quot;渠道 × 类别&quot;两个维度建模；偏好检查必须在 worker 发送前做；GDPR / CAN-SPAM / TCPA 等法规对营销通知有强制的同意与退订要求，这些最终都要落成数据库字段和检查点。</p>
+<h3 id="补充-3扇出风暴fan-out-storm">补充 3：扇出风暴（Fan-out Storm）</h3>
+<p>原笔记完全没有覆盖&quot;一条公告发给一亿用户&quot;的场景。详见第 6 节。<strong>核心要点</strong>：分批（把 1 亿条消息压成 10 万条批次）、限速（令牌桶钳制在第三方配额之下）、优先级队列（P0 事务性通知必须有独立的队列和 worker 池，与营销物理隔离）、用户级限流、按本地时间发送。</p>
+<h3 id="补充-4推送不可靠需要应用内消息箱兜底">补充 4：推送不可靠，需要&quot;应用内消息箱&quot;兜底</h3>
+<p>原笔记没有指出推送的 best-effort 本质。详见第 1 节和第 4 节。<strong>核心要点</strong>：任何&quot;用户必须看到&quot;的消息（验证码、支付结果、安全告警）都不能只依赖推送，必须有服务端的消息箱，用户打开 App 时同步拉取。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>调用第三方 API 成功 = 用户收到了</td>
+<td>APNs / FCM / 短信 / 邮件全部是 best-effort，设备离线、权限关闭、token 失效都会静默丢失</td>
+<td>重要通知必须配&quot;应用内消息箱&quot;兜底</td>
+</tr>
+<tr>
+<td>用 event ID 去重就够了</td>
+<td>一个事件会扇出给多个用户，用全局 event ID 会让第一个用户之后的全部被误判为重复</td>
+<td>幂等键是 (<code>event_id</code>, <code>user_id</code>)</td>
+</tr>
+<tr>
+<td>去重放在生产端更省事</td>
+<td>生产端自己就会因超时重试而产生重复；消息队列本身也只保证 at-least-once</td>
+<td>幂等必须做在消费端（worker），紧挨第三方调用</td>
+</tr>
+<tr>
+<td>消息队列可以只放内存里，快</td>
+<td>只存内存的组件不提供持久性，Broker 重启即丢消息</td>
+<td>现代消息队列（Kafka / RabbitMQ / RocketMQ）都持久化到磁盘</td>
+</tr>
+<tr>
+<td>用户 opt-out 只是个产品开关</td>
+<td>营销通知的同意与退订是 GDPR / CAN-SPAM / TCPA 的<strong>法律要求</strong>，违规有实打实的罚金</td>
+<td>同意时间、同意来源、退订链路都要落库并可审计</td>
+</tr>
+<tr>
+<td>偏好只在入队时检查一次就行</td>
+<td>用户可能在入队后、发送前修改偏好，窗口期可能长达几分钟</td>
+<td>在 worker 发送前检查，偏好缓存到 Redis，修改时主动失效</td>
+</tr>
+<tr>
+<td>给一亿用户发公告就是多开几个 worker</td>
+<td>会瞬间打满第三方配额，把验证码等 P0 通知一起挤掉</td>
+<td>分批 + 限速 + <strong>优先级队列物理隔离</strong> + 用户级限流</td>
+</tr>
+<tr>
+<td>群发通知不用考虑用户所在时区</td>
+<td>凌晨发营销推送会引发大量投诉和退订</td>
+<td>按用户地域分桶，只在当地合理时段发送</td>
+</tr>
+<tr>
+<td>AppKey / AppSecret 配好就能推送</td>
+<td>那是你自己 API 的鉴权，不是对接 APNs / FCM 的凭据</td>
+<td>对外用 AppKey，对下用 APNs 证书/令牌、FCM 服务账号</td>
+</tr>
+<tr>
+<td>device token 是永久不变的</td>
+<td>重装、恢复备份、系统升级、长期不用都会让 token 变化或失效</td>
+<td>客户端监听刷新回调并重新上报；服务端按 410 / UNREGISTERED 清理</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：通知系统是一个<strong>以消息队列为核心、以&quot;至少一次投递 + 消费端幂等&quot;为可靠性基础</strong>的扇出型系统，难点在于多渠道异构、设备令牌生命周期管理和极端扇出场景。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>架构</strong>：触发服务 → 通知服务器（校验 + 补数据）→ 消息队列（按渠道/优先级分区）→ worker → 第三方服务（APNs / FCM / SMS / Email）。</li>
+<li><strong>可靠性</strong>：通知日志表持久化 + 指数退避重试 + <strong>(<code>event_id</code>, <code>user_id</code>) 去重</strong>。</li>
+<li><strong>幂等位置</strong>：去重必须在<strong>消费端</strong>做，因为生产端会因超时重试产生重复，且消息队列只保证 at-least-once。</li>
+<li><strong>设备令牌生命周期</strong>：注册 → 刷新（监听回调）→ 失效（410 / UNREGISTERED）→ 清理；token 会变，必须持续维护。</li>
+<li><strong>偏好与合规</strong>：偏好按&quot;渠道 × 类别&quot;建模，在 worker 发送前检查；营销通知受 GDPR / CAN-SPAM / TCPA 约束。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动指出<strong>推送是 best-effort</strong>，重要通知需要&quot;应用内消息箱&quot;兜底。</li>
+<li>主动区分<strong>两层鉴权</strong>（AppKey/AppSecret 对外，APNs 证书/令牌、FCM 服务账号对下）。</li>
+<li>主动提出<strong>优先级队列物理隔离</strong>，保证营销公告不挤掉验证码。</li>
+<li>主动给出扇出风暴的<strong>量化估算</strong>（1 亿条 → 分批 10 万条 → 批量 500/请求 → 20 万请求）。</li>
+<li>主动讨论<strong>去重键的先后顺序取舍</strong>（at-most-once vs at-least-once）。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;用户抱怨重复收到同一条通知，怎么排查？&quot;</em>
+→ 先确认重试是否触发了重复（超时后重试是正常的）；检查去重键是不是用成了全局 <code>event_id</code>（应该带 <code>user_id</code>）；检查去重键的 TTL 是否短于重试窗口；检查是否有多个生产端发出同一逻辑事件。</li>
+<li><em>&quot;怎么保证营销推送不影响验证码短信？&quot;</em>
+→ P0 事务性通知走独立的队列和独立的 worker 池，物理隔离；营销走低优先级队列，系统繁忙时暂停；全局和用户级双层限流；两者配额分开申请。</li>
+<li><em>&quot;device token 失效了但没清理，会有什么后果？&quot;</em>
+→ 每次发送都白白调用一次第三方接口，浪费配额、拖慢整体发送速度；失效 token 占比高时，有效通知的送达率会明显下降。所以要靠 410 / UNREGISTERED 响应被动清理，并定期主动清理长期未活跃的 token。</li>
+<li><em>&quot;给一亿用户发一条公告，怎么设计？&quot;</em>
+→ 预计算受众并按分片存储 → 切成 10 万批（每批 1000 人）投递到低优先级队列 → 令牌桶限速在第三方配额之下 → 用 FCM 批量接口（500 token/请求）降低请求数 → 按用户时区分时段发送 → 全程带幂等键防重复。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://developer.apple.com/documentation/usernotifications" target="_blank" rel="noopener noreferrer">Apple Push Notification service 官方文档</a> — 含 token 认证与 410 响应处理</li>
+<li><a href="https://firebase.google.com/docs/cloud-messaging" target="_blank" rel="noopener noreferrer">Firebase Cloud Messaging 官方文档</a> — 含批量发送与错误码说明</li>
+<li><a href="https://gdpr-info.eu/" target="_blank" rel="noopener noreferrer">GDPR 官方全文</a> — 营销通知的同意与退订要求</li>
+<li><a href="https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business" target="_blank" rel="noopener noreferrer">FTC：CAN-SPAM 合规指南</a> — 邮件营销的强制要求</li>
+<li><a href="https://www.fcc.gov/consumers/guides/stop-unwanted-robocalls-and-texts" target="_blank" rel="noopener noreferrer">FCC：TCPA 与自动呼叫</a> — 短信营销的同意与时段限制</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../09/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">网络爬虫</span></a><a class="next" href="../11/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">信息流系统</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求与规模">1. 需求与规模</a>
+<a class="lv3" href="#功能需求">功能需求</a>
+<a class="lv3" href="#规模估算">规模估算</a>
+<a class="lv3" href="#一个容易被忽略的约束">一个容易被忽略的约束</a>
+<a class="lv2" href="#2-高层设计三种渠道与核心组件">2. 高层设计：三种渠道与核心组件</a>
+<a class="lv3" href="#三种渠道的本质区别">三种渠道的本质区别</a>
+<a class="lv3" href="#组件一联系信息收集">组件一：联系信息收集</a>
+<a class="lv3" href="#组件二通知发送流程">组件二：通知发送流程</a>
+<a class="lv3" href="#这个初步设计的三个问题">这个初步设计的三个问题</a>
+<a class="lv2" href="#3-改进设计用消息队列解耦">3. 改进设计：用消息队列解耦</a>
+<a class="lv3" href="#为什么消息队列是这里的关键">为什么消息队列是这里的关键</a>
+<a class="lv3" href="#消息队列的分区设计">消息队列的分区设计</a>
+<a class="lv2" href="#4-深入设计可靠性">4. 深入设计：可靠性</a>
+<a class="lv3" href="#41-防丢失持久化-重试">4.1 防丢失：持久化 + 重试</a>
+<a class="lv3" href="#42-去重key-的设计才是重点">4.2 去重：key 的设计才是重点</a>
+<a class="lv3" href="#43-为什么幂等必须做在消费端而不是生产端">4.3 为什么幂等必须做在消费端，而不是生产端</a>
+<a class="lv2" href="#5-通知偏好与合规">5. 通知偏好与合规</a>
+<a class="lv3" href="#51-偏好的维度渠道-类别">5.1 偏好的维度：渠道 × 类别</a>
+<a class="lv3" href="#52-偏好检查应该放在哪里">5.2 偏好检查应该放在哪里</a>
+<a class="lv3" href="#53-合规不是可选项">5.3 合规：不是可选项</a>
+<a class="lv2" href="#6-扇出风暴一条公告发给一亿用户">6. 扇出风暴：一条公告发给一亿用户</a>
+<a class="lv3" href="#61-直接循环会发生什么">6.1 直接循环会发生什么</a>
+<a class="lv3" href="#62-五个正确的做法">6.2 五个正确的做法</a>
+<a class="lv2" href="#7-其他组件安全与完整流程">7. 其他组件、安全与完整流程</a>
+<a class="lv3" href="#71-原笔记提到的其余组件">7.1 原笔记提到的其余组件</a>
+<a class="lv3" href="#72-安全">7.2 安全</a>
+<a class="lv3" href="#73-完整的通知流程">7.3 完整的通知流程</a>
+<a class="lv2" href="#8-关键优化与小结">8. 关键优化与小结</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1只用一个-event-id-去重会导致大面积漏发">勘误 1：只用一个 event ID 去重会导致大面积漏发</a>
+<a class="lv3" href="#勘误-2key-optimizations-里的-distributed-crawling-与通知系统无关">勘误 2：Key Optimizations 里的 &quot;Distributed Crawling&quot; 与通知系统无关</a>
+<a class="lv3" href="#勘误-3appkey-appsecret-不是对接-apns-fcm-的鉴权方式">勘误 3：AppKey / AppSecret 不是对接 APNs / FCM 的鉴权方式</a>
+<a class="lv3" href="#勘误-4apns-的正确缩写以及推送保证送达的错误预期">勘误 4：APNs 的正确缩写，以及&quot;推送保证送达&quot;的错误预期</a>
+<a class="lv3" href="#补充-1设备令牌device-token的完整生命周期">补充 1：设备令牌（device token）的完整生命周期</a>
+<a class="lv3" href="#补充-2用户通知偏好与合规">补充 2：用户通知偏好与合规</a>
+<a class="lv3" href="#补充-3扇出风暴fan-out-storm">补充 3：扇出风暴（Fan-out Storm）</a>
+<a class="lv3" href="#补充-4推送不可靠需要应用内消息箱兜底">补充 4：推送不可靠，需要&quot;应用内消息箱&quot;兜底</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

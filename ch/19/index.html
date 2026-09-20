@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 19 章：分布式消息队列 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item active" href="./"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-19-章分布式消息队列">第 19 章：分布式消息队列</h1>
+<blockquote>
+<p>原章节：Distributed Message Queue · 原项目路径 <code>19. Distributed Message Queue/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>这一章我们要从零设计一个<strong>分布式消息队列（Distributed Message Queue）</strong>，而且要求比传统消息队列更苛刻：消息要能<strong>重复消费</strong>、要<strong>保证顺序</strong>、要<strong>保留两周</strong>。这三条「额外要求」正是整章的难点——传统消息队列（比如早期的 ActiveMQ）一条都不支持，因为支持它们会显著抬高设计复杂度。</p>
+<p>学完这一章，你应该能解释：为什么 Kafka 用机械硬盘还能这么快？为什么设了 <code>acks=all</code> 仍可能丢数据？为什么「恰好一次投递」是个需要小心对待的词？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>点对点（Point-to-Point）与发布订阅（Pub-Sub）两种模型的区别，以及消息队列的四个核心价值</li>
+<li>主题（Topic）、分区（Partition）、偏移量（Offset）、消费者组（Consumer Group）之间的关系</li>
+<li>Kafka 高性能的存储根基：分段日志（Segment Log）、稀疏索引、零拷贝（Zero-Copy）</li>
+<li>生产者路由层放在哪里、消费者该用推模式还是拉模式</li>
+<li>消费者再均衡（Rebalance）的代价，以及协作式再均衡的改进</li>
+<li>副本（Replica）、ISR（In-Sync Replicas）与 <code>acks</code> 如何共同决定「会不会丢数据」</li>
+<li>三种投递语义（at-most-once / at-least-once / exactly-once）的准确边界</li>
+<li>从 ZooKeeper 到 KRaft：Kafka 的元数据管理为什么必须换掉 ZooKeeper</li>
+</ul>
+<hr />
+<h2 id="1-为什么需要消息队列">1. 为什么需要消息队列</h2>
+<p>用户上传一张图片，后端要做四件事：压缩、生成缩略图、写数据库、发通知。全部同步执行，用户要盯着转圈等好几秒——而「发通知」失败根本不该影响上传成功。把这几件事丢进消息队列，用户立刻收到「上传成功」，剩下的后台慢慢做。这就是消息队列的四个价值：</p>
+<ul>
+<li><strong>解耦（Decoupling）</strong>：生产者不需要知道消费者是谁、有几个、在不在线，上下游可以独立修改和发布。</li>
+<li><strong>提升可扩展性（Scalability）</strong>：生产端和消费端按各自流量<strong>独立</strong>扩容，高峰时积压消息、多开消费者追上去。</li>
+<li><strong>提升可用性（Availability）</strong>：系统某一部分挂了，其他部分仍可继续和队列交互。</li>
+<li><strong>更好的性能（Performance）</strong>：生产者发出消息后不等消费者确认就返回。</li>
+</ul>
+<p>主流实现有 Kafka、RabbitMQ、RocketMQ、Apache Pulsar、ActiveMQ、ZeroMQ。</p>
+<blockquote>
+<p><strong>值得主动提的细节</strong>：严格来说 Kafka 和 Pulsar 不是「消息队列」，而是<strong>事件流平台（Event Streaming Platform）</strong>——传统消息队列在消息被消费后就删除消息，流平台把消息当作<strong>可重放的日志</strong>长期保留。本章要设计的正是后者。</p>
+</blockquote>
+<hr />
+<h2 id="2-需求澄清与设计范围">2. 需求澄清与设计范围</h2>
+<p>面试里最忌讳听到题目就开始画架构。下面是原文的对话，我补上了「为什么问这个」：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>提问</th>
+<th>回答</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>消息格式和平均大小？</td>
+<td>纯文本，通常几 KB</td>
+<td>决定存储结构和网络协议</td>
+</tr>
+<tr>
+<td>消息可以被重复消费吗？</td>
+<td>可以，不同消费者都要能重复消费</td>
+<td><strong>额外要求</strong>，传统队列不支持</td>
+</tr>
+<tr>
+<td>消息顺序要保证吗？</td>
+<td>要保证</td>
+<td><strong>额外要求</strong>，会限制并行度</td>
+</tr>
+<tr>
+<td>数据保留多久？</td>
+<td>两周</td>
+<td><strong>额外要求</strong>，决定存储成本模型</td>
+</tr>
+<tr>
+<td>要支持多少生产者/消费者？</td>
+<td>越多越好</td>
+<td>决定扩展性设计目标</td>
+</tr>
+<tr>
+<td>投递语义要支持哪些？</td>
+<td>至少 at-least-once，最好三种都可配置</td>
+<td>决定生产者/消费者的确认逻辑</td>
+</tr>
+<tr>
+<td>端到端延迟目标？</td>
+<td>日志聚合要高吞吐，传统场景要低延迟</td>
+<td>决定批处理（Batching）策略</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>功能需求</strong>：生产者发消息到队列；消费者从队列消费；消息可被消费一次或重复消费；历史数据可按保留期截断；消息大小在 KB 量级；顺序需保证；投递语义可配置为 at-most-once / at-least-once / exactly-once。</p>
+<p><strong>非功能需求</strong>：按场景可配置的<strong>高吞吐或低延迟</strong>；<strong>可扩展</strong>（能扛突发流量）；<strong>持久化与可靠</strong>（数据落盘并在节点间复制）。</p>
+<blockquote>
+<p><strong>记住这句话</strong>：传统消息队列之所以简单，是因为它<strong>不支持数据保留、不保证顺序</strong>。一旦加上这两条，整个设计就变了——你要在磁盘上维护一份可随机读取、有序、多副本的日志。</p>
+</blockquote>
+<hr />
+<h2 id="3-高层架构与两种消息模型">3. 高层架构与两种消息模型</h2>
+<div align="center"><img src="./images/message-queue-components.png" alt="消息队列的三个核心角色：生产者、队列、消费者" width="520" loading="lazy" decoding="async"></div>
+<p>生产者（Producer）把消息发送到队列；消费者（Consumer）订阅队列并消费订阅到的消息；消息队列是中间的服务，把双方解耦、让它们独立扩展；生产者和消费者都是<strong>客户端</strong>，消息队列是<strong>服务端</strong>。</p>
+<p><strong>点对点模型（Point-to-Point）</strong>，传统消息队列常用：</p>
+<div align="center"><img src="./images/point-to-point-model.png" alt="点对点模型：一条消息只被一个消费者消费" width="520" loading="lazy" decoding="async"></div>
+<p>一条消息被发送到队列，<strong>只被一个消费者</strong>消费；可以存在多个消费者，但一条消息只被消费一次；消息被确认（Ack）消费后即从队列删除；点对点模型<strong>没有数据保留</strong>——但我们的设计里有。</p>
+<p><strong>发布订阅模型（Publish-Subscribe）</strong>，事件流平台常用：</p>
+<div align="center"><img src="./images/publish-subscribe-model.png" alt="发布订阅模型：消息关联到主题，所有订阅者都能收到" width="520" loading="lazy" decoding="async"></div>
+<p>消息关联到一个<strong>主题（Topic）</strong>；消费者订阅主题后，会收到发送到该主题的<strong>全部消息</strong>。</p>
+<div align="center"><img src="./images/high-level-architecture.png" alt="消息队列的高层架构：客户端、Broker、各类存储与协调服务" width="520" loading="lazy" decoding="async"></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>客户端（Clients）</strong></td>
+<td>生产者把消息推到指定主题；消费者组订阅主题的消息</td>
+</tr>
+<tr>
+<td><strong>Broker（代理节点）</strong></td>
+<td>持有多个分区，一个分区保存某个主题的一个子集消息</td>
+</tr>
+<tr>
+<td><strong>数据存储（Data Storage）</strong></td>
+<td>在分区中存储消息</td>
+</tr>
+<tr>
+<td><strong>状态存储（State Storage）</strong></td>
+<td>保存消费者状态（消费到哪了）</td>
+</tr>
+<tr>
+<td><strong>元数据存储（Metadata Storage）</strong></td>
+<td>保存配置和主题属性</td>
+</tr>
+<tr>
+<td><strong>协调服务（Coordination Service）</strong></td>
+<td>服务发现（哪些 Broker 还活着）和选主（哪个 Broker 是 Leader）</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-主题分区与偏移量">4. 主题、分区与偏移量</h2>
+<p>一个主题的数据量可能非常大，怎么扩展？答案是<strong>把主题拆成分区（Partition）</strong>，也就是分片（Sharding）。</p>
+<div align="center"><img src="./images/partitions.png" alt="一个主题被拆成多个分区，分散在不同 Broker 上" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li>发往某个主题的消息<strong>均匀分布</strong>到它的各个分区；承载分区的服务器叫 <strong>Broker</strong>；</li>
+<li>每个分区内部就是一个 FIFO 队列，<strong>消息顺序在分区内被保证</strong>；</li>
+<li>消息在分区内的位置叫<strong>偏移量（Offset）</strong>，就是从 0 开始递增的整数，可以理解为「第几条」；</li>
+<li>每条消息只被发送到一个特定分区，<strong>分区键（Partition Key）</strong> 决定它落到哪。用 <code>user_id</code> 当分区键，就能保证<strong>同一个用户的消息顺序不乱</strong>；</li>
+<li>每个消费者订阅一个或多个分区；多个消费者消费同一批消息时，组成<strong>消费者组（Consumer Group）</strong>。</li>
+</ul>
+<blockquote>
+<p><strong>初学者最容易误解的点</strong></p>
+<p>Kafka 只保证<strong>单个分区内</strong>有序，<strong>不保证跨分区有序</strong>。业务要求全局严格有序时，唯一的办法是把主题设成<strong>单分区</strong>——代价是放弃并行消费，吞吐被锁死在单分区上限。</p>
+<p>更现实的做法是<strong>把「需要保序的维度」做成分区键</strong>。订单场景用 <code>order_id</code> 做分区键，同一笔订单的所有事件必然落在同一分区，顺序自然就对了。<strong>绝大多数业务需要的是「局部有序」，不是「全局有序」。</strong></p>
+</blockquote>
+<hr />
+<h2 id="5-消费者组">5. 消费者组</h2>
+<div align="center"><img src="./images/consumer-groups.png" alt="消费者组：组内成员分摊分区，不同组各自收到全量消息" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li>消息<strong>按消费者组</strong>复制，不是按消费者。组 A 和组 B 各自收到完整一份消息，但组内成员之间是<strong>分摊</strong>关系；</li>
+<li>每个消费者组维护<strong>自己的一份偏移量</strong>，互不干扰；</li>
+<li>组内并行读取能提高吞吐，但会<strong>破坏顺序保证</strong>；</li>
+<li>解决办法：<strong>同一个分区在同一个组内只能被一个消费者订阅</strong>；</li>
+<li>由此推出：<strong>组内消费者数量不能超过分区数</strong>，多出来的消费者分不到分区，白白空转。</li>
+</ul>
+<blockquote>
+<p><strong>实践提醒</strong>：开了 3 分区的主题却起 10 个消费者实例——只有 3 个在工作。反过来，消费者数已经是分区数两倍还没吃满 CPU，那不是加消费者能解决的，得先加分区。</p>
+</blockquote>
+<hr />
+<h2 id="6-数据存储分段日志segment-log">6. 数据存储：分段日志（Segment Log）</h2>
+<p>先看消息数据的特点：<strong>写多读也多</strong>；<strong>没有更新和删除操作</strong>（消息只是到期被整体截断）；<strong>访问模式几乎全是顺序读写</strong>。</p>
+<p>候选方案中，<strong>通用数据库</strong>不理想——典型关系型数据库很难同时扛住写密集和读密集两种负载；<strong>预写日志（Write-Ahead Log, WAL）</strong> 是一个只支持追加（Append）的文件，对机械硬盘极其友好，这就是我们选的方案。具体做法：把分区拆成多个<strong>分段（Segment）</strong>，避免维护无限增长的巨型文件；老分段<strong>只读</strong>，新写入只被最新的<strong>活跃分段（Active Segment）</strong> 接收。</p>
+<div align="center"><img src="./images/wal-example.png" alt="分区被拆成多个分段文件，只有最新分段接受写入" width="520" loading="lazy" decoding="async"></div>
+<p>原文还纠正了一个偏见：<strong>「机械硬盘很慢」高度依赖访问模式</strong>。顺序访问时（我们的场景）机械硬盘能跑出不错的读写速度；而且操作系统的<strong>页缓存（Page Cache）</strong> 会激进地把磁盘数据缓存到内存里进一步加速。</p>
+<blockquote>
+<p><strong>原文这里说对了一半，但数字严重过时</strong></p>
+<p>「HDD 顺序访问不慢」是对的，但「几 MB/s」是二十多年前的水平。现代 7200 RPM 机械硬盘的顺序读写吞吐在 <strong>150 ~ 250 MB/s</strong> 量级，顺序访问几乎就是它的理论峰值。原文把优势说得<strong>太小</strong>了，反而让人以为 HDD 只能勉强够用。</p>
+<p>真正要理解的是<strong>为什么</strong>顺序访问快：机械硬盘的瓶颈是磁头寻道和旋转延迟，随机读写每次都要等磁头挪位置（毫秒级）；顺序读写时磁头几乎不用挪，吞吐完全取决于盘片转速和数据密度。这就是「用追加日志替代随机更新」的全部理由。</p>
+</blockquote>
+<h3 id="原笔记缺失kafka-存储的三个关键机制">原笔记缺失：Kafka 存储的三个关键机制</h3>
+<p><strong>① 分段 + 稀疏索引（Sparse Index）</strong>。每个分段不只是数据文件，还配了索引：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*.log</code></td>
+<td>消息数据本体，按 offset 顺序追加</td>
+</tr>
+<tr>
+<td><code>*.index</code></td>
+<td><strong>偏移量索引</strong>，稀疏存储：每写入约 4KB 数据（<code>index.interval.bytes</code>）记一条索引项，内容是「相对 offset → 物理文件位置」</td>
+</tr>
+<tr>
+<td><code>*.timeindex</code></td>
+<td><strong>时间戳索引</strong>，支持按时间查找消息</td>
+</tr>
+</tbody>
+</table></div>
+<p>Kafka 默认每个分段最大 1GB（<code>log.segment.bytes</code>）。为什么索引要「稀疏」？如果每条消息都建索引，索引本身就和数据一样大，每次写入都要维护它。稀疏索引的查询方式是<strong>二分查找定位 + 顺序扫描</strong>：先在索引里二分找到「不大于目标 offset 的最近一条索引项」，拿到物理位置，再顺序扫几十条消息即可。</p>
+<p><strong>② 零拷贝（Zero-Copy）</strong>。传统的一次「从磁盘读文件发给网络」要经历 4 次数据拷贝和 4 次用户态/内核态切换：</p>
+<pre><code>磁盘 → 内核页缓存 → 用户态缓冲区 → Socket 缓冲区 → 网卡
+</code></pre>
+<p>Kafka 用 <code>sendfile</code> 系统调用（Java 侧是 <code>FileChannel.transferTo</code>），让数据<strong>不经过用户态</strong>：</p>
+<pre><code>磁盘 → 内核页缓存 ────────────────→ 网卡
+</code></pre>
+<p>拷贝次数从 4 次降到 2 次，上下文切换从 4 次降到 2 次，在「大块顺序读」场景下收益非常明显。</p>
+<p><strong>③ 页缓存 + 顺序追加</strong>。Kafka 自己不维护消息的内存缓存，完全依赖操作系统的页缓存——JVM 堆里不存大量数据，避免了 GC 停顿，重启后页缓存可能还是热的。</p>
+<blockquote>
+<p><strong>一个可以自己推出的结论</strong>：顺序追加写 + 稀疏索引 + 零拷贝叠加起来，Kafka 的吞吐瓶颈<strong>不在磁盘 IO</strong>，而在网络带宽和副本同步。所以它敢用普通机械硬盘——把磁盘的强项用到极致，把弱项（随机读写）从设计里彻底消除。</p>
+</blockquote>
+<hr />
+<h2 id="7-消息的数据结构">7. 消息的数据结构</h2>
+<p>生产者、队列、消费者三方的消息结构必须<strong>完全一致</strong>，才能避免序列化/反序列化的额外拷贝。</p>
+<div align="center"><img src="./images/message-structure.png" alt="消息的数据结构：Key 与 Value" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li><strong>Key</strong>：决定消息属于哪个分区，默认映射是 <code>hash(key) % numPartitions</code>。生产者也可以覆盖默认行为，自己指定分区。</li>
+<li><strong>Value</strong>：消息负载（Payload），可以是明文或压缩后的二进制块。</li>
+</ul>
+<blockquote>
+<p><strong>注意</strong>：消息 Key 和传统 KV 存储的 Key 不同，<strong>不需要唯一</strong>，甚至可以为空。它只负责「决定分区」，不负责「唯一标识」。</p>
+</blockquote>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Topic / Partition</strong></td>
+<td>消息所属的主题与分区 ID</td>
+</tr>
+<tr>
+<td><strong>Offset</strong></td>
+<td>消息在分区内的位置。<code>topic</code> + <code>partition</code> + <code>offset</code> 可唯一定位一条消息</td>
+</tr>
+<tr>
+<td><strong>Timestamp / Size</strong></td>
+<td>消息的存储时间与大小</td>
+</tr>
+<tr>
+<td><strong>CRC</strong></td>
+<td>校验和，保证消息完整性</td>
+</tr>
+</tbody>
+</table></div>
+<p>要支持更多能力（比如消息过滤），在结构里增加字段即可。</p>
+<hr />
+<h2 id="8-批量batching吞吐与延迟的权衡">8. 批量（Batching）：吞吐与延迟的权衡</h2>
+<p>批处理是这套系统性能的命脉，我们在<strong>生产者、消费者、消息队列三处</strong>都使用它。原因：让操作系统能把消息<strong>成组</strong>发送，摊销昂贵的网络往返成本；消息成组顺序写入 WAL，产生大量顺序写，进一步吃到页缓存收益。</p>
+<p>代价是延迟与吞吐的取舍：<strong>批量越大</strong>吞吐越高但延迟越高（要攒够一批才发）；<strong>批量越小</strong>吞吐越低但延迟越低。</p>
+<div align="center"><img src="./images/batch-size-throughput-vs-latency.png" alt="批量大小与吞吐量、延迟的关系曲线" width="520" loading="lazy" decoding="async"></div>
+<p>所以系统是<strong>可调</strong>的：需要低延迟就把批量调小；目标是吞吐（比如日志聚合）就把批量调大，同时可能要<strong>增加分区数</strong>来补偿单分区顺序写的吞吐上限。</p>
+<hr />
+<h2 id="9-生产者流程路由层放在哪里">9. 生产者流程：路由层放在哪里</h2>
+<p>生产者要把消息发给某个分区，该连哪个 Broker？</p>
+<p><strong>方案一：独立的 routing layer（路由层）</strong></p>
+<div align="center"><img src="./images/routing-layer.png" alt="独立路由层把消息转发到分区 Leader 所在的 Broker" width="520" loading="lazy" decoding="async"></div>
+<p>路由层从元数据存储读取副本分配方案（Replication Plan）并缓存在本地；生产者把消息发给路由层；路由层转发给该分区的 Leader；从副本（Follower）从 Leader 拉取新消息，收到足够确认后 Leader 提交数据并回复生产者。副本存在的理由就是<strong>容错（Fault Tolerance）</strong>。</p>
+<p>这个方案有两个缺点：多一个组件就多一跳网络往返；而且<strong>没法做批量</strong>——路由层是转发，很难把多个生产者的消息攒成一批。</p>
+<p><strong>方案二：把路由层嵌进生产者（Kafka 的实际做法）</strong></p>
+<div align="center"><img src="./images/routing-layer-producer.png" alt="路由逻辑内置在生产者中，生产者直接连 Broker" width="520" loading="lazy" decoding="async"></div>
+<p>少一跳网络、延迟更低；生产者自己控制消息路由到哪个分区；生产者内部的<strong>缓冲区（Buffer）</strong> 让它能先在内存攒一批再一次请求发出，吞吐大幅提升。这就是上一节吞吐/延迟权衡的工程落地。</p>
+<hr />
+<h2 id="10-消费者流程推模式还是拉模式">10. 消费者流程：推模式还是拉模式</h2>
+<p>消费者指定分区里的某个偏移量，从那里开始接收一批消息。</p>
+<div align="center"><img src="./images/consumer-example.png" alt="消费者从指定偏移量开始拉取一批消息" width="520" loading="lazy" decoding="async"></div>
+<p><strong>推模式（Push）</strong>：Broker 一收到消息就推给消费者。优点是延迟低；缺点是消费速度跟不上生产速度时消费者会被<strong>压垮</strong>，而且不同消费者处理能力不同，由 Broker 统一控速很难照顾所有人。</p>
+<p><strong>拉模式（Pull）</strong>：消费者主动去 Broker 拉。优点是<strong>消费速率由消费者自己掌控</strong>——消费慢就不会被压垮，可以慢慢扩容追上去；更适合批量处理，因为消费者可以激进地一次拉一大批（推模式下 Broker 根本不知道消费者能吃多少）。缺点是延迟更高，且没有新消息时会产生大量空转请求——后者用<strong>长轮询（Long Polling）</strong> 缓解：请求先挂住，有新消息或超时才返回。</p>
+<p><strong>因此绝大多数消息队列（包括我们的设计）选择拉模式。</strong></p>
+<div align="center"><img src="./images/consumer-flow.png" alt="消费者加入消费者组的完整流程" width="520" loading="lazy" decoding="async"></div>
+<ol>
+<li>新消费者订阅主题 A，加入组 1；</li>
+<li>通过<strong>对组名做哈希</strong>找到正确的 Broker——同一个组的所有消费者都连到同一个节点，这个节点叫<strong>组协调者（Group Coordinator）</strong>；</li>
+<li>协调者确认消费者已加入组，把分区 2 分配给它；分区分配策略有轮询（Round-Robin）、范围（Range）等；</li>
+<li>消费者从上次的偏移量开始拉取，偏移量由<strong>状态存储</strong>保存；</li>
+<li>消费者处理完消息，把偏移量提交（Commit）给 Broker。</li>
+</ol>
+<blockquote>
+<p><strong>注意第 5 步的顺序</strong>：先处理后提交，还是先提交后处理？这个顺序直接决定<strong>投递语义</strong>——见第 16 节。</p>
+</blockquote>
+<hr />
+<h2 id="11-消费者再均衡rebalance">11. 消费者再均衡（Rebalance）</h2>
+<p>再均衡解决的问题是：<strong>哪个消费者负责哪些分区</strong>。触发条件：消费者加入或离开；分区新增或移除；消费者长时间不发心跳。Broker 作为<strong>协调者（Coordinator）</strong> 在整个流程中起核心作用。</p>
+<div align="center"><img src="./images/consumer-rebalancing.png" alt="再均衡：协调者选举组长，组长制定分区分配方案" width="520" loading="lazy" decoding="async"></div>
+<p>同组所有消费者都连到同一个协调者（通过组名哈希找到）；消费者列表变化时，协调者选出这个组的<strong>组长（Leader）</strong>；组长计算新的分区分配方案，上报协调者，协调者再广播给其他消费者。</p>
+<div align="center"><img src="./images/consumer-rebalance-example.png" alt="消费者失联触发再均衡" width="520" loading="lazy" decoding="async"></div>
+<p><strong>场景一：消费者加入组</strong></p>
+<div align="center"><img src="./images/consumer-join-group-usecase.png" alt="消费者加入组时的再均衡流程" width="520" loading="lazy" decoding="async"></div>
+<p>最初只有消费者 A，它消费所有分区；消费者 B 请求加入组；协调者通过心跳响应<strong>被动地</strong>通知所有成员该再均衡了；所有消费者重新加入组后，协调者选出组长并通知选举结果；组长生成分区分配方案发给协调者，其他成员等待方案；消费者开始从新分配到的分区消费。</p>
+<p><strong>场景二：消费者离开组</strong></p>
+<div align="center"><img src="./images/consumer-leaves-group-usecase.png" alt="消费者离开组时的再均衡流程" width="520" loading="lazy" decoding="async"></div>
+<p>A 和 B 在同一组；B 请求离开；协调者收到 A 的心跳后通知它该再均衡了；后续步骤相同。</p>
+<p><strong>场景三：消费者长时间不发心跳</strong></p>
+<div align="center"><img src="./images/consumer-no-heartbeat-usecase.png" alt="消费者心跳超时触发的再均衡" width="520" loading="lazy" decoding="async"></div>
+<p>协调者认定该消费者已死，把它负责的分区重新分配。</p>
+<h3 id="原笔记缺失再均衡的三个真实代价">原笔记缺失：再均衡的三个真实代价</h3>
+<p>原文把再均衡描述成中性的「流程」，但工程上它是个<strong>需要警惕的痛点</strong>：</p>
+<ol>
+<li><strong>全局停顿（Stop-The-World）</strong>：在「急切式再均衡（Eager Rebalancing）」下，所有消费者必须先<strong>放弃全部已分配分区</strong>再重新分配，整个组会有一段时间<strong>完全停止消费</strong>。</li>
+<li><strong>重复消费</strong>：因为必须放弃分区，消费者会把进度提交（或回退），重新拿到分区后可能<strong>重复消费</strong>一部分消息。很多系统的「至少一次」语义就是在再均衡时突然暴露出来的。</li>
+<li><strong>再均衡风暴</strong>：消费者因处理超时错过心跳被踢出组，回来后再次触发再均衡，再次超时……整个组永远无法稳定。</li>
+</ol>
+<p><strong>改进方案：协作式再均衡（Cooperative Sticky，Kafka 2.4+）</strong>——不再「先全部放弃再分配」，而是<strong>只回收需要移动的分区</strong>，消费者可以继续消费自己保留的分区；一次再均衡可能需要<strong>两轮</strong>协议，但绝大多数消费者全程无感。配合<strong>静态成员资格（Static Membership）</strong>，给消费者一个固定的 <code>group.instance.id</code>，短暂重启（比如滚动发布）时不会被踢出组，可以直接拿回原分区——<strong>这是消除再均衡风暴最有效的手段</strong>。</p>
+<hr />
+<h2 id="12-状态存储与元数据存储">12. 状态存储与元数据存储</h2>
+<p><strong>状态存储</strong>保存<strong>分区与消费者的映射关系</strong>，以及每个分区<strong>最后被消费到的偏移量</strong>。</p>
+<div align="center"><img src="./images/state-storage.png" alt="状态存储记录每个消费者组在每个分区上的偏移量" width="520" loading="lazy" decoding="async"></div>
+<p>上图里组 1 的偏移量停在 6，表示之前的消息都消费完了。如果消费者崩溃，新接手的消费者会从这个位置继续。消费者状态的特征是：读写频繁但<strong>数据量很小</strong>；频繁更新但极少删除；随机读写；<strong>一致性很重要</strong>（写错会导致重复消费或漏消费）。</p>
+<p><strong>元数据存储</strong>保存配置和主题属性：分区数量、保留期、副本分配方案等。元数据<strong>变化不频繁、数据量小，但对一致性要求很高</strong>。</p>
+<blockquote>
+<p><strong>原笔记在这里的结论是错的，而且是本章最重要的一条勘误。</strong></p>
+<p>原文说：「Given these requirements, a fast KV storage like <strong>Zookeeper</strong> is ideal.」（消费者状态适合放在 ZooKeeper 这种快速 KV 存储里）</p>
+<p><strong>这是过时且不准确的说法。</strong> Kafka 在 <strong>0.9 版本（2015 年）</strong> 就把消费者偏移量从 ZooKeeper 迁移到了自己的内部主题 <code>__consumer_offsets</code>（见 KIP-31 / KIP-62）。原因很直接：ZooKeeper 把每次写都当成一次共识操作，<strong>根本扛不住消费者提交偏移量这种高频小写入</strong>。消费者一多，ZooKeeper 就成了整个集群的瓶颈。</p>
+<p>正确做法：偏移量存在 Kafka 内部的 <strong><code>__consumer_offsets</code> 主题</strong>里，该主题使用<strong>日志压缩（Log Compaction）</strong> 而非按时间删除——同一个 <code>(group, topic, partition)</code> 的偏移量只保留最新值，旧值被压实掉，磁盘占用很小。详见文末【勘误与补充】。</p>
+</blockquote>
+<hr />
+<h2 id="13-协调服务zookeeper-时代的经典设计">13. 协调服务：ZooKeeper 时代的经典设计</h2>
+<blockquote>
+<p><strong>本节必须先读这段提示</strong></p>
+<p>下面的内容是 <strong>ZooKeeper 时代的经典设计</strong>。它在 2011 到 2022 年间是 Kafka 的标准架构，<strong>理解它对面试依然有价值</strong>（面试官很可能会问「ZooKeeper 在 Kafka 里干什么」）。但请记住：<strong>现代实现已经演进了</strong>。Kafka 从 2.8 开始引入 <strong>KRaft</strong> 模式，3.3 起达到生产可用，并在 <strong>4.0 版本彻底移除了 ZooKeeper 依赖</strong>。</p>
+</blockquote>
+<p>原文认为 ZooKeeper 是构建分布式消息队列的必需品。它是一个<strong>层级式键值存储（Hierarchical Key-Value Store）</strong>，常用于分布式配置、同步服务和命名注册（也就是服务发现）。</p>
+<div align="center"><img src="./images/zookeeper.png" alt="ZooKeeper 承担元数据、状态存储与 Broker 选主" width="520" loading="lazy" decoding="async"></div>
+<p>引入 ZooKeeper 后，Broker 只需维护消息数据本身，元数据和状态存储都交给它。此外 ZooKeeper 还负责 <strong>Broker 副本的选主（Leader Election）</strong>。</p>
+<h3 id="kraft为什么必须换掉-zookeeper">KRaft：为什么必须换掉 ZooKeeper</h3>
+<p>ZooKeeper 不是「有点旧」，而是有三个结构性问题：</p>
+<ul>
+<li><strong>运维复杂度翻倍</strong>。你要维护<strong>两套分布式系统</strong>：Kafka 集群和 ZooKeeper 集群，各有各的部署方式、监控指标、升级路径、安全配置（TLS、SASL），而且必须协调升级——版本不兼容会导致整个 Kafka 集群无法启动。</li>
+<li><strong>Controller 故障恢复慢</strong>。Kafka 的 <strong>Controller</strong> 是一个被选出来的 Broker，负责管理分区 Leader 分配和副本状态。ZooKeeper 模式下 Controller 的元数据<strong>不在自己手里</strong>——必须从 ZooKeeper 全量加载，集群越大加载越慢。Controller 一挂，新 Controller 重新选举 + 重新加载元数据，可能让集群在<strong>秒级到分钟级</strong>的时间里无法响应元数据变更。</li>
+<li><strong>元数据规模有上限</strong>。ZooKeeper 把所有元数据放在内存，每次变更都要走共识协议。实践表明，ZooKeeper 模式的 Kafka 集群在分区数达到<strong>几十万量级</strong>时就会遇到明显瓶颈。</li>
+</ul>
+<p><strong>KRaft（Kafka Raft）</strong> 的核心思路是：<strong>把元数据本身也当成一条日志</strong>。集群里有一组专门的 <strong>Controller 节点</strong>，组成一个 <strong>Raft 共识组</strong>；所有元数据变更（建主题、改分区、Leader 切换）都作为记录<strong>追加到这条元数据日志</strong>；Raft 保证这条日志在 Controller 之间<strong>强一致地复制</strong>；Broker 不再被动等推送，而是<strong>主动订阅</strong>这条日志，像消费普通主题一样拉取元数据更新。</p>
+<p><strong>Raft 在这里扮演什么角色？</strong> 它就是那个「让一组机器对同一份日志的顺序达成一致」的算法，把 ZooKeeper 原先承担的共识职责，用一个<strong>内嵌在 Kafka 进程里</strong>的协议替代掉了。Raft 的核心机制是：Leader 接收写入并复制给 Follower，只要<strong>多数派（Quorum）</strong> 确认落盘，这条记录就被认为已提交；Leader 挂了，拥有最新日志的节点会被选为新 Leader。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>ZooKeeper 模式</th>
+<th>KRaft 模式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>需要维护的系统</td>
+<td>Kafka + ZooKeeper 两套</td>
+<td>只有 Kafka 一套</td>
+</tr>
+<tr>
+<td>Controller 故障恢复</td>
+<td>从 ZK 全量加载元数据，秒级到分钟级</td>
+<td>备用 Controller 已持有元数据日志，<strong>亚秒到秒级</strong>切换</td>
+</tr>
+<tr>
+<td>元数据规模</td>
+<td>几十万分区量级遇到瓶颈</td>
+<td>目标支撑<strong>百万级分区</strong></td>
+</tr>
+<tr>
+<td>元数据传播</td>
+<td>Controller 推送给 Broker，可能滞后</td>
+<td>Broker 主动拉取日志，<strong>天然有序、可断点续传</strong></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>面试怎么答</strong>：如果面试官问「Kafka 为什么需要 ZooKeeper」，标准答案是——<strong>以前需要</strong>，它承担元数据存储、Controller 选主、集群成员管理；<strong>现在不需要了</strong>，KRaft 用一条 Raft 复制的元数据日志替代了它。动机是降低运维复杂度、加快 Controller 故障恢复、突破元数据规模上限。</p>
+<p><strong>顺带一提</strong>：Pulsar 走的是另一条路——把存储层完全外置给 <strong>Apache BookKeeper</strong>，Broker 本身无状态。这是「计算存储分离」的思路，和 KRaft 是两种不同的解法。</p>
+</blockquote>
+<hr />
+<h2 id="14-复制与-isracks-如何决定持久性">14. 复制与 ISR：<code>acks</code> 如何决定持久性</h2>
+<div align="center"><img src="./images/replication-example.png" alt="每个分区在多个 Broker 上有副本，只有一个是 Leader" width="520" loading="lazy" decoding="async"></div>
+<p>每个分区被复制到多个 Broker，但<strong>只有一个 Leader 副本</strong>；生产者把消息发给 Leader；Follower 从 Leader 拉取消息复制；<strong>足够多的副本</strong>同步完成后，Leader 向生产者返回确认（Acknowledgment）；每个分区的副本分布叫<strong>副本分配方案（Replica Distribution Plan）</strong>。</p>
+<blockquote>
+<p><strong>勘误提醒</strong>：原文说「某个分区的 Leader 创建副本分配方案并存到 ZooKeeper」。这个说法不准确——副本分配是 <strong>Controller</strong> 的职责。分区 Leader 只负责数据复制和读写，不决定副本放哪里。</p>
+</blockquote>
+<p><strong>ISR（In-Sync Replicas，同步副本）就是与 Leader 保持同步的副本集合。</strong></p>
+<div align="center"><img src="./images/in-sync-replicas-example.png" alt="ISR 示例：Replica 4 落后被移出 ISR" width="520" loading="lazy" decoding="async"></div>
+<p>上图：已提交的偏移量（Committed Offset）是 13；又有两条新消息写入 Leader 但还没提交；<strong>一条消息只有在 ISR 中所有副本都同步之后，才算「已提交」</strong>；副本 2 和 3 完全跟上 Leader，在 ISR 里；副本 4 落后了，暂时被移出 ISR。</p>
+<blockquote>
+<p><strong>注意措辞</strong>：「移出 ISR」不是永久的。副本 4 一旦追上 Leader 进度，会<strong>重新加入 ISR</strong>。ISR 是动态集合，不是静态配置。</p>
+</blockquote>
+<p>ISR 体现了<strong>性能与持久性的取舍</strong>：要求一条都不丢，就得等所有副本同步完才确认——<strong>但一个慢副本会让整个分区变得不可用</strong>；容忍丢一点数据，就可以只等一部分副本。</p>
+<p><strong><code>acks=all</code></strong>（等价于 <code>acks=-1</code>）：ISR 中所有副本都必须同步这条消息。发送慢，持久性最高。</p>
+<div align="center"><img src="./images/ack-all.png" alt="acks=all：等待 ISR 全部副本同步后才确认" width="520" loading="lazy" decoding="async"></div>
+<p><strong><code>acks=1</code></strong>：Leader 收到就返回确认。发送快，持久性低——<strong>Leader 在 Follower 复制之前崩溃，这条消息就丢了</strong>。</p>
+<div align="center"><img src="./images/ack-1.png" alt="acks=1：Leader 写入后立即确认，不等 Follower" width="520" loading="lazy" decoding="async"></div>
+<p><strong><code>acks=0</code></strong>：生产者发出去就不管了。最快，持久性最低——<strong>消息可能连 Broker 都没到，生产者却以为成功了</strong>。</p>
+<div align="center"><img src="./images/ack-0.png" alt="acks=0：生产者不等待任何确认" width="520" loading="lazy" decoding="async"></div>
+<h3 id="原笔记缺失acks-单独决定不了任何事">原笔记缺失：<code>acks</code> 单独决定不了任何事</h3>
+<p>初学者常以为「设了 <code>acks=all</code> 就不会丢数据」——<strong>错</strong>。真正决定持久性的是<strong>三个参数的组合</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>acks</code></td>
+<td>生产者等几个副本确认才认为写成功</td>
+</tr>
+<tr>
+<td><code>replication.factor</code>（RF）</td>
+<td>每个分区总共存几份副本</td>
+</tr>
+<tr>
+<td><code>min.insync.replicas</code>（min ISR）</td>
+<td><strong>至少</strong>要有几个副本在 ISR 里，才允许写入</td>
+</tr>
+</tbody>
+</table></div>
+<p>关键逻辑是：<strong>当 ISR 大小小于 <code>min.insync.replicas</code> 时，Broker 会拒绝写入</strong>，生产者收到 <code>NotEnoughReplicasException</code>。这是「宁可不可写，也不丢数据」的保护。</p>
+<p>一个经典的生产配置是 <strong>RF=3 + <code>min.insync.replicas=2</code> + <code>acks=all</code></strong>：容忍 <strong>1 台</strong> Broker 挂掉而集群<strong>仍然可写</strong>（ISR 还剩 2 个）；已提交的消息<strong>不会丢</strong>（每条消息至少落在 2 台机器上）；同时挂掉 <strong>2 台</strong>则写入被拒绝——这看起来是「降低可用性」，实际是<strong>主动选择一致性</strong>：宁可让生产者收到错误（它可以重试或告警），也不要悄悄丢掉已经承诺过的消息。</p>
+<p>还有一个必须知道的参数：<strong><code>unclean.leader.election.enable</code></strong>。默认 <code>false</code>（Kafka 3.0 起），只有 ISR 中的副本才能被选为 Leader，<strong>代价是</strong> ISR 全部挂掉时该分区彻底不可用；设为 <code>true</code> 则允许非 ISR 副本当 Leader，<strong>收益是</strong>可用性提高，<strong>代价是会丢数据</strong>。</p>
+<blockquote>
+<p><strong>一句话总结</strong>：<code>acks</code> 管「生产者等多久」，<code>min.insync.replicas</code> 管「什么时候干脆不写」，<code>unclean.leader.election.enable</code> 管「实在没办法时保数据还是保可用」。<strong>三者合起来才是一份完整的持久性策略。</strong></p>
+</blockquote>
+<h3 id="消费者侧的读">消费者侧的读</h3>
+<p>让所有消费者都连到分区的 Leader 上读消息：设计最简单、运维最容易；一个分区内的消息只会被组内的<strong>一个</strong>消费者读取，连接数可控；热主题可以通过<strong>增加分区数和消费者数</strong>扩展；某些场景下可以让消费者从 ISR 中的其他副本读，比如消费者位于另一个数据中心时。<strong>ISR 列表由 Leader 维护</strong>，它跟踪自己和每个副本之间的落后程度。</p>
+<hr />
+<h2 id="15-可扩展性四个维度">15. 可扩展性：四个维度</h2>
+<p><strong>生产者</strong>比消费者轻量得多，直接增减实例即可。<strong>消费者</strong>：消费者组之间互相隔离，可以随意增减消费者组，再均衡负责优雅地处理组内消费者的增减——<strong>再均衡机制同时提供了扩展性和容错性。</strong></p>
+<p><strong>Broker</strong>：</p>
+<div align="center"><img src="./images/broker-failure-recovery.png" alt="Broker 故障后：选举新 Leader 并重新分配分区" width="520" loading="lazy" decoding="async"></div>
+<p>一个 Broker 挂掉后，仍有足够的副本保证分区数据不丢；系统选举出新 Leader，Broker 协调者把故障 Broker 上的分区重新分配给现有的其他副本；这些副本接管新分区并作为 Follower 运行，直到追上 Leader 进度后加入 ISR。</p>
+<p>让 Broker 更容错的三条建议：<strong>最小 ISR 数量</strong>是延迟与安全性的平衡点，可按需微调；<strong>不要把同一个分区的所有副本放在同一个节点</strong>，那是资源浪费也起不到容错作用；<strong>如果某个分区的所有副本全部崩溃，数据就永久丢失了</strong>——把副本分散到多个数据中心能缓解但会显著增加延迟，折中方案是用<strong>数据镜像（Data Mirroring）</strong> 在集群间异步同步。</p>
+<p>新增 Broker 时，可以<strong>临时允许副本数超过配置值</strong>，直到新 Broker 追上进度，再删掉不再需要的副本。</p>
+<div align="center"><img src="./images/broker-replica-redistribution.png" alt="新增 Broker 时副本的临时超额分配与回收" width="520" loading="lazy" decoding="async"></div>
+<p><strong>分区</strong>：新增分区时生产者会被通知，消费者再均衡被触发，数据存储上只把新消息写到新分区，不拷贝旧数据。</p>
+<div align="center"><img src="./images/partition-exmaple.png" alt="新增分区后只写入新消息，不迁移历史数据" width="520" loading="lazy" decoding="async"></div>
+<p><strong>减少分区数要复杂得多</strong>：</p>
+<div align="center"><img src="./images/partition-decrease.png" alt="下线分区的过渡期处理流程" width="520" loading="lazy" decoding="async"></div>
+<p>分区一旦被下线，新消息只被剩余分区接收；<strong>但被下线的分区不会立即删除</strong>，因为里面还有消息可以被消费；等预先配置的保留期（Retention Period）过去后才截断数据、释放空间；<strong>过渡期内</strong>生产者只往活跃分区发消息，但消费者仍从<strong>所有</strong>分区读；保留期到期后对消费者做一次再均衡，把下线分区彻底移除。</p>
+<hr />
+<h2 id="16-投递语义三种保证的真实边界">16. 投递语义：三种保证的真实边界</h2>
+<p><strong>At-Most-Once（至多一次）</strong>：消息最多被投递一次，也可能一次都没投到。</p>
+<div align="center"><img src="./images/at-most-once.png" alt="至多一次语义：不重试、先提交后处理" width="520" loading="lazy" decoding="async"></div>
+<p>生产者<strong>异步</strong>发送消息，投递失败<strong>不重试</strong>；消费者拉到消息后<strong>立即提交偏移量</strong>，如果处理之前崩溃，这条消息就永远不会被处理。<strong>结论：会丢消息，但绝不重复。</strong></p>
+<p><strong>At-Least-Once（至少一次）</strong>：消息可能被投递多次，但不应该有消息没被处理。</p>
+<div align="center"><img src="./images/at-least-once.png" alt="至少一次语义：失败重试、处理完才提交" width="520" loading="lazy" decoding="async"></div>
+<p>生产者用 <code>acks=1</code> 或 <code>acks=all</code> 发送，出问题就<strong>不断重试</strong>；消费者拉到消息后<strong>处理完成才提交偏移量</strong>。于是可能出现：消费者处理完了但还没提交就崩溃——重启后会<strong>再处理一次</strong>。<strong>结论：不丢消息，但可能重复。</strong></p>
+<p><strong>Exactly Once（恰好一次）</strong>：对用户最友好，但实现代价极高。</p>
+<div align="center"><img src="./images/exactly-once.png" alt="恰好一次语义" width="520" loading="lazy" decoding="async"></div>
+<blockquote>
+<p><strong>原文这一节只有一句话，但它是初学者最容易被误导的概念，必须讲透。</strong></p>
+<p><strong>第一件事：端到端的「恰好一次」不可能由消息队列单独实现。</strong> 因为「恰好一次」要约束的不是「消息被投递几次」，而是「<strong>业务副作用发生几次</strong>」。而副作用发生在消费者这一侧——可能是写数据库、扣款、调用外部 API，消息队列<strong>无法控制</strong>外部系统的操作是否被重复执行。只要消费者在「处理完成」和「提交偏移量」之间崩溃，队列就无法判断该不该重发。更本质的说法是：<strong>消息投递和业务处理是两个独立的状态变更，除非它们能放进同一个原子事务，否则无法做到恰好一次。</strong></p>
+<p><strong>第二件事：Kafka 说的 &quot;exactly-once semantics&quot;（EOS）到底是什么？</strong> 它指的是 <strong>Kafka 内部</strong>（从 Kafka 读到 Kafka 写）的恰好一次，由两个机制拼成：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>机制</th>
+<th>解决什么问题</th>
+<th>怎么做到</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>幂等生产者（Idempotent Producer）</strong></td>
+<td>生产者<strong>重试</strong>导致的重复写入</td>
+<td>每个生产者会话有生产者 ID（PID），每条消息带单调递增的序列号，Broker 按 <code>(PID, 分区, 序列号)</code> 去重。开启方式：<code>enable.idempotence=true</code></td>
+</tr>
+<tr>
+<td><strong>事务（Transactions）</strong></td>
+<td>跨多分区写入 + 偏移量提交需要原子性</td>
+<td>用 <code>transactional.id</code> 标识事务，Broker 端维护事务状态；消费者用 <code>isolation.level=read_committed</code> 只读已提交数据</td>
+</tr>
+</tbody>
+</table></div>
+<p>两者合起来保证的是：<strong>「消费一个主题、处理后写回另一个主题」这个闭环在 Kafka 内部恰好执行一次</strong>，这也是流处理（Kafka Streams / Flink）最常用的模式。</p>
+<p><strong>第三件事：那跨系统怎么办？</strong> 答案是<strong>消费端自己做幂等</strong>，这也是绝大多数生产系统的真实做法。常见手段：<strong>唯一键 + 数据库唯一索引</strong>（重复插入直接失败）；<strong>去重表</strong>（处理前查「这条处理过吗」，处理后写去重记录，注意这两步必须和业务操作在<strong>同一个数据库事务</strong>里）；<strong>UPSERT / 幂等写</strong>（把「加 1」改成「设为 5」）；<strong>状态机 + 版本号</strong>（旧版本操作直接丢弃）。</p>
+<p><strong>一句话总结</strong>：Kafka 的 EOS 是「幂等生产者 + 事务」在 <strong>Kafka 内部</strong>的语义。<strong>真正的端到端恰好一次 = 队列的 EOS + 消费端的幂等</strong>，业界更诚实的叫法是 <strong>effectively-once（效果上一次）</strong>。当有人跟你说「我们用消息队列实现了恰好一次」，你该追问的是：<strong>你的消费端怎么做幂等？</strong></p>
+</blockquote>
+<hr />
+<h2 id="17-高级特性">17. 高级特性</h2>
+<p><strong>消息过滤（Message Filtering）</strong>：有些消费者只想消费分区里某一种类型的消息。一个办法是<strong>为每类消息建独立主题</strong>，但业务场景一多代价很高：同一条消息存在多个主题里是纯粹的存储浪费；生产者被<strong>紧耦合</strong>到消费者上——每来一个新消费需求，生产者就要改一次。</p>
+<p>用消息过滤可以解决：<strong>在消费者侧过滤</strong>（最朴素的做法）会带来大量无意义的消费者流量；<strong>给消息打标签（Tag）</strong>、消费者声明订阅哪些标签是推荐做法；也可以通过<strong>消息负载（Payload）</strong> 过滤，但如果消息加密或序列化过，这既困难又不安全；对更复杂的过滤表达式，Broker 可以实现<strong>语法解析器或脚本执行器</strong>，但这会让消息队列变得很重。</p>
+<div align="center"><img src="./images/message-filtering.png" alt="消息过滤：按标签订阅，避免消费者侧无效流量" width="520" loading="lazy" decoding="async"></div>
+<p><strong>延迟消息与定时消息</strong>：比如发起支付后 30 分钟再去检查这笔支付是否成功。核心思路是<strong>把消息分流</strong>——普通消息直接进分区，延迟消息先落到临时存储，到点再投递：</p>
+<div align="center"><img src="./images/image_2023-02-10-10-00-53.png" alt="延迟消息的整体思路：延迟消息先进临时存储，到点再投递到分区" width="520" loading="lazy" decoding="async"></div>
+<p>具体实现是先把消息放到 Broker 的<strong>临时存储</strong>，到时间了再挪到正式分区。</p>
+<div align="center"><img src="./images/delayed-message-implementation.png" alt="延迟消息：先存临时存储，到点再投递到分区" width="520" loading="lazy" decoding="async"></div>
+<p>临时存储可以是一个或多个<strong>特殊的消息主题</strong>；定时功能可以用专门的延迟队列，或<strong>分层时间轮（Hierarchical Time Wheel）</strong> 实现——时间轮的思路类似钟表：细粒度的槽负责近期任务，粗粒度的槽负责远期任务，逐层降级，避免为每个延迟消息都维护一个定时器。</p>
+<blockquote>
+<p><strong>补充：主流消息队列对延迟消息的支持差别很大</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>产品</th>
+<th>支持情况</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RocketMQ</strong></td>
+<td>原生支持。早期只支持 18 个固定延迟等级；5.0 起支持任意精度的定时消息</td>
+</tr>
+<tr>
+<td><strong>Pulsar</strong></td>
+<td>原生支持，API 提供 <code>deliverAfter</code>（相对延迟）和 <code>deliverAt</code>（绝对时间）</td>
+</tr>
+<tr>
+<td><strong>RabbitMQ</strong></td>
+<td>需安装 <code>rabbitmq_delayed_message_exchange</code> 插件，或用死信队列（DLX）+ TTL 组合实现</td>
+</tr>
+<tr>
+<td><strong>Kafka</strong></td>
+<td><strong>没有原生支持</strong>。变通做法是写到一个延迟主题，由定时消费者到点后转发到业务主题</td>
+</tr>
+</tbody>
+</table></div>
+</blockquote>
+<hr />
+<h2 id="18-收尾还有哪些可以聊">18. 收尾：还有哪些可以聊</h2>
+<ul>
+<li><strong>通信协议（Protocol of Communication）</strong>：需要考虑支持各种使用场景、支撑高数据量、验证消息完整性。流行协议有 <strong>AMQP</strong> 和 <strong>Kafka 协议</strong>。AMQP 是标准化消息协议，特性丰富（复杂路由、事务）但比较重；Kafka 协议是私有的二进制协议，为批量传输和高吞吐专门优化。</li>
+<li><strong>重试消费（Retry Consumption）</strong>：一条消息当前处理不了，可以送到<strong>专门的重试主题</strong>稍后再试。这比在消费者里阻塞重试好得多——阻塞会拖垮整个分区。生产上通常还配<strong>指数退避 + 死信队列（DLQ）</strong>。</li>
+<li><strong>历史数据归档（Historical Data Archive）</strong>：老消息可以备份到<strong>大容量廉价存储</strong>，比如 HDFS 或对象存储（如 S3）。这就是「冷热分层」，成本能降一个数量级。</li>
+</ul>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<blockquote>
+<p>原文覆盖了消息队列的完整设计脉络，主体框架准确。但若干处存在<strong>技术事实错误</strong>与<strong>过时表述</strong>，另有一些现代工程必备的知识点缺失。</p>
+</blockquote>
+<h3 id="勘误-1replicalagmaxmessages-已被移除十年">勘误 1：<code>replica.lag.max.messages</code> 已被移除十年</h3>
+<ul>
+<li><strong>原文说法</strong>：用「副本落后多少条消息」判定它是否在 ISR 中。</li>
+<li><strong>问题</strong>：该参数<strong>在 Kafka 0.9.0.0（2015 年）就被移除</strong>。用消息条数衡量落后程度不合理：分区流量暴涨时，一个健康的副本可能几毫秒内就「落后 10000 条」，被误判踢出 ISR，随即又追回来——ISR 反复抖动，触发不必要的 Leader 选举。</li>
+<li><strong>正确说法</strong>：现代 Kafka 用 <strong><code>replica.lag.time.max.ms</code></strong>，基于时间判断：副本在窗口内（默认 30 秒）向 Leader 发起过拉取并跟上进度，即算在 ISR 内。</li>
+<li><strong>延伸</strong>：用「距离」还是用「时间」衡量同步状态，在不同负载下表现完全不同——时间窗口有界可预测，消息条数没有上界。</li>
+</ul>
+<h3 id="勘误-2消费者偏移量不存在-zookeeper-里">勘误 2：消费者偏移量不存在 ZooKeeper 里</h3>
+<ul>
+<li><strong>原文说法</strong>：「a fast KV storage like Zookeeper is ideal」（消费者状态适合放在 ZooKeeper）。</li>
+<li><strong>问题</strong>：这曾是事实，但<strong>从 Kafka 0.9（2015 年）起不再成立</strong>。ZooKeeper 每次写都要走共识（Zab），而偏移量提交是<strong>高频小写入</strong>——消费者一多，ZK 立刻成为瓶颈。</li>
+<li><strong>正确说法</strong>：偏移量存储在 Kafka 内部主题 <strong><code>__consumer_offsets</code></strong>（KIP-31、KIP-62），使用<strong>日志压缩（Log Compaction）</strong>：相同 <code>(group, topic, partition)</code> 只保留最新值。</li>
+<li><strong>延伸</strong>：<strong>Delete（按时间/大小删除整段）</strong> 适合普通消息主题；<strong>Compact（保留每个 key 的最新值）</strong> 适合「状态」类主题（偏移量、CDC 日志）。理解这个区别，就明白 Kafka 为什么能同时扮演消息队列和分布式状态存储。</li>
+</ul>
+<h3 id="勘误-3副本分配方案不是分区-leader-决定的">勘误 3：副本分配方案不是分区 Leader 决定的</h3>
+<ul>
+<li><strong>原文说法</strong>：分区 Leader 创建副本分配方案并存入 ZooKeeper。</li>
+<li><strong>问题</strong>：职责搞混。分区 <strong>Leader</strong> 负责数据复制与读写服务；<strong>决定副本放在哪些 Broker 上</strong>的是 <strong>Controller</strong>。</li>
+<li><strong>正确说法</strong>：Controller 负责分区 Leader 选举与副本分配，ZK 模式下写入 ZK、KRaft 模式下写入元数据日志，其他 Broker 订阅获知变更。</li>
+<li><strong>延伸</strong>：这解释了 Controller 为什么是集群的单点关注对象——它挂了会触发重选，期间元数据变更暂停。KRaft 能缩短恢复时间，正是因为备用 Controller 已持有完整元数据日志。</li>
+</ul>
+<h3 id="勘误-4hdd-顺序读写几-mbs严重低估">勘误 4：HDD 顺序读写「几 MB/s」严重低估</h3>
+<ul>
+<li><strong>原文说法</strong>：「HDDs can achieve several MB/s」。</li>
+<li><strong>问题</strong>：结论对，数字错得离谱。现代 7200 RPM 机械硬盘顺序读写吞吐在 <strong>150 ~ 250 MB/s</strong> 量级，是「几 MB/s」的几十倍。</li>
+<li><strong>正确说法</strong>：机械硬盘<strong>随机</strong>访问确实慢（IOPS 只有 100 ~ 200 量级），但<strong>顺序</strong>访问能接近盘片理论带宽。这正是「用追加日志替代随机更新」的全部理由。</li>
+<li><strong>延伸</strong>：SATA SSD 约 500 MB/s，NVMe SSD 可达数 GB/s。Kafka 用 HDD 能跑得很好，换 SSD 只会更好，瓶颈会先转移到网络和 CPU。</li>
+</ul>
+<h3 id="勘误-5ackall-的写法与理解都要修正">勘误 5：<code>ACK=all</code> 的写法与理解都要修正</h3>
+<ul>
+<li><strong>原文说法</strong>：用 <code>ACK=all</code> / <code>ACK=1</code> / <code>ACK=0</code>，并把持久性完全归因于该参数。</li>
+<li><strong>问题</strong>：① 参数名错误——Kafka 的配置项是 <strong><code>acks</code></strong>（小写、复数），取值 <code>0</code>/<code>1</code>/<code>all</code>（或 <code>-1</code>）。② 理解不完整——<code>acks</code> 只控制生产者等几个副本确认，管不了 ISR 还剩几个副本。</li>
+<li><strong>正确说法</strong>：持久性由 <code>acks</code> + <code>replication.factor</code> + <code>min.insync.replicas</code> 共同决定；ISR 低于 min ISR 时 Broker 会拒绝写入。</li>
+<li><strong>延伸</strong>：还要知道 <code>unclean.leader.election.enable</code>（默认 <code>false</code>）——ISR 全挂时要不要让落后副本当 Leader，这是可用性与一致性之间最赤裸的开关。</li>
+</ul>
+<h3 id="补充-1kraft-与-zookeeper-的演进原笔记完全缺失">补充 1：KRaft 与 ZooKeeper 的演进（原笔记完全缺失）</h3>
+<p>原文把 ZooKeeper 说成「必需品」已经过时：<strong>Kafka 2.8 引入 KRaft，3.3 生产可用，4.0 已彻底移除 ZooKeeper 依赖</strong>。完整动机与机制见第 13 节。面试中如果你还在说「Kafka 用 ZooKeeper 存元数据」，会立刻暴露知识陈旧。</p>
+<h3 id="补充-2分段日志稀疏索引与零拷贝原笔记只讲了一半">补充 2：分段日志、稀疏索引与零拷贝（原笔记只讲了一半）</h3>
+<p>原文讲了 WAL 和分段，漏掉了 Kafka 高性能的三个关键机制（见第 6 节）。<strong>这是回答「为什么 Kafka 用磁盘还这么快」的标准答案框架</strong>：顺序追加写 + 稀疏索引 + 零拷贝 + 页缓存。</p>
+<h3 id="补充-3消息顺序性的真实边界">补充 3：消息顺序性的真实边界</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>需求</th>
+<th>能否满足</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>分区内有序</strong></td>
+<td>可以，天然保证</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>同一业务键（如 <code>order_id</code>）有序</strong></td>
+<td>可以，用业务键做分区键</td>
+<td>可能导致分区数据倾斜</td>
+</tr>
+<tr>
+<td><strong>全局严格有序</strong></td>
+<td>可以，但主题必须<strong>只设一个分区</strong></td>
+<td>放弃并行消费，吞吐被单分区上限锁死</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>结论</strong>：绝大多数业务需要的是<strong>局部有序</strong>。先想清楚「哪两个事件之间必须保序」，再决定分区键。另外要记住一个反直觉的点：<strong>增加分区会破坏原有的顺序保证</strong>——分区键是 <code>user_id</code> 时，从 4 个分区扩到 8 个，同一用户的消息可能因哈希取模结果变化落到新分区，历史消息与新消息的顺序就乱了。</p>
+<h3 id="补充-4再均衡的代价与协作式再均衡">补充 4：再均衡的代价与协作式再均衡</h3>
+<p>原文把再均衡描述成中性流程，没提代价（见第 11 节）。核心：<strong>急切式再均衡会造成 Stop-The-World 停顿和重复消费</strong>，<strong>协作式再均衡（Kafka 2.4+）+ 静态成员资格</strong>能把影响降到最低。</p>
+<h3 id="补充-5投递语义的准确边界">补充 5：投递语义的准确边界</h3>
+<p>原文对 exactly-once 只有一句话（见第 16 节）。核心结论：<strong>端到端的「恰好一次」不可能靠消息队列单独实现</strong>；Kafka 的 EOS 只在 Kafka 内部成立，跨系统必须由消费端保证幂等。</p>
+<h3 id="补充-6主流消息队列的架构对比">补充 6：主流消息队列的架构对比</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>产品</th>
+<th>存储模型</th>
+<th>元数据/协调</th>
+<th>顺序保证</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kafka</strong></td>
+<td>Broker 本地分段日志</td>
+<td>KRaft（Raft 共识组）</td>
+<td>分区内有序</td>
+<td>日志聚合、流处理、事件溯源</td>
+</tr>
+<tr>
+<td><strong>Pulsar</strong></td>
+<td>计算存储分离：Broker 无状态 + <strong>Apache BookKeeper</strong></td>
+<td>ZooKeeper + BookKeeper</td>
+<td>分区内有序</td>
+<td>多租户、需要存算独立扩展</td>
+</tr>
+<tr>
+<td><strong>RocketMQ</strong></td>
+<td>CommitLog + ConsumeQueue</td>
+<td>NameServer（轻量，无强一致）</td>
+<td>分区（队列）内有序</td>
+<td>电商交易、金融场景，国内使用广泛</td>
+</tr>
+<tr>
+<td><strong>RabbitMQ</strong></td>
+<td>基于 Erlang/OTP 的队列，可持久化</td>
+<td>无中心节点，Erlang 集群</td>
+<td>队列内有序</td>
+<td>企业集成、复杂路由（AMQP 特性丰富）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>怎么选？</strong> 需要<strong>高吞吐 + 可重放的历史数据</strong>，选 Kafka 或 Pulsar；需要<strong>复杂路由和灵活的消息确认机制</strong>，选 RabbitMQ；在<strong>国内做电商/交易类业务</strong>，RocketMQ 的生态和运维经验更成熟。</p>
+<h3 id="补充-7本地怎么动手验证">补充 7：本地怎么动手验证</h3>
+<pre><code class="language-bash"># 用 Docker 起一个单节点 KRaft 模式的 Kafka（注意：不需要 ZooKeeper）
+docker run -d --name kafka -p 9092:9092 apache/kafka:latest
+
+# 创建一个 3 分区的主题
+docker exec -it kafka /opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server localhost:9092 \
+  --create --topic demo --partitions 3 --replication-factor 1
+
+# 查看主题详情，观察分区分布
+docker exec -it kafka /opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server localhost:9092 --describe --topic demo
+</code></pre>
+<p>建议做三个实验：<strong>验证分区键的作用</strong>——用相同的 key 发 10 条消息，观察它们全部落在同一个分区；<strong>验证消费者组</strong>——起两个消费者在同一组，观察分区如何被分摊，再起第三个，观察它分不到分区；<strong>验证偏移量</strong>——消费一部分后停掉消费者，用 <code>kafka-consumer-groups.sh --describe</code> 查看 <code>LAG</code>（积压量），重启消费者观察它从哪里继续。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kafka 快是因为「消息存在内存里」</td>
+<td>Kafka 的消息<strong>持久化到磁盘</strong>，内存只做页缓存加速</td>
+<td>快的原因是顺序追加写 + 稀疏索引 + 零拷贝 + 页缓存</td>
+</tr>
+<tr>
+<td><code>acks=all</code> 就不会丢数据</td>
+<td><code>acks=all</code> 只控制生产者等几个副本确认，管不了 ISR 还剩几个副本</td>
+<td>持久性 = <code>acks</code> + <code>replication.factor</code> + <code>min.insync.replicas</code> 的组合</td>
+</tr>
+<tr>
+<td>消息队列保证全局有序</td>
+<td>Kafka 只保证<strong>分区内</strong>有序，跨分区无序</td>
+<td>需要保序的维度要拿来做<strong>分区键</strong>；真需要全局有序只能单分区</td>
+</tr>
+<tr>
+<td>消费者越多吞吐越高</td>
+<td>组内超过分区数的消费者<strong>分不到任何分区</strong></td>
+<td>消费者数量上限是分区数；吞吐不够先加分区</td>
+</tr>
+<tr>
+<td>消息队列实现了 exactly-once</td>
+<td>队列无法控制外部系统的副作用是否重复执行</td>
+<td>队列的 EOS 只覆盖 Kafka 内部；端到端需要<strong>消费端幂等</strong></td>
+</tr>
+<tr>
+<td>消费者偏移量存在 ZooKeeper 里</td>
+<td>这是 2015 年之前的设计，ZK 扛不住高频偏移量提交</td>
+<td>偏移量存在 Kafka 内部主题 <code>__consumer_offsets</code>，用<strong>日志压缩</strong>维护</td>
+</tr>
+<tr>
+<td>再均衡是「无感」的</td>
+<td>急切式再均衡会让整个组<strong>停止消费</strong>，并造成重复消费</td>
+<td>开启协作式再均衡 + 静态成员资格</td>
+</tr>
+<tr>
+<td>增加分区只有好处</td>
+<td>增加分区会<strong>改变分区键的哈希映射</strong>，破坏原有的分区内顺序</td>
+<td>扩分区前要评估「同一业务键的消息是否会漂移到新分区」</td>
+</tr>
+<tr>
+<td>ZooKeeper 是 Kafka 的必需品</td>
+<td>Kafka 4.0 已完全移除 ZooKeeper 依赖</td>
+<td>现代 Kafka 用 <strong>KRaft</strong>：一组 Controller 节点用 Raft 复制元数据日志</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：分布式消息队列本质上是一个<strong>可持久化、可复制、可分区的追加日志</strong>，它用「分区内有序 + 多副本复制 + 消费者组」三件事，同时提供了高吞吐、高可用和可重放的能力。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>分区是扩展和有序的基本单位</strong>。消息按分区键哈希落分区，顺序只在分区内保证；消费者组内一个分区只能被一个消费者消费，所以消费者数不能超过分区数。</li>
+<li><strong>存储用分段日志（WAL）</strong>。老分段只读、新分段追加写，配稀疏索引；高性能来自顺序写 + 页缓存 + 零拷贝。</li>
+<li><strong>持久性由 <code>acks</code> + <code>replication.factor</code> + <code>min.insync.replicas</code> 三者共同决定</strong>，而不是 <code>acks</code> 一个参数。</li>
+<li><strong>消费者用拉模式</strong>，因为消费速率要由消费者自己控制；空转问题用长轮询缓解。</li>
+<li><strong>投递语义三种</strong>：at-most-once（不重试 + 先提交后处理，会丢）、at-least-once（重试 + 处理完再提交，会重）、exactly-once（幂等生产者 + 事务，仅在 Kafka 内部成立）。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动提到 <strong>KRaft 已经取代 ZooKeeper</strong>，并说清三个动机（运维复杂度、Controller 恢复慢、元数据规模上限）。</li>
+<li>主动指出 <strong>exactly-once 的边界</strong>，并说明消费端需要自己做幂等。</li>
+<li>主动提 <strong>再均衡的代价</strong>（Stop-The-World、重复消费、再均衡风暴）和<strong>协作式再均衡</strong>的改进。</li>
+<li>主动区分<strong>日志压缩（Compact）</strong> 和<strong>按时间删除（Delete）</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>「Kafka 为什么用磁盘还这么快？」</em> → 顺序追加写（避免寻道）+ 稀疏索引（少量内存换取快速定位）+ 零拷贝 <code>sendfile</code>（数据不经过用户态）+ 页缓存。四个机制叠加，瓶颈从磁盘转移到网络。</li>
+<li><em>「怎么保证消息不丢？」</em> → 分三段答：<strong>生产者侧</strong> <code>acks=all</code> + 重试 + 幂等生产者；<strong>Broker 侧</strong> RF≥3 + <code>min.insync.replicas=2</code> + <code>unclean.leader.election.enable=false</code>；<strong>消费者侧</strong>处理完再提交偏移量。任何一段缺失都可能丢消息。</li>
+<li><em>「怎么保证消息不重复？」</em> → 队列侧做不到端到端去重。要么接受重复 + 消费端幂等（推荐），要么在 Kafka 内部用事务 + 幂等生产者。业务侧最实用的是<strong>唯一索引 + UPSERT</strong>。</li>
+<li><em>「消费者一直重复消费同一条消息，怎么排查？」</em> → 先看是不是<strong>再均衡太频繁</strong>（消费者被反复踢出组，偏移量提交不上去）。检查心跳超时配置、单条消息处理耗时是否超过 <code>max.poll.interval.ms</code>、是否开启了协作式再均衡和静态成员资格。</li>
+<li><em>「要支持全局有序，怎么办？」</em> → 单分区是最简单但最昂贵的答案。更好的问法是：「你说的全局有序，具体是哪两个事件之间必须保序？」通常把粒度降到业务键级别就能既保序又保吞吐。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://kafka.apache.org/documentation/" target="_blank" rel="noopener noreferrer">Apache Kafka 官方文档</a> — 参数、设计原理与协议说明</li>
+<li><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-500%3A+Replace+ZooKeeper+with+a+Self-Managed+Metadata+Quorum" target="_blank" rel="noopener noreferrer">KIP-500：用自管理的元数据仲裁替换 ZooKeeper</a> — KRaft 的设计提案</li>
+<li><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-429%3A+Kafka+Consumer+Incremental+Rebalance+Protocol" target="_blank" rel="noopener noreferrer">KIP-429：消费者增量再均衡协议</a> — 协作式再均衡的设计文档</li>
+<li><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging" target="_blank" rel="noopener noreferrer">KIP-98：恰好一次投递与事务消息</a> — 幂等生产者与事务的设计</li>
+<li><a href="https://raft.github.io/" target="_blank" rel="noopener noreferrer">Raft 共识算法官网</a> — 有可视化演示，理解 KRaft 的基础</li>
+<li><a href="https://pulsar.apache.org/docs/" target="_blank" rel="noopener noreferrer">Apache Pulsar 文档</a> — 存算分离架构，和 Kafka 对比着看</li>
+<li><a href="https://rocketmq.apache.org/" target="_blank" rel="noopener noreferrer">Apache RocketMQ 文档</a> — 延迟消息、事务消息的原生实现</li>
+<li><a href="https://www.rabbitmq.com/" target="_blank" rel="noopener noreferrer">RabbitMQ 文档</a> — AMQP 协议与企业集成场景</li>
+<li><a href="http://www.cs.columbia.edu/~nahum/w6998/papers/sosp87-timing-wheels.pdf" target="_blank" rel="noopener noreferrer">分层时间轮论文（SOSP'87）</a> — 原笔记提供的链接</li>
+<li><a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=27846330" target="_blank" rel="noopener noreferrer">Kafka 数据镜像（MirrorMaker）</a> — 原笔记提供的链接</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../18/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">Google Maps</span></a><a class="next" href="../20/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">监控告警系统</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-为什么需要消息队列">1. 为什么需要消息队列</a>
+<a class="lv2" href="#2-需求澄清与设计范围">2. 需求澄清与设计范围</a>
+<a class="lv2" href="#3-高层架构与两种消息模型">3. 高层架构与两种消息模型</a>
+<a class="lv2" href="#4-主题分区与偏移量">4. 主题、分区与偏移量</a>
+<a class="lv2" href="#5-消费者组">5. 消费者组</a>
+<a class="lv2" href="#6-数据存储分段日志segment-log">6. 数据存储：分段日志（Segment Log）</a>
+<a class="lv3" href="#原笔记缺失kafka-存储的三个关键机制">原笔记缺失：Kafka 存储的三个关键机制</a>
+<a class="lv2" href="#7-消息的数据结构">7. 消息的数据结构</a>
+<a class="lv2" href="#8-批量batching吞吐与延迟的权衡">8. 批量（Batching）：吞吐与延迟的权衡</a>
+<a class="lv2" href="#9-生产者流程路由层放在哪里">9. 生产者流程：路由层放在哪里</a>
+<a class="lv2" href="#10-消费者流程推模式还是拉模式">10. 消费者流程：推模式还是拉模式</a>
+<a class="lv2" href="#11-消费者再均衡rebalance">11. 消费者再均衡（Rebalance）</a>
+<a class="lv3" href="#原笔记缺失再均衡的三个真实代价">原笔记缺失：再均衡的三个真实代价</a>
+<a class="lv2" href="#12-状态存储与元数据存储">12. 状态存储与元数据存储</a>
+<a class="lv2" href="#13-协调服务zookeeper-时代的经典设计">13. 协调服务：ZooKeeper 时代的经典设计</a>
+<a class="lv3" href="#kraft为什么必须换掉-zookeeper">KRaft：为什么必须换掉 ZooKeeper</a>
+<a class="lv2" href="#14-复制与-isracks-如何决定持久性">14. 复制与 ISR：acks 如何决定持久性</a>
+<a class="lv3" href="#原笔记缺失acks-单独决定不了任何事">原笔记缺失：acks 单独决定不了任何事</a>
+<a class="lv3" href="#消费者侧的读">消费者侧的读</a>
+<a class="lv2" href="#15-可扩展性四个维度">15. 可扩展性：四个维度</a>
+<a class="lv2" href="#16-投递语义三种保证的真实边界">16. 投递语义：三种保证的真实边界</a>
+<a class="lv2" href="#17-高级特性">17. 高级特性</a>
+<a class="lv2" href="#18-收尾还有哪些可以聊">18. 收尾：还有哪些可以聊</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1replicalagmaxmessages-已被移除十年">勘误 1：replica.lag.max.messages 已被移除十年</a>
+<a class="lv3" href="#勘误-2消费者偏移量不存在-zookeeper-里">勘误 2：消费者偏移量不存在 ZooKeeper 里</a>
+<a class="lv3" href="#勘误-3副本分配方案不是分区-leader-决定的">勘误 3：副本分配方案不是分区 Leader 决定的</a>
+<a class="lv3" href="#勘误-4hdd-顺序读写几-mbs严重低估">勘误 4：HDD 顺序读写「几 MB/s」严重低估</a>
+<a class="lv3" href="#勘误-5ackall-的写法与理解都要修正">勘误 5：ACK=all 的写法与理解都要修正</a>
+<a class="lv3" href="#补充-1kraft-与-zookeeper-的演进原笔记完全缺失">补充 1：KRaft 与 ZooKeeper 的演进（原笔记完全缺失）</a>
+<a class="lv3" href="#补充-2分段日志稀疏索引与零拷贝原笔记只讲了一半">补充 2：分段日志、稀疏索引与零拷贝（原笔记只讲了一半）</a>
+<a class="lv3" href="#补充-3消息顺序性的真实边界">补充 3：消息顺序性的真实边界</a>
+<a class="lv3" href="#补充-4再均衡的代价与协作式再均衡">补充 4：再均衡的代价与协作式再均衡</a>
+<a class="lv3" href="#补充-5投递语义的准确边界">补充 5：投递语义的准确边界</a>
+<a class="lv3" href="#补充-6主流消息队列的架构对比">补充 6：主流消息队列的架构对比</a>
+<a class="lv3" href="#补充-7本地怎么动手验证">补充 7：本地怎么动手验证</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>

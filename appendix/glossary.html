@@ -1,0 +1,2910 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>系统设计术语表（中英对照） · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../guide/">学习指南</a><a class="nav-item" href="../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../ch/01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../ch/02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../ch/03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../ch/04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../ch/05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../ch/06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../ch/07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../ch/08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../ch/09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../ch/10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../ch/11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../ch/12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item" href="../ch/13/"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../ch/14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../ch/15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../ch/16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../ch/17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../ch/18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../ch/19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../ch/20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../ch/21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../ch/22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../ch/23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../ch/24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../ch/25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../ch/26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../ch/27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../ch/28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item active" href="glossary.html">术语表</a><a class="nav-item" href="errata.html">勘误与补充汇总</a><a class="nav-item" href="interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="系统设计术语表中英对照">系统设计术语表（中英对照）</h1>
+<blockquote>
+<p>本表由 28 章正文自动汇总整理，配合各章正文使用。</p>
+</blockquote>
+<h2 id="这份表怎么用">这份表怎么用</h2>
+<p>这份术语表是给你<strong>边读边查</strong>用的，不是拿来背的。遇到正文里一个眼熟但说不清的词，回到这里看一眼&quot;它是干什么用的&quot;，然后回去继续读。</p>
+<p><strong>为什么一定要中英对照？</strong> 因为中文资料和英文原文常常不是一套词：</p>
+<ul>
+<li>同一个概念，不同中文译法并存。比如 Sharding 有人叫&quot;分片&quot;，有人叫&quot;分区&quot;；Cache-Aside 有人叫&quot;旁路缓存&quot;，有人叫&quot;旁路模式&quot;，还有人直接叫&quot;懒加载&quot;。你只记住中文名，搜索时会漏掉一大半资料。</li>
+<li>同一个中文词，可能对应完全不同的英文。比如&quot;一致性&quot;在 CAP 里是 Consistency，在 ACID 里也是 Consistency，但两者说的根本不是一回事；&quot;分区&quot;在数据库里是 Sharding，在网络里是 Network Partition。</li>
+<li>一手资料几乎都是英文。Kafka 官方文档、Raft 论文、AWS 白皮书、Prometheus 文档——想深挖任何一块，都得用英文名去搜。</li>
+</ul>
+<p>所以本表的用法是：<strong>先用中文名定位，再用英文名去搜原文</strong>。</p>
+<p>几点说明：</p>
+<ul>
+<li>每个术语给的是&quot;它是干什么用的&quot;，不是同义词翻译。看不懂解释时，去对应章节看完整上下文。</li>
+<li>分组只是方便查找，很多术语跨组。比如 Quorum 既在&quot;存储与数据库&quot;里出现，也在&quot;分布式协调&quot;里出现。</li>
+<li>表格里放不下的<strong>易混淆术语</strong>，会单独用引用块展开对比，这些往往是面试里最容易被追问的点，建议重点看。</li>
+</ul>
+<hr />
+<h2 id="1-基础与架构">1. 基础与架构</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>垂直扩展</td>
+<td>Vertical Scaling</td>
+<td>把单台机器的 CPU、内存、磁盘升级得更强，简单但有物理上限。</td>
+</tr>
+<tr>
+<td>水平扩展</td>
+<td>Horizontal Scaling</td>
+<td>增加更多机器来分摊负载，是支撑百万用户的正道，前提是服务无状态。</td>
+</tr>
+<tr>
+<td>无状态服务</td>
+<td>Stateless Service</td>
+<td>服务本身不保存用户会话数据，任何一台实例都能处理任何请求，因此可以随便加机器。</td>
+</tr>
+<tr>
+<td>有状态服务</td>
+<td>Stateful Service</td>
+<td>服务在本地保存了必须延续的数据（如连接、会话），扩容时要额外做迁移和路由。</td>
+</tr>
+<tr>
+<td>负载均衡器</td>
+<td>Load Balancer</td>
+<td>站在客户端和服务器之间，把请求按某种策略分发到多台服务器。</td>
+</tr>
+<tr>
+<td>四层负载均衡</td>
+<td>L4 Load Balancing</td>
+<td>只看 IP 和端口转发，快但不理解 HTTP 内容。</td>
+</tr>
+<tr>
+<td>七层负载均衡</td>
+<td>L7 Load Balancing</td>
+<td>能解析 HTTP，可按 URL、Header 路由，功能强但开销更大。</td>
+</tr>
+<tr>
+<td>轮询</td>
+<td>Round-Robin</td>
+<td>依次把请求分给每台服务器，最简单的均衡策略。</td>
+</tr>
+<tr>
+<td>加权轮询</td>
+<td>Weighted Round-Robin</td>
+<td>给性能更强的服务器更高权重，让它多接一些请求。</td>
+</tr>
+<tr>
+<td>粘性会话</td>
+<td>Sticky Session</td>
+<td>把同一用户的请求固定打到同一台服务器，牺牲均衡换取本地会话可用。</td>
+</tr>
+<tr>
+<td>反向代理</td>
+<td>Reverse Proxy</td>
+<td>站在服务器前面替后端接收请求，负责转发、缓存、TLS 终止等。</td>
+</tr>
+<tr>
+<td>正向代理</td>
+<td>Forward Proxy</td>
+<td>站在客户端一侧，代替客户端去访问外部网络。</td>
+</tr>
+<tr>
+<td>API 网关</td>
+<td>API Gateway</td>
+<td>所有外部流量的统一入口，集中处理鉴权、限流、路由、日志。</td>
+</tr>
+<tr>
+<td>单体架构</td>
+<td>Monolith</td>
+<td>所有功能打包成一个应用部署，简单但难以独立扩展某一部分。</td>
+</tr>
+<tr>
+<td>微服务架构</td>
+<td>Microservice Architecture</td>
+<td>把系统拆成多个可独立部署的小服务，代价是分布式复杂度上升。</td>
+</tr>
+<tr>
+<td>服务发现</td>
+<td>Service Discovery</td>
+<td>让服务能动态找到彼此地址的机制，实例上下线时自动更新。</td>
+</tr>
+<tr>
+<td>服务网格</td>
+<td>Service Mesh</td>
+<td>把服务间通信的治理（重试、熔断、mTLS）下沉到边车代理。</td>
+</tr>
+<tr>
+<td>无服务器架构</td>
+<td>Serverless Architecture</td>
+<td>只写函数、按调用付费，不用管服务器，代价是冷启动和厂商绑定。</td>
+</tr>
+<tr>
+<td>内容分发网络</td>
+<td>CDN</td>
+<td>把静态内容缓存到离用户最近的边缘节点，减少延迟和源站压力。</td>
+</tr>
+<tr>
+<td>边缘节点</td>
+<td>Edge</td>
+<td>CDN 中靠近用户的那一层缓存服务器。</td>
+</tr>
+<tr>
+<td>回源</td>
+<td>Origin Fetch</td>
+<td>边缘节点缓存未命中时，回到源站取内容。</td>
+</tr>
+<tr>
+<td>预热</td>
+<td>Preheating / Prefetching</td>
+<td>提前把热点内容推到 CDN 节点，避免上线瞬间大量回源。</td>
+</tr>
+<tr>
+<td>冷启动</td>
+<td>Cold Start</td>
+<td>无服务器函数或新实例第一次被调用时的额外初始化延迟。</td>
+</tr>
+<tr>
+<td>自动伸缩组</td>
+<td>Auto-Scaling Group</td>
+<td>根据负载指标自动增减实例数量。</td>
+</tr>
+<tr>
+<td>单点故障</td>
+<td>SPOF（Single Point of Failure）</td>
+<td>一旦这个组件挂了整个系统就不可用，设计时要刻意消除。</td>
+</tr>
+<tr>
+<td>故障转移</td>
+<td>Failover</td>
+<td>主节点故障时自动把工作切到备用节点。</td>
+</tr>
+<tr>
+<td>主备</td>
+<td>Primary-Standby</td>
+<td>一个主节点工作、一个备用节点待命，故障时切换。</td>
+</tr>
+<tr>
+<td>主从复制</td>
+<td>Primary-Replica</td>
+<td>主库负责写、从库负责读，用于扩展读能力并做冗余。</td>
+</tr>
+<tr>
+<td>多活</td>
+<td>Multi-DC</td>
+<td>多个数据中心同时对外提供服务，任一机房故障不影响整体。</td>
+</tr>
+<tr>
+<td>可用区</td>
+<td>Availability Zone</td>
+<td>同一区域内电力与网络独立的机房，用于做机房级容灾。</td>
+</tr>
+<tr>
+<td>冗余</td>
+<td>Redundancy</td>
+<td>故意保留多余副本，让单个部件坏掉不影响整体。</td>
+</tr>
+<tr>
+<td>幂等性</td>
+<td>Idempotency</td>
+<td>同一个操作执行多次和执行一次的结果相同，是重试安全的前提。</td>
+</tr>
+<tr>
+<td>幂等键</td>
+<td>Idempotency Key</td>
+<td>客户端生成的唯一标识，服务端靠它识别&quot;这是同一次请求的重试&quot;。</td>
+</tr>
+<tr>
+<td>优雅停机</td>
+<td>Graceful Shutdown</td>
+<td>下线前先停止接新请求、处理完在途请求再退出。</td>
+</tr>
+<tr>
+<td>背压</td>
+<td>Backpressure</td>
+<td>下游处理不过来时主动向上游施压，防止自己被压垮。</td>
+</tr>
+<tr>
+<td>削峰</td>
+<td>Peak Shaving</td>
+<td>用队列把突发流量缓冲起来，让后端按平稳速率消费。</td>
+</tr>
+<tr>
+<td>解耦</td>
+<td>Decoupling</td>
+<td>让组件之间不直接依赖，可各自独立演进和伸缩。</td>
+</tr>
+<tr>
+<td>可扩展性</td>
+<td>Scalability</td>
+<td>系统在负载增长时通过加资源维持性能的能力。</td>
+</tr>
+<tr>
+<td>可用性</td>
+<td>Availability</td>
+<td>系统在需要时能正常提供服务的时间比例。</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>Reliability</td>
+<td>系统长时间不出错、不出故障的概率。</td>
+</tr>
+<tr>
+<td>容错</td>
+<td>Fault Tolerance</td>
+<td>部分组件故障时系统仍能继续工作。</td>
+</tr>
+<tr>
+<td>服务水平协议</td>
+<td>SLA（Service Level Agreement）</td>
+<td>对客户承诺的服务指标（如 99.9% 可用），违约要赔偿。</td>
+</tr>
+<tr>
+<td>服务水平目标</td>
+<td>SLO（Service Level Objective）</td>
+<td>团队内部设定的目标值，通常比 SLA 更严。</td>
+</tr>
+<tr>
+<td>服务水平指标</td>
+<td>SLI（Service Level Indicator）</td>
+<td>实际测量出来的指标，用来判断是否达成 SLO。</td>
+</tr>
+<tr>
+<td>错误预算</td>
+<td>Error Budget</td>
+<td>允许的不可用额度，用完就冻结变更、先修稳定性。</td>
+</tr>
+<tr>
+<td>五个九</td>
+<td>Five Nines</td>
+<td>99.999% 可用性，一年停机不超过约 5 分钟。</td>
+</tr>
+<tr>
+<td>尾延迟</td>
+<td>Tail Latency</td>
+<td>P95、P99 这类高百分位延迟，用户实际感受到的卡顿。</td>
+</tr>
+<tr>
+<td>分位</td>
+<td>Percentile（P95 / P99 / P999）</td>
+<td>表示&quot;有百分之多少的请求比这个值更快&quot;。</td>
+</tr>
+<tr>
+<td>读写比</td>
+<td>Read/Write Ratio</td>
+<td>读请求与写请求的比例，决定系统该往哪一边优化。</td>
+</tr>
+<tr>
+<td>日活 / 月活</td>
+<td>DAU / MAU</td>
+<td>日活跃用户数与月活跃用户数，是规模估算的起点。</td>
+</tr>
+<tr>
+<td>功能需求</td>
+<td>Functional Requirements</td>
+<td>系统&quot;要做什么&quot;。</td>
+</tr>
+<tr>
+<td>非功能需求</td>
+<td>Non-Functional Requirements</td>
+<td>系统&quot;要做到多好&quot;，如延迟、可用性、规模。</td>
+</tr>
+<tr>
+<td>信封估算</td>
+<td>Back-of-the-Envelope Estimation</td>
+<td>用数量级心算快速判断系统规模，面试必考。</td>
+</tr>
+<tr>
+<td>熔断器</td>
+<td>Circuit Breaker</td>
+<td>下游持续失败时直接快速失败，避免故障扩散。</td>
+</tr>
+<tr>
+<td>降级</td>
+<td>Fallback</td>
+<td>主路径不可用时返回一个可接受的替代结果。</td>
+</tr>
+<tr>
+<td>回滚</td>
+<td>Rollback</td>
+<td>出问题时把变更退回到之前的状态。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆限流算法的四种写法">易混淆：限流算法的四种写法</h3>
+<blockquote>
+<p><strong>固定窗口计数器（Fixed Window Counter）</strong>：把时间切成固定的分钟/秒格子计数。实现最简单，但格子边界会放过两倍流量。
+<strong>滑动窗口日志（Sliding Window Log）</strong>：记录每个请求的时间戳，精确但内存开销大。
+<strong>滑动窗口计数器（Sliding Window Counter）</strong>：用&quot;上一格 + 当前格&quot;按比例加权估算，是精度和开销的折中。
+<strong>令牌桶（Token Bucket）</strong>：以固定速率往桶里放令牌，请求要拿令牌才能过。<strong>允许突发</strong>，是业界最常用的方案。
+<strong>漏桶（Leaky Bucket）</strong>：请求先入队，再以恒定速率流出。<strong>不允许突发</strong>，输出绝对平滑。</p>
+<p>一句话记法：<strong>令牌桶管&quot;平均速率 + 允许突发&quot;，漏桶管&quot;输出绝对匀速&quot;</strong>。</p>
+</blockquote>
+<h3 id="易混淆本地限流-vs-全局限流">易混淆：本地限流 vs 全局限流</h3>
+<blockquote>
+<p><strong>本地限流（Local Rate Limit）</strong>：每台服务器各自计数。实现简单，但 N 台机器实际总配额是 N 倍，配额不准。
+<strong>全局限流（Global Rate Limit）</strong>：把计数集中到 Redis 等共享存储。配额准确，但每次请求都要访问共享存储，多了一次网络往返，且共享存储本身可能成为瓶颈。</p>
+<p>工程上的常见做法是<strong>分层</strong>：本地限流挡住绝大部分突发，全局限流做最终兜底。</p>
+</blockquote>
+<h3 id="易混淆写扩散-vs-读扩散">易混淆：写扩散 vs 读扩散</h3>
+<blockquote>
+<p><strong>写扩散 / 推（Fan-out on Write）</strong>：用户发一条内容时，立刻把它写进所有粉丝的收件箱。读的时候直接读自己的收件箱，<strong>读很快，写很贵</strong>。
+<strong>读扩散 / 拉（Fan-out on Read）</strong>：发内容时只写一份，读的时候再去拉所有关注对象的内容合并。<strong>写很便宜，读很贵</strong>。</p>
+<p>大 V 问题是分水岭：一个有几千万粉丝的明星发一条动态，写扩散要写几千万次，系统直接被打爆。所以真实系统常用<strong>混合策略</strong>——普通用户走写扩散保证读体验，大 V 走读扩散避免写风暴，读取时再把两路结果合并。</p>
+</blockquote>
+<hr />
+<h2 id="2-存储与数据库">2. 存储与数据库</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>关系型数据库</td>
+<td>Relational Database / SQL</td>
+<td>用表和 SQL 表达强结构数据，天然支持事务。</td>
+</tr>
+<tr>
+<td>非关系型数据库</td>
+<td>NoSQL</td>
+<td>非关系型数据库的总称，为扩展性和灵活模式而生。</td>
+</tr>
+<tr>
+<td>键值存储</td>
+<td>Key-Value Store</td>
+<td>最简单的数据模型，只能按 key 查 value。</td>
+</tr>
+<tr>
+<td>文档存储</td>
+<td>Document Store</td>
+<td>以 JSON 类文档为单位存储，模式灵活。</td>
+</tr>
+<tr>
+<td>图数据库</td>
+<td>Graph Database</td>
+<td>专门存节点和边，适合社交关系、推荐等场景。</td>
+</tr>
+<tr>
+<td>列存储</td>
+<td>Column Store</td>
+<td>按列而非按行存储，适合分析型查询。</td>
+</tr>
+<tr>
+<td>数据湖</td>
+<td>Data Lake</td>
+<td>存放原始、未加工数据的大仓库。</td>
+</tr>
+<tr>
+<td>分片</td>
+<td>Sharding</td>
+<td>把一份大数据按 key 切到多台机器上。</td>
+</tr>
+<tr>
+<td>分片键</td>
+<td>Sharding Key / Partition Key</td>
+<td>决定一条数据落在哪个分片的字段。</td>
+</tr>
+<tr>
+<td>集群键</td>
+<td>Clustering Key</td>
+<td>分区内决定数据排序的字段。</td>
+</tr>
+<tr>
+<td>再分片</td>
+<td>Resharding</td>
+<td>数据量增长后重新划分分片，代价很高。</td>
+</tr>
+<tr>
+<td>分片倾斜</td>
+<td>Partition Skew</td>
+<td>数据分布不均，导致个别分片过热。</td>
+</tr>
+<tr>
+<td>热点</td>
+<td>Hotspot / Hot Key</td>
+<td>访问高度集中的单个 key 或分片。</td>
+</tr>
+<tr>
+<td>键加盐</td>
+<td>Key Salting</td>
+<td>给 key 加随机前缀，把热点打散到多个分片。</td>
+</tr>
+<tr>
+<td>写分片</td>
+<td>Write Sharding</td>
+<td>主动把写负载拆到多个分片上。</td>
+</tr>
+<tr>
+<td>副本</td>
+<td>Replica</td>
+<td>数据的完整拷贝，用于容错和扩展读。</td>
+</tr>
+<tr>
+<td>复制</td>
+<td>Replication</td>
+<td>把数据同步到多个节点的过程。</td>
+</tr>
+<tr>
+<td>复制延迟</td>
+<td>Replication Lag</td>
+<td>从库落后主库的时间，会造成读到旧数据。</td>
+</tr>
+<tr>
+<td>半同步复制</td>
+<td>Semi-Synchronous Replication</td>
+<td>至少一个从库确认后才算写成功，兼顾安全和延迟。</td>
+</tr>
+<tr>
+<td>跨区域复制</td>
+<td>Cross-Region Replication</td>
+<td>把数据复制到异地机房，用于容灾和就近读取。</td>
+</tr>
+<tr>
+<td>预写日志</td>
+<td>WAL（Write-Ahead Log）</td>
+<td>先写日志再改数据，崩溃后靠日志恢复，保证持久性。</td>
+</tr>
+<tr>
+<td>提交日志</td>
+<td>Commit Log</td>
+<td>追加写入的有序记录，是所有状态变更的真相来源。</td>
+</tr>
+<tr>
+<td>分段日志</td>
+<td>Segment Log</td>
+<td>把日志切成多个文件，便于滚动删除和按段读取。</td>
+</tr>
+<tr>
+<td>日志压缩</td>
+<td>Log Compaction</td>
+<td>只保留每个 key 的最新值，防止日志无限增长。</td>
+</tr>
+<tr>
+<td>内存表</td>
+<td>Memtable</td>
+<td>写入先落内存的有序结构，写满后再刷盘。</td>
+</tr>
+<tr>
+<td>有序字符串表</td>
+<td>SSTable</td>
+<td>落盘后的有序不可变文件，是 LSM-Tree 的基本单元。</td>
+</tr>
+<tr>
+<td>LSM 树</td>
+<td>LSM-Tree（Log-Structured Merge Tree）</td>
+<td>把随机写变成顺序写，代价是读要合并多层。</td>
+</tr>
+<tr>
+<td>压缩合并</td>
+<td>Compaction</td>
+<td>后台把多个 SSTable 合并去重，回收空间。</td>
+</tr>
+<tr>
+<td>B+ 树</td>
+<td>B+ Tree</td>
+<td>关系型数据库默认的磁盘索引结构，读性能稳定。</td>
+</tr>
+<tr>
+<td>聚簇索引</td>
+<td>Clustered Index</td>
+<td>索引顺序就是数据的物理存储顺序。</td>
+</tr>
+<tr>
+<td>跳表</td>
+<td>Skip List</td>
+<td>用多级链表实现有序查找，Redis 有序集合用它。</td>
+</tr>
+<tr>
+<td>倒排索引</td>
+<td>Inverted Index</td>
+<td>记录&quot;词 → 包含它的文档&quot;，是全文搜索的核心。</td>
+</tr>
+<tr>
+<td>布隆过滤器</td>
+<td>Bloom Filter</td>
+<td>用很少的内存判断&quot;元素一定不存在 / 可能存在&quot;。</td>
+</tr>
+<tr>
+<td>读副本</td>
+<td>Read Replica</td>
+<td>只服务读请求的副本，用于扩展读能力。</td>
+</tr>
+<tr>
+<td>法定人数</td>
+<td>Quorum</td>
+<td>能做出有效决定的最小节点数，通常指多数派。</td>
+</tr>
+<tr>
+<td>仲裁复制</td>
+<td>Quorum Replication</td>
+<td>读写都要多数派确认，用 W + R &gt; N 保证读到最新值。</td>
+</tr>
+<tr>
+<td>纠删码</td>
+<td>Erasure Coding</td>
+<td>把数据切成块并加校验块，用更低冗余达到同样可靠性。</td>
+</tr>
+<tr>
+<td>校验和</td>
+<td>Checksum</td>
+<td>用于检测数据是否损坏的短摘要。</td>
+</tr>
+<tr>
+<td>静默数据损坏</td>
+<td>Silent Data Corruption</td>
+<td>没有报错但数据已经错了，需要定期扫描校验才能发现。</td>
+</tr>
+<tr>
+<td>反熵</td>
+<td>Anti-Entropy</td>
+<td>后台比对副本差异并修复，保证最终一致。</td>
+</tr>
+<tr>
+<td>物化视图</td>
+<td>Materialized View</td>
+<td>把查询结果预先算好存起来，读得快但写要维护。</td>
+</tr>
+<tr>
+<td>星型模型</td>
+<td>Star Schema</td>
+<td>数据仓库里&quot;事实表 + 维度表&quot;的组织方式。</td>
+</tr>
+<tr>
+<td>事实表</td>
+<td>Fact Table</td>
+<td>存度量值（如点击次数、金额）的表。</td>
+</tr>
+<tr>
+<td>范式化</td>
+<td>Normalization</td>
+<td>消除冗余、把数据拆成多张表。</td>
+</tr>
+<tr>
+<td>反范式</td>
+<td>De-normalization</td>
+<td>故意冗余以换取读取性能。</td>
+</tr>
+<tr>
+<td>唯一约束</td>
+<td>Unique Constraint</td>
+<td>数据库层保证某字段不重复，是防重的前置防线。</td>
+</tr>
+<tr>
+<td>UPSERT</td>
+<td>UPSERT</td>
+<td>存在就更新、不存在就插入的原子操作。</td>
+</tr>
+<tr>
+<td>原子条件更新</td>
+<td>Atomic Conditional Update</td>
+<td>带条件的原子写，常用来实现乐观锁。</td>
+</tr>
+<tr>
+<td>乐观锁</td>
+<td>Optimistic Locking</td>
+<td>先读版本号，写入时校验版本没变，冲突就重试。</td>
+</tr>
+<tr>
+<td>悲观锁</td>
+<td>Pessimistic Locking</td>
+<td>先加锁再操作，简单但并发度低。</td>
+</tr>
+<tr>
+<td>死锁</td>
+<td>Deadlock</td>
+<td>两个事务互相等待对方持有的锁，永远解不开。</td>
+</tr>
+<tr>
+<td>写放大</td>
+<td>Write Amplification</td>
+<td>一次逻辑写实际引发多次物理写，是 SSD 寿命和性能的敌人。</td>
+</tr>
+<tr>
+<td>生命周期策略</td>
+<td>Lifecycle Policy</td>
+<td>按规则把老数据从热存储自动迁移到冷存储或删除。</td>
+</tr>
+<tr>
+<td>冷存储</td>
+<td>Cold Storage</td>
+<td>访问极少、成本极低的存储层，取回很慢。</td>
+</tr>
+<tr>
+<td>对象存储</td>
+<td>Object Storage</td>
+<td>以对象为单位、通过 HTTP 访问的存储，适合海量非结构化数据。</td>
+</tr>
+<tr>
+<td>块存储</td>
+<td>Block Storage</td>
+<td>提供裸磁盘块，由上层文件系统自己管理。</td>
+</tr>
+<tr>
+<td>文件存储</td>
+<td>File Storage</td>
+<td>提供目录树和文件语义的网络存储。</td>
+</tr>
+<tr>
+<td>对象不可变</td>
+<td>Object Immutability</td>
+<td>对象写入后不能原地修改，只能整体替换。</td>
+</tr>
+<tr>
+<td>多段上传</td>
+<td>Multipart Upload</td>
+<td>把大对象切成多段并行上传，失败只重传某一段。</td>
+</tr>
+<tr>
+<td>断点续传</td>
+<td>Resumable Upload</td>
+<td>记录上传进度，网络中断后可以继续。</td>
+</tr>
+<tr>
+<td>预签名 URL</td>
+<td>Presigned URL</td>
+<td>临时授权的下载 / 上传链接，客户端直连存储而不经过应用服务器。</td>
+</tr>
+<tr>
+<td>内容寻址存储</td>
+<td>Content-Addressable Storage</td>
+<td>用内容哈希作为地址，天然去重且可校验。</td>
+</tr>
+<tr>
+<td>数据路由服务</td>
+<td>Data Routing Service</td>
+<td>根据 key 把请求路由到正确的数据节点。</td>
+</tr>
+<tr>
+<td>放置服务</td>
+<td>Placement Service</td>
+<td>决定副本放在哪些节点，并维持整体均衡。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆耐久性-vs-可用性">易混淆：耐久性 vs 可用性</h3>
+<blockquote>
+<p><strong>耐久性（Durability）</strong>：数据<strong>不丢</strong>。对象存储常喊&quot;11 个 9&quot;，指的是存进去的数据几乎不可能永久丢失。
+<strong>可用性（Availability）</strong>：服务<strong>能用</strong>。通常&quot;4 个 9&quot;，指的是请求能得到响应的时间比例。</p>
+<p>两者互不保证。一个系统可以数据永不丢失但整整一天无法访问（可用性差、耐久性好），也可以随时能读写但偶尔丢数据（可用性好、耐久性差）。对象存储的答案通常是：<strong>用纠删码 + 多副本把耐久性做到极致，用多机房冗余把可用性做到四个九</strong>。</p>
+</blockquote>
+<h3 id="易混淆四种存储语义">易混淆：四种存储语义</h3>
+<blockquote>
+<p><strong>Cache-Aside（旁路缓存）</strong>：应用自己管缓存，读时先查缓存、未命中再查库并回填。最常用。
+<strong>Read-Through（读穿透）</strong>：缓存组件自己负责回源，应用只和缓存打交道。
+<strong>Write-Through（写穿透）</strong>：写的时候同步写缓存和数据库，缓存永远和库一致，但写变慢。
+<strong>Write-Back（写回）</strong>：只写缓存，之后异步刷回数据库，写最快，但宕机会丢数据。</p>
+<p>记忆要点：<strong>穿透是同步（安全但慢），写回是异步（快但可能丢）</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="3-缓存">3. 缓存</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>缓存</td>
+<td>Cache</td>
+<td>把慢存储里的热点数据放到快存储，用空间换时间。</td>
+</tr>
+<tr>
+<td>缓存命中 / 未命中</td>
+<td>Cache Hit / Miss</td>
+<td>请求在缓存里找到 / 没找到数据。</td>
+</tr>
+<tr>
+<td>缓存命中率</td>
+<td>Hit Rate</td>
+<td>命中次数占总请求的比例，直接决定缓存的价值。</td>
+</tr>
+<tr>
+<td>旁路缓存</td>
+<td>Cache-Aside</td>
+<td>应用自己管缓存：读时先查缓存，未命中再查库并回填。最常用。</td>
+</tr>
+<tr>
+<td>读穿透</td>
+<td>Read-Through</td>
+<td>缓存组件自己负责回源，应用只和缓存打交道。</td>
+</tr>
+<tr>
+<td>写穿透</td>
+<td>Write-Through</td>
+<td>写时同步更新缓存和数据库，一致性最好但写变慢。</td>
+</tr>
+<tr>
+<td>写回</td>
+<td>Write-Back</td>
+<td>只写缓存，之后异步刷回数据库，写最快但宕机可能丢数据。</td>
+</tr>
+<tr>
+<td>写旁路</td>
+<td>Write-Around</td>
+<td>写的时候绕过缓存直接写库，避免写了却不会被读的数据污染缓存。</td>
+</tr>
+<tr>
+<td>缓存失效</td>
+<td>Invalidation</td>
+<td>数据变了之后让旧缓存不再被使用。</td>
+</tr>
+<tr>
+<td>过期时间</td>
+<td>TTL（Time To Live）</td>
+<td>给缓存设一个存活时长，到期自动失效。</td>
+</tr>
+<tr>
+<td>淘汰策略</td>
+<td>Eviction Policy</td>
+<td>缓存满了之后决定先踢掉谁的规则。</td>
+</tr>
+<tr>
+<td>最近最少使用</td>
+<td>LRU（Least Recently Used）</td>
+<td>踢掉最久没被访问的那个，适合有明显时间局部性的场景。</td>
+</tr>
+<tr>
+<td>最不经常使用</td>
+<td>LFU（Least Frequently Used）</td>
+<td>踢掉访问次数最少的那个，适合长期热点，但对新数据不友好。</td>
+</tr>
+<tr>
+<td>先进先出</td>
+<td>FIFO（First In First Out）</td>
+<td>按进入顺序淘汰，最简单但完全不管访问频率。</td>
+</tr>
+<tr>
+<td>缓存穿透</td>
+<td>Cache Penetration</td>
+<td>查一个<strong>根本不存在</strong>的数据，缓存和数据库都没命中，请求每次都打到数据库。</td>
+</tr>
+<tr>
+<td>缓存击穿</td>
+<td>Cache Breakdown</td>
+<td>某个<strong>热点 key 突然过期</strong>，瞬间大量请求同时打到数据库。</td>
+</tr>
+<tr>
+<td>缓存雪崩</td>
+<td>Cache Avalanche</td>
+<td><strong>大批 key 同时过期</strong>，或者缓存集群整体宕机，数据库被瞬间压垮。</td>
+</tr>
+<tr>
+<td>惊群</td>
+<td>Thundering Herd</td>
+<td>大量请求同时发现缓存失效，一起冲向后端。</td>
+</tr>
+<tr>
+<td>空值缓存</td>
+<td>Null Caching</td>
+<td>把&quot;查不到&quot;也缓存起来（短 TTL），用于防穿透。</td>
+</tr>
+<tr>
+<td>布隆过滤器预检</td>
+<td>Bloom Filter Pre-check</td>
+<td>查询前先用布隆过滤器挡掉肯定不存在的 key，用于防穿透。</td>
+</tr>
+<tr>
+<td>缓存预热</td>
+<td>Cache Warming</td>
+<td>上线或扩容后提前把热点数据加载进缓存，避免冷启动被打穿。</td>
+</tr>
+<tr>
+<td>缓存一致性</td>
+<td>Cache-DB Consistency</td>
+<td>让缓存和数据库的数据保持一致的策略总称。</td>
+</tr>
+<tr>
+<td>延迟双删</td>
+<td>Delayed Double Delete</td>
+<td>更新库后先删缓存，隔一小段时间再删一次，兜住并发读到旧值的窗口。</td>
+</tr>
+<tr>
+<td>双写</td>
+<td>Double Write</td>
+<td>同时写缓存和数据库，简单但容易不一致。</td>
+</tr>
+<tr>
+<td>计数器缓存</td>
+<td>Counter Cache</td>
+<td>把点赞数、阅读数这类高频计数放缓存里累加。</td>
+</tr>
+<tr>
+<td>内容缓存</td>
+<td>Content Cache</td>
+<td>缓存静态内容（图片、HTML），通常放在 CDN 层。</td>
+</tr>
+<tr>
+<td>单飞</td>
+<td>Singleflight</td>
+<td>同一个 key 的并发未命中只放一个请求去回源，其余等待复用结果。</td>
+</tr>
+<tr>
+<td>多级缓存</td>
+<td>Multi-level Cache</td>
+<td>本地缓存 + 分布式缓存分层，兼顾速度和容量。</td>
+</tr>
+<tr>
+<td>一致性哈希环</td>
+<td>Consistent Hash Ring</td>
+<td>缓存节点按哈希环分布，加减节点时只影响相邻区间。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆缓存穿透-vs-击穿-vs-雪崩必看">易混淆：缓存穿透 vs 击穿 vs 雪崩（必看）</h3>
+<blockquote>
+<p>三个词都描述&quot;请求绕过缓存打到数据库&quot;，但<strong>触发原因和范围完全不同</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>触发原因</th>
+<th>范围</th>
+<th>典型解法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>穿透（Penetration）</strong></td>
+<td>查的数据<strong>压根不存在</strong></td>
+<td>单个（或一批伪造的）不存在的 key</td>
+<td>空值缓存、布隆过滤器、参数校验</td>
+</tr>
+<tr>
+<td><strong>击穿（Breakdown）</strong></td>
+<td><strong>单个热点 key</strong> 恰好过期</td>
+<td>单个热点 key</td>
+<td>互斥锁重建、逻辑过期、热点永不过期</td>
+</tr>
+<tr>
+<td><strong>雪崩（Avalanche）</strong></td>
+<td><strong>大批 key 同时过期</strong>，或缓存整体故障</td>
+<td>全库 / 全集群</td>
+<td>过期时间加随机抖动、多级缓存、熔断降级</td>
+</tr>
+</tbody>
+</table></div>
+<p>一句话区分：<strong>穿透是&quot;数据不存在&quot;，击穿是&quot;一个热点过期&quot;，雪崩是&quot;一批同时过期或缓存整个挂了&quot;</strong>。
+另外注意击穿和惊群（Thundering Herd）常被混用：击穿强调&quot;热点 key 失效&quot;这个<strong>原因</strong>，惊群强调&quot;大量请求同时冲向后端&quot;这个<strong>现象</strong>，二者经常同时出现。</p>
+</blockquote>
+<h3 id="易混淆lru-vs-lfu">易混淆：LRU vs LFU</h3>
+<blockquote>
+<p><strong>LRU（最近最少使用）</strong>：看&quot;多久没被访问&quot;。刚被访问过的数据排在最前，淘汰队尾。
+<strong>LFU（最不经常使用）</strong>：看&quot;总共被访问了多少次&quot;。累计次数少的先淘汰。</p>
+<p>差别在&quot;突发的旧数据&quot;上：LRU 会把一个刚刚被扫过一次的冷数据放到队首，把真正的热点挤出去（缓存污染）；LFU 则不会，但<strong>新加入的热数据因为次数少，很容易被误杀</strong>（需要额外的计数衰减或新数据保护机制）。
+工程上常把两者结合，例如 Redis 的近似 LRU，以及各类&quot;LRU + 频率&quot;的混合策略。</p>
+</blockquote>
+<hr />
+<h2 id="4-一致性理论">4. 一致性理论</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CAP 定理</td>
+<td>CAP Theorem</td>
+<td>网络分区发生时，一致性和可用性只能二选一。</td>
+</tr>
+<tr>
+<td>PACELC</td>
+<td>PACELC</td>
+<td>CAP 的补充：没分区时（E），还要在延迟（L）和一致性（C）之间权衡。</td>
+</tr>
+<tr>
+<td>分区容错</td>
+<td>Partition Tolerance</td>
+<td>网络分区（节点间通信中断）时系统仍能继续运行。</td>
+</tr>
+<tr>
+<td>一致性（CAP 中的）</td>
+<td>Consistency</td>
+<td>所有节点在同一时刻看到相同的数据。</td>
+</tr>
+<tr>
+<td>可用性（CAP 中的）</td>
+<td>Availability</td>
+<td>每个请求都能在有限时间内得到非错误响应。</td>
+</tr>
+<tr>
+<td>强一致性</td>
+<td>Strong Consistency</td>
+<td>写入成功后，任何后续读取都能看到这次写入。</td>
+</tr>
+<tr>
+<td>弱一致性</td>
+<td>Weak Consistency</td>
+<td>写入后不保证何时能被读到。</td>
+</tr>
+<tr>
+<td>最终一致性</td>
+<td>Eventual Consistency</td>
+<td>停止写入后，经过一段时间所有副本最终会收敛到相同值。</td>
+</tr>
+<tr>
+<td>线性一致</td>
+<td>Linearizability</td>
+<td>最强的一致性：整个系统表现得像只有一份数据，且操作按真实时间排序。</td>
+</tr>
+<tr>
+<td>顺序一致</td>
+<td>Sequential Consistency</td>
+<td>所有节点看到相同的操作顺序，但不要求和真实时间一致。</td>
+</tr>
+<tr>
+<td>因果一致</td>
+<td>Causal Consistency</td>
+<td>有因果关系的操作保持顺序，无因果的可以乱序。</td>
+</tr>
+<tr>
+<td>读己之写</td>
+<td>Read-Your-Own-Writes</td>
+<td>用户总能看到自己刚才写入的数据。</td>
+</tr>
+<tr>
+<td>单调读</td>
+<td>Monotonic Reads</td>
+<td>用户不会读到比之前更旧的数据（不会&quot;时光倒流&quot;）。</td>
+</tr>
+<tr>
+<td>ACID</td>
+<td>ACID</td>
+<td>事务的四个保证：原子性、一致性、隔离性、持久性。</td>
+</tr>
+<tr>
+<td>原子性</td>
+<td>Atomicity</td>
+<td>事务里的操作要么全做，要么全不做。</td>
+</tr>
+<tr>
+<td>一致性（ACID 中的）</td>
+<td>Consistency</td>
+<td>事务前后数据都满足业务约束（和 CAP 的 C 不是一回事）。</td>
+</tr>
+<tr>
+<td>隔离性</td>
+<td>Isolation</td>
+<td>并发事务之间互不干扰，仿佛串行执行。</td>
+</tr>
+<tr>
+<td>持久性</td>
+<td>Durability</td>
+<td>事务提交后，即使宕机数据也不会丢。</td>
+</tr>
+<tr>
+<td>隔离级别</td>
+<td>Isolation Level</td>
+<td>在并发正确性和性能之间选择的档位。</td>
+</tr>
+<tr>
+<td>读已提交</td>
+<td>Read Committed</td>
+<td>只能读到已提交的数据，是多数数据库的默认级别。</td>
+</tr>
+<tr>
+<td>可重复读</td>
+<td>Repeatable Read</td>
+<td>同一事务内多次读同一行结果相同。</td>
+</tr>
+<tr>
+<td>快照隔离</td>
+<td>Snapshot Isolation</td>
+<td>事务读的是开始那一刻的数据库快照。</td>
+</tr>
+<tr>
+<td>串行化</td>
+<td>Serializable</td>
+<td>最强的隔离级别，效果等同串行执行，但并发度最低。</td>
+</tr>
+<tr>
+<td>BASE</td>
+<td>BASE</td>
+<td>基本可用、软状态、最终一致，是对 ACID 的松绑。</td>
+</tr>
+<tr>
+<td>基本可用</td>
+<td>Basically Available</td>
+<td>允许牺牲部分功能或延迟，但保证核心可用。</td>
+</tr>
+<tr>
+<td>软状态</td>
+<td>Soft State</td>
+<td>允许中间状态存在，不要求时刻一致。</td>
+</tr>
+<tr>
+<td>版本向量</td>
+<td>Version Vector</td>
+<td>用每个节点的版本号组合，判断两个副本的因果关系。</td>
+</tr>
+<tr>
+<td>向量时钟</td>
+<td>Vector Clock</td>
+<td>版本向量的经典实现，用于检测并发写冲突。</td>
+</tr>
+<tr>
+<td>最后写入者胜</td>
+<td>LWW（Last-Write-Wins）</td>
+<td>冲突时直接取时间戳最新的那个，简单但会丢写。</td>
+</tr>
+<tr>
+<td>冲突解决</td>
+<td>Conflict Resolution</td>
+<td>多副本写入冲突时决定保留哪个值的规则。</td>
+</tr>
+<tr>
+<td>收敛</td>
+<td>Convergence</td>
+<td>不再有新写入后，所有副本最终变成相同状态。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆强一致-vs-线性一致-vs-最终一致">易混淆：强一致 vs 线性一致 vs 最终一致</h3>
+<blockquote>
+<ul>
+<li><strong>最终一致（Eventual Consistency）</strong>：最弱。&quot;现在可能读到旧的，但迟早会一致&quot;。适合点赞数、粉丝数这类可以短暂不准的数据。</li>
+<li><strong>强一致（Strong Consistency）</strong>：写入成功后立刻能读到新值。但&quot;立刻&quot;的定义可以很模糊。</li>
+<li><strong>线性一致（Linearizability）</strong>：最强，也是最严格的定义。要求整个系统<strong>表现得像只有一份数据</strong>，并且操作顺序和真实物理时间一致。任何读到&quot;还没发生的写&quot;或&quot;已经过去的旧值&quot;都算违反。</li>
+</ul>
+<p>关系是：<strong>线性一致 ⊂ 强一致 ⊂ 最终一致</strong>（越往后越宽松）。面试里说&quot;我们要强一致&quot;通常太笼统，能说清&quot;要线性一致还是只要读己之写&quot;才是加分项。</p>
+</blockquote>
+<h3 id="易混淆acid-的-c-vs-cap-的-c">易混淆：ACID 的 C vs CAP 的 C</h3>
+<blockquote>
+<p>两个 C 长得一样，含义完全不同：</p>
+<ul>
+<li><strong>ACID 的 Consistency</strong>：指<strong>业务约束不被破坏</strong>。比如转账前后总金额不变。这是应用层的语义，数据库只是保证事务不会把它搞坏。</li>
+<li><strong>CAP 的 Consistency</strong>：指<strong>多个副本看到同一份数据</strong>。这是分布式系统层面的语义。</li>
+</ul>
+<p>看到 &quot;C&quot; 先问一句：这是在讲事务，还是在讲多副本？</p>
+</blockquote>
+<hr />
+<h2 id="5-分布式协调">5. 分布式协调</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>共识算法</td>
+<td>Consensus Algorithm</td>
+<td>让多个节点对同一个值达成一致的算法，是分布式系统的地基。</td>
+</tr>
+<tr>
+<td>Raft</td>
+<td>Raft</td>
+<td>以易理解著称的共识算法，用强领导者 + 日志复制实现一致性。</td>
+</tr>
+<tr>
+<td>Paxos</td>
+<td>Paxos</td>
+<td>最早的共识算法，理论优美但工程实现困难。</td>
+</tr>
+<tr>
+<td>Zab</td>
+<td>Zab</td>
+<td>ZooKeeper 使用的原子广播协议。</td>
+</tr>
+<tr>
+<td>多数派</td>
+<td>Majority / Quorum</td>
+<td>超过一半的节点，任意两个多数派必有交集，这是共识的基础。</td>
+</tr>
+<tr>
+<td>领导者选举</td>
+<td>Leader Election</td>
+<td>节点们选出唯一的主节点来协调写入。</td>
+</tr>
+<tr>
+<td>任期</td>
+<td>Term</td>
+<td>Raft 里的逻辑时间单位，每选一次主就加一。</td>
+</tr>
+<tr>
+<td>日志复制</td>
+<td>Log Replication</td>
+<td>主节点把操作日志复制到多数派，然后才提交。</td>
+</tr>
+<tr>
+<td>心跳</td>
+<td>Heartbeat</td>
+<td>主节点周期性发信号证明自己还活着，超时则触发重新选举。</td>
+</tr>
+<tr>
+<td>租约</td>
+<td>Lease</td>
+<td>给主节点一段有期限的授权，到期自动失效，避免脑裂。</td>
+</tr>
+<tr>
+<td>脑裂</td>
+<td>Split Brain</td>
+<td>网络分区导致出现两个都以为自己是主的节点，可能造成数据分叉。</td>
+</tr>
+<tr>
+<td>网络分区</td>
+<td>Network Partition</td>
+<td>节点之间网络断开，被切成互不可见的几组。</td>
+</tr>
+<tr>
+<td>协调服务</td>
+<td>Coordination Service</td>
+<td>专门提供选主、配置、分布式锁等能力的服务。</td>
+</tr>
+<tr>
+<td>ZooKeeper</td>
+<td>ZooKeeper</td>
+<td>经典的协调服务，Kafka 早期依赖它管理元数据和选主。</td>
+</tr>
+<tr>
+<td>etcd</td>
+<td>etcd</td>
+<td>基于 Raft 的键值协调服务，Kubernetes 用它存集群状态。</td>
+</tr>
+<tr>
+<td>KRaft</td>
+<td>KRaft</td>
+<td>Kafka 内置的 Raft 实现，用来取代 ZooKeeper。</td>
+</tr>
+<tr>
+<td>FLP 不可能性</td>
+<td>FLP Impossibility</td>
+<td>在完全异步的系统中，只要有一个节点可能故障，就不存在既保证安全又保证活性的共识算法。</td>
+</tr>
+<tr>
+<td>两将军问题</td>
+<td>Two Generals Problem</td>
+<td>通信不可靠时，双方无法 100% 确认对方也确认了，说明&quot;完全一致&quot;做不到。</td>
+</tr>
+<tr>
+<td>时钟偏移</td>
+<td>Clock Skew</td>
+<td>不同机器的时钟走得不一样，所以不能只靠物理时间排序。</td>
+</tr>
+<tr>
+<td>逻辑时钟</td>
+<td>Logical Clock</td>
+<td>用计数器而非物理时间表达事件先后。</td>
+</tr>
+<tr>
+<td>单调时钟</td>
+<td>Monotonic Clock</td>
+<td>只会前进不会回拨的时钟，用于测量时间间隔。</td>
+</tr>
+<tr>
+<td>分布式锁</td>
+<td>Distributed Lock</td>
+<td>跨进程互斥的锁，通常靠协调服务或 Redis 实现。</td>
+</tr>
+<tr>
+<td>领导者-跟随者</td>
+<td>Leader-Follower</td>
+<td>一个主节点处理写，其余跟随并复制。</td>
+</tr>
+<tr>
+<td>状态机复制</td>
+<td>State Machine Replication</td>
+<td>只要所有节点按相同顺序执行相同命令，状态就必然一致。</td>
+</tr>
+<tr>
+<td>全局有序</td>
+<td>Total Order</td>
+<td>所有节点对事件顺序的看法完全一致。</td>
+</tr>
+<tr>
+<td>提交索引</td>
+<td>Commit Index</td>
+<td>Raft 中已确认被多数派复制的日志位置。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆2pc-3pc-tcc-saga">易混淆：2PC / 3PC / TCC / Saga</h3>
+<blockquote>
+<p>这四个都是&quot;跨多个服务 / 分片完成一件事&quot;的方案，区别在<strong>一致性强度</strong>和<strong>可用性代价</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>思路</th>
+<th>一致性</th>
+<th>主要问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2PC（两阶段提交）</strong></td>
+<td>协调者先让所有参与者&quot;准备&quot;，全票通过再&quot;提交&quot;</td>
+<td>强一致</td>
+<td>同步阻塞、协调者单点、参与者长时间持锁</td>
+</tr>
+<tr>
+<td><strong>3PC（三阶段提交）</strong></td>
+<td>在 2PC 前加一个&quot;CanCommit&quot;预询问</td>
+<td>稍弱，减少阻塞</td>
+<td>仍然解决不了网络分区下的不一致，实际很少用</td>
+</tr>
+<tr>
+<td><strong>TCC（Try-Confirm-Cancel）</strong></td>
+<td>业务层面预留资源（Try），再确认（Confirm）或取消（Cancel）</td>
+<td>最终一致</td>
+<td>需要为每个操作写三个接口，业务侵入大</td>
+</tr>
+<tr>
+<td><strong>Saga</strong></td>
+<td>把长事务拆成一串本地事务，失败就反向执行补偿操作</td>
+<td>最终一致</td>
+<td>没有隔离性，中间状态对外可见，补偿逻辑难写</td>
+</tr>
+</tbody>
+</table></div>
+<p>一句话选择：<strong>要强一致且能接受阻塞 → 2PC；要高可用、能接受最终一致 → TCC 或 Saga</strong>。3PC 基本只出现在教材里。
+另外 TCC 里有三个经典坑要特别小心：<strong>空回滚</strong>（Try 没执行但收到 Cancel）、<strong>悬挂</strong>（Cancel 先到，Try 后到）、<strong>幂等</strong>（Confirm / Cancel 被重复调用）。</p>
+</blockquote>
+<hr />
+<h2 id="6-消息与流处理">6. 消息与流处理</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>消息队列</td>
+<td>Message Queue</td>
+<td>生产者把消息放进去，消费者按自己节奏取出来处理，实现异步和解耦。</td>
+</tr>
+<tr>
+<td>分布式消息队列</td>
+<td>Distributed Message Queue</td>
+<td>用多台 broker 组成、可水平扩展的消息队列。</td>
+</tr>
+<tr>
+<td>事件流平台</td>
+<td>Event Streaming Platform</td>
+<td>不只传消息，还能长期保存并允许重放的事件系统（如 Kafka）。</td>
+</tr>
+<tr>
+<td>主题</td>
+<td>Topic</td>
+<td>消息的逻辑分类，生产者往主题写、消费者从主题读。</td>
+</tr>
+<tr>
+<td>分区</td>
+<td>Partition</td>
+<td>主题的物理切分，是并行和顺序性的基本单位。</td>
+</tr>
+<tr>
+<td>偏移量</td>
+<td>Offset</td>
+<td>消息在分区内的位置编号，消费者靠它记录读到哪了。</td>
+</tr>
+<tr>
+<td>消费者</td>
+<td>Consumer</td>
+<td>从队列读取并处理消息的一方。</td>
+</tr>
+<tr>
+<td>生产者</td>
+<td>Producer</td>
+<td>往队列写入消息的一方。</td>
+</tr>
+<tr>
+<td>消费者组</td>
+<td>Consumer Group</td>
+<td>一组消费者共同消费一个主题，每个分区只分给组内一个成员。</td>
+</tr>
+<tr>
+<td>再均衡</td>
+<td>Rebalance</td>
+<td>消费者上下线时重新分配分区，期间通常会短暂停止消费。</td>
+</tr>
+<tr>
+<td>协作式再均衡</td>
+<td>Cooperative Rebalance</td>
+<td>只迁移需要变动的分区，避免全组停摆。</td>
+</tr>
+<tr>
+<td>提交偏移量</td>
+<td>Committed Offset</td>
+<td>消费者确认&quot;我已经处理到哪了&quot;，用于故障后从断点恢复。</td>
+</tr>
+<tr>
+<td>保留策略</td>
+<td>Retention Policy</td>
+<td>消息保存多久、多大之后被删除。</td>
+</tr>
+<tr>
+<td>死信队列</td>
+<td>DLQ（Dead Letter Queue）</td>
+<td>反复处理失败的消息被丢到这里，避免阻塞正常流程。</td>
+</tr>
+<tr>
+<td>重试队列</td>
+<td>Retry Queue</td>
+<td>处理失败的消息先放进去，延迟后重试。</td>
+</tr>
+<tr>
+<td>延迟队列</td>
+<td>Delayed Queue</td>
+<td>让消息在指定时间之后才被消费。</td>
+</tr>
+<tr>
+<td>优先级队列</td>
+<td>Priority Queue</td>
+<td>高优先级消息先被处理。</td>
+</tr>
+<tr>
+<td>批量</td>
+<td>Batching</td>
+<td>把多条消息打包一次发送 / 处理，用延迟换吞吐。</td>
+</tr>
+<tr>
+<td>竞争消费者</td>
+<td>Competing Consumers</td>
+<td>多个消费者抢同一个队列的消息，用来提高处理能力。</td>
+</tr>
+<tr>
+<td>发布订阅</td>
+<td>Publish-Subscribe</td>
+<td>一条消息广播给所有订阅者，而不是只给一个人。</td>
+</tr>
+<tr>
+<td>点对点</td>
+<td>Point-to-Point</td>
+<td>一条消息只被一个消费者处理。</td>
+</tr>
+<tr>
+<td>推模式</td>
+<td>Push</td>
+<td>broker 主动把消息推给消费者，延迟低但可能压垮消费者。</td>
+</tr>
+<tr>
+<td>拉模式</td>
+<td>Pull</td>
+<td>消费者主动来拉，自己控制节奏，不易被压垮但可能空轮询。</td>
+</tr>
+<tr>
+<td>长轮询</td>
+<td>Long Polling</td>
+<td>没有数据时服务端先挂起请求，有数据再返回，兼顾实时和开销。</td>
+</tr>
+<tr>
+<td>投递语义</td>
+<td>Delivery Semantics</td>
+<td>消息&quot;被处理几次&quot;的保证级别。</td>
+</tr>
+<tr>
+<td>至多一次</td>
+<td>At-Most-Once</td>
+<td>消息最多被处理一次，可能丢，但绝不重复。</td>
+</tr>
+<tr>
+<td>至少一次</td>
+<td>At-Least-Once</td>
+<td>消息至少被处理一次，不丢，但可能重复。</td>
+</tr>
+<tr>
+<td>恰好一次</td>
+<td>Exactly-Once</td>
+<td>消息不多不少正好一次，工程上要靠幂等或事务近似实现。</td>
+</tr>
+<tr>
+<td>有效一次</td>
+<td>Effectively-once</td>
+<td>承认底层仍是至少一次，但通过幂等让结果看起来只生效一次。</td>
+</tr>
+<tr>
+<td>幂等生产者</td>
+<td>Idempotent Producer</td>
+<td>broker 通过序列号去重，避免重试导致重复写入。</td>
+</tr>
+<tr>
+<td>事务性消息</td>
+<td>Transactional Messaging</td>
+<td>让&quot;发消息&quot;和&quot;改状态&quot;原子发生，要么都成要么都不成。</td>
+</tr>
+<tr>
+<td>事务性发件箱</td>
+<td>Transactional Outbox</td>
+<td>把要发的消息和业务数据写在同一个本地事务里，再由后台投递。</td>
+</tr>
+<tr>
+<td>事件时间</td>
+<td>Event Time</td>
+<td>事件<strong>实际发生</strong>的时间，由事件自身携带。</td>
+</tr>
+<tr>
+<td>处理时间</td>
+<td>Processing Time</td>
+<td>系统<strong>处理到这条数据</strong>的时间。</td>
+</tr>
+<tr>
+<td>水位线</td>
+<td>Watermark</td>
+<td>流处理中&quot;我认为这个时间点之前的数据都到齐了&quot;的进度标记。</td>
+</tr>
+<tr>
+<td>允许迟到</td>
+<td>Allowed Lateness</td>
+<td>水位线过后还允许晚到数据参与计算的时间窗口。</td>
+</tr>
+<tr>
+<td>窗口</td>
+<td>Window</td>
+<td>把无界的流切成有界的一段段来做聚合。</td>
+</tr>
+<tr>
+<td>滚动窗口</td>
+<td>Tumbling Window</td>
+<td>固定长度、首尾相接、不重叠的窗口。</td>
+</tr>
+<tr>
+<td>滑动窗口</td>
+<td>Sliding Window</td>
+<td>固定长度，但按步长滑动，窗口之间会重叠。</td>
+</tr>
+<tr>
+<td>会话窗口</td>
+<td>Session Window</td>
+<td>按活动间隙切分，用户停手一段时间就算一个窗口结束。</td>
+</tr>
+<tr>
+<td>全局窗口</td>
+<td>Global Window</td>
+<td>不切分，整个流就是一个窗口，由触发器决定何时输出。</td>
+</tr>
+<tr>
+<td>触发器</td>
+<td>Trigger</td>
+<td>决定窗口什么时候把结果吐出来。</td>
+</tr>
+<tr>
+<td>侧输出</td>
+<td>Side Output</td>
+<td>把迟到或异常的数据分流到另一条流处理。</td>
+</tr>
+<tr>
+<td>状态后端</td>
+<td>State Backend</td>
+<td>流处理任务保存中间状态的地方（内存、RocksDB 等）。</td>
+</tr>
+<tr>
+<td>键控状态</td>
+<td>Keyed State</td>
+<td>按 key 分区的状态，同一个 key 一定落在同一个任务上。</td>
+</tr>
+<tr>
+<td>变更数据捕获</td>
+<td>CDC（Change Data Capture）</td>
+<td>监听数据库的变更日志，把每次改动变成事件流。</td>
+</tr>
+<tr>
+<td>重放</td>
+<td>Replay</td>
+<td>从头或从某个偏移量重新消费历史消息。</td>
+</tr>
+<tr>
+<td>流批一体</td>
+<td>Unified Batch and Streaming</td>
+<td>用同一套代码和引擎处理实时流与离线批。</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>Kafka</td>
+<td>最主流的分布式事件流平台，以分区 + 分段日志为核心。</td>
+</tr>
+<tr>
+<td>Flink</td>
+<td>Flink</td>
+<td>主流的流处理引擎，以事件时间、水位线、有状态计算著称。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆at-most-once-at-least-once-exactly-once">易混淆：at-most-once / at-least-once / exactly-once</h3>
+<blockquote>
+<p>三者描述的是<strong>消息在&quot;生产者 → broker → 消费者&quot;整条链路上被处理的次数</strong>：</p>
+<ul>
+<li><strong>至多一次（At-Most-Once）</strong>：先标记已读，再处理。<strong>可能丢消息，但绝不重复</strong>。适合日志采集这类丢了也不心疼的场景。</li>
+<li><strong>至少一次（At-Least-Once）</strong>：先处理，成功后再确认。<strong>绝不丢，但可能重复</strong>。绝大多数消息队列的默认语义，代价是消费端必须自己处理重复。</li>
+<li><strong>恰好一次（Exactly-Once）</strong>：听起来最理想，但<strong>跨网络无法真正实现</strong>——因为确认消息本身可能丢失，发送方永远无法区分&quot;对方没收到&quot;和&quot;对方收到了但确认丢了&quot;（这正是两将军问题）。</li>
+</ul>
+<p>工程上的&quot;恰好一次&quot;其实是两件事拼出来的：<strong>至少一次投递 + 消费端幂等</strong>，也就是常说的<strong>有效一次（Effectively-once）</strong>。
+面试里的正确说法是：<strong>&quot;跨网络的严格恰好一次做不到，我们做的是至少一次加幂等去重，效果上等价于恰好一次。&quot;</strong> 直接说&quot;我们用 exactly-once 保证不重复&quot;会被追问到底。</p>
+</blockquote>
+<h3 id="易混淆事件时间-vs-处理时间">易混淆：事件时间 vs 处理时间</h3>
+<blockquote>
+<ul>
+<li><strong>事件时间（Event Time）</strong>：这条数据<strong>在现实世界发生的时刻</strong>，比如用户点击按钮的那一秒。由数据自己带着。</li>
+<li><strong>处理时间（Processing Time）</strong>：<strong>系统处理到这条数据</strong>的时刻。由机器时钟决定。</li>
+</ul>
+<p>为什么必须区分？因为网络延迟和重试会让两者错开很远。用处理时间做&quot;每分钟点击量&quot;，会把延迟到达的数据算到错误的分钟里，结果完全失真。</p>
+<p>代价是：用事件时间就必须处理<strong>乱序</strong>和<strong>迟到</strong>——这就是**水位线（Watermark）<strong>和</strong>允许迟到（Allowed Lateness）**存在的原因。水位线是&quot;我认为某时刻之前的数据都到齐了&quot;的进度信号，它决定了窗口什么时候可以安全输出结果。</p>
+</blockquote>
+<h3 id="易混淆推-vs-拉">易混淆：推 vs 拉</h3>
+<blockquote>
+<ul>
+<li><strong>推（Push）</strong>：broker 主动把消息送给消费者。<strong>延迟低</strong>，但 broker 必须知道消费者的处理能力，否则容易把慢消费者压垮。</li>
+<li><strong>拉（Pull）</strong>：消费者主动来取。<strong>消费者自己控制节奏</strong>，天然支持批量和回溯，代价是没数据时会空轮询浪费资源。</li>
+</ul>
+<p>解决空轮询的办法是<strong>长轮询（Long Polling）</strong>：没数据时请求先挂起，有数据或超时才返回。Kafka 消费者用的就是长轮询。</p>
+</blockquote>
+<hr />
+<h2 id="7-网络与协议">7. 网络与协议</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>传输控制协议</td>
+<td>TCP</td>
+<td>可靠、有序、面向连接的传输层协议，是绝大多数应用协议的基础。</td>
+</tr>
+<tr>
+<td>用户数据报协议</td>
+<td>UDP</td>
+<td>不保证送达、不保证顺序，但快，适合实时音视频和游戏。</td>
+</tr>
+<tr>
+<td>超文本传输协议</td>
+<td>HTTP</td>
+<td>请求-响应式的应用层协议，Web 的通用语言。</td>
+</tr>
+<tr>
+<td>HTTP/2</td>
+<td>HTTP/2</td>
+<td>多路复用、头部压缩，解决 HTTP/1.1 的队头阻塞问题。</td>
+</tr>
+<tr>
+<td>HTTP/3</td>
+<td>HTTP/3 / QUIC</td>
+<td>基于 UDP 的新一代 HTTP，进一步减少连接建立和丢包重传的延迟。</td>
+</tr>
+<tr>
+<td>HTTPS</td>
+<td>HTTPS</td>
+<td>HTTP over TLS，加密传输内容。</td>
+</tr>
+<tr>
+<td>传输层安全</td>
+<td>TLS</td>
+<td>为通信提供加密和身份验证的协议层。</td>
+</tr>
+<tr>
+<td>双向 TLS</td>
+<td>mTLS（Mutual TLS）</td>
+<td>客户端和服务器互相验证证书，常用于服务间通信。</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>WebSocket</td>
+<td>在单个 TCP 连接上实现全双工通信，适合聊天、实时推送。</td>
+</tr>
+<tr>
+<td>服务器发送事件</td>
+<td>SSE（Server-Sent Events）</td>
+<td>服务端单向持续推流给浏览器，比 WebSocket 简单，适合通知、行情。</td>
+</tr>
+<tr>
+<td>长轮询</td>
+<td>Long Polling</td>
+<td>没数据时服务端先挂起，有数据再返回，兼顾实时与开销。</td>
+</tr>
+<tr>
+<td>持久连接</td>
+<td>Persistent Connection</td>
+<td>连接建立后复用，避免每次请求都重新握手。</td>
+</tr>
+<tr>
+<td>全双工</td>
+<td>Full-Duplex</td>
+<td>双方可以同时发送和接收数据。</td>
+</tr>
+<tr>
+<td>队头阻塞</td>
+<td>Head-of-Line Blocking</td>
+<td>前面的请求卡住，后面的请求只能排队等。</td>
+</tr>
+<tr>
+<td>远程过程调用</td>
+<td>RPC</td>
+<td>像调用本地函数一样调用远程服务，屏蔽网络细节。</td>
+</tr>
+<tr>
+<td>gRPC</td>
+<td>gRPC</td>
+<td>基于 HTTP/2 和 Protobuf 的高性能 RPC 框架。</td>
+</tr>
+<tr>
+<td>REST</td>
+<td>REST</td>
+<td>以资源为中心、用 HTTP 动词表达操作的接口风格。</td>
+</tr>
+<tr>
+<td>域名系统</td>
+<td>DNS</td>
+<td>把域名翻译成 IP 地址的系统。</td>
+</tr>
+<tr>
+<td>邮件交换记录</td>
+<td>MX Record</td>
+<td>DNS 中指明该域名邮件应该投递到哪台服务器的记录。</td>
+</tr>
+<tr>
+<td>单播</td>
+<td>Unicast</td>
+<td>一对一发送。</td>
+</tr>
+<tr>
+<td>组播</td>
+<td>Multicast</td>
+<td>一对多发送，只有加入组的成员才收到。</td>
+</tr>
+<tr>
+<td>广播</td>
+<td>Broadcast</td>
+<td>一对全体发送。</td>
+</tr>
+<tr>
+<td>点对点网络</td>
+<td>P2P</td>
+<td>节点之间直接通信，不依赖中心服务器。</td>
+</tr>
+<tr>
+<td>NAT 穿透</td>
+<td>NAT Traversal</td>
+<td>让内网中的两个节点建立直连的技术。</td>
+</tr>
+<tr>
+<td>Webhook</td>
+<td>Webhook</td>
+<td>服务端主动回调你提供的 URL 来通知事件，是&quot;反向 API&quot;。</td>
+</tr>
+<tr>
+<td>指数退避</td>
+<td>Exponential Backoff</td>
+<td>重试间隔按指数增长，避免把已经过载的服务打死。</td>
+</tr>
+<tr>
+<td>抖动</td>
+<td>Jitter</td>
+<td>在退避时间上加随机量，防止大量客户端同时重试。</td>
+</tr>
+<tr>
+<td>零拷贝</td>
+<td>Zero-Copy</td>
+<td>让数据在内核态和用户态之间少拷几次，大幅提升吞吐。</td>
+</tr>
+<tr>
+<td>事件循环</td>
+<td>epoll / kqueue / IOCP</td>
+<td>操作系统提供的高效 I/O 多路复用机制，支撑高并发连接。</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="8-运维与可观测性">8. 运维与可观测性</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>监控</td>
+<td>Monitoring</td>
+<td>持续采集系统状态，判断&quot;是否正常&quot;。</td>
+</tr>
+<tr>
+<td>可观测性</td>
+<td>Observability</td>
+<td>通过外部输出去推断系统内部状态的能力。</td>
+</tr>
+<tr>
+<td>指标</td>
+<td>Metric</td>
+<td>可聚合的数值型观测数据，如 QPS、CPU 使用率。</td>
+</tr>
+<tr>
+<td>日志</td>
+<td>Log</td>
+<td>离散的事件记录，用于排查具体问题。</td>
+</tr>
+<tr>
+<td>链路追踪</td>
+<td>Trace</td>
+<td>记录一个请求跨多个服务的完整调用路径。</td>
+</tr>
+<tr>
+<td>分布式链路追踪</td>
+<td>Distributed Tracing</td>
+<td>跨服务、跨进程的追踪，用于定位分布式系统的性能瓶颈。</td>
+</tr>
+<tr>
+<td>时间序列</td>
+<td>Time Series</td>
+<td>带时间戳、按时间顺序排列的一串数值。</td>
+</tr>
+<tr>
+<td>时序数据库</td>
+<td>Time-Series Database</td>
+<td>专为时间序列优化的数据库，写入和按时间范围查询极快。</td>
+</tr>
+<tr>
+<td>标签</td>
+<td>Label / Tag</td>
+<td>附加在指标上的键值对，用于多维筛选和聚合。</td>
+</tr>
+<tr>
+<td>基数</td>
+<td>Cardinality</td>
+<td>标签取值的组合数量，决定时序数据库的规模。</td>
+</tr>
+<tr>
+<td>基数爆炸</td>
+<td>Cardinality Explosion</td>
+<td>给指标加上高基数的标签（如用户 ID、请求 ID），导致时序数量爆炸、成本失控。</td>
+</tr>
+<tr>
+<td>采集器</td>
+<td>Collector</td>
+<td>从各服务拉取或接收指标并汇总的组件。</td>
+</tr>
+<tr>
+<td>采集代理</td>
+<td>Agent</td>
+<td>部署在被监控机器上、负责上报指标的进程。</td>
+</tr>
+<tr>
+<td>拉模式</td>
+<td>Pull</td>
+<td>监控系统定时去目标上抓指标，目标挂了能立刻发现。</td>
+</tr>
+<tr>
+<td>推模式</td>
+<td>Push</td>
+<td>被监控方主动上报指标，适合短生命周期任务和穿透防火墙的场景。</td>
+</tr>
+<tr>
+<td>Pushgateway</td>
+<td>Pushgateway</td>
+<td>Prometheus 生态里接收推送指标的中转站，解决短任务抓不到的问题。</td>
+</tr>
+<tr>
+<td>摄取管道</td>
+<td>Ingestion Pipeline</td>
+<td>指标从产生到落库之间经过的采集、传输、处理链路。</td>
+</tr>
+<tr>
+<td>降采样</td>
+<td>Downsampling</td>
+<td>把老数据按更粗的粒度（如分钟聚合成小时）保存，控制存储成本。</td>
+</tr>
+<tr>
+<td>告警</td>
+<td>Alerting</td>
+<td>指标越过阈值时通知人。</td>
+</tr>
+<tr>
+<td>告警管理器</td>
+<td>Alert Manager</td>
+<td>负责对告警做去重、分组、抑制、静默和路由的组件。</td>
+</tr>
+<tr>
+<td>告警风暴</td>
+<td>Alert Storm</td>
+<td>一次故障引发海量告警同时爆发，反而让人抓不住重点。</td>
+</tr>
+<tr>
+<td>告警疲劳</td>
+<td>Alert Fatigue</td>
+<td>告警太多太吵，运维开始麻木、忽略真正的告警。</td>
+</tr>
+<tr>
+<td>告警抑制</td>
+<td>Inhibition</td>
+<td>高优先级告警触发时，自动压掉由它引起的下游告警。</td>
+</tr>
+<tr>
+<td>告警静默</td>
+<td>Silencing</td>
+<td>在计划内维护期间临时屏蔽某些告警。</td>
+</tr>
+<tr>
+<td>告警聚合</td>
+<td>Grouping</td>
+<td>把同一原因的多条告警合并成一条通知。</td>
+</tr>
+<tr>
+<td>可行动</td>
+<td>Actionable</td>
+<td>告警必须能指向一个明确的处理动作，否则不该发出来。</td>
+</tr>
+<tr>
+<td>记录规则</td>
+<td>Recording Rules</td>
+<td>把常用查询预先算好存成新指标，加速仪表盘和告警。</td>
+</tr>
+<tr>
+<td>PromQL</td>
+<td>PromQL</td>
+<td>Prometheus 的查询语言，支持瞬时向量和区间向量。</td>
+</tr>
+<tr>
+<td>瞬时向量</td>
+<td>Instant Vector</td>
+<td>查询在某一时刻的指标值。</td>
+</tr>
+<tr>
+<td>区间向量</td>
+<td>Range Vector</td>
+<td>查询某一段时间范围内的指标序列，常配合 rate 使用。</td>
+</tr>
+<tr>
+<td>直方图</td>
+<td>Histogram</td>
+<td>把观测值分桶统计，用于计算分位数。</td>
+</tr>
+<tr>
+<td>分位数</td>
+<td>Quantile</td>
+<td>如 P99，表示 99% 的样本小于等于该值。</td>
+</tr>
+<tr>
+<td>RED 方法</td>
+<td>RED（Rate / Errors / Duration）</td>
+<td>面向请求的服务监控三板斧：请求速率、错误率、耗时。</td>
+</tr>
+<tr>
+<td>USE 方法</td>
+<td>USE（Utilization / Saturation / Errors）</td>
+<td>面向资源的监控三板斧：使用率、饱和度、错误数。</td>
+</tr>
+<tr>
+<td>混沌工程</td>
+<td>Chaos Engineering</td>
+<td>主动注入故障来验证系统的容错能力。</td>
+</tr>
+<tr>
+<td>平均恢复时间</td>
+<td>MTTR（Mean Time To Recovery）</td>
+<td>从故障发生到恢复平均要多久。</td>
+</tr>
+<tr>
+<td>优雅降级</td>
+<td>Graceful Degradation</td>
+<td>资源不足时关闭次要功能，保住核心功能。</td>
+</tr>
+<tr>
+<td>可视化</td>
+<td>Visualization</td>
+<td>把指标画成图表，让人一眼看出趋势和异常。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆red-vs-use">易混淆：RED vs USE</h3>
+<blockquote>
+<p>两套方法解决的<strong>对象不同</strong>：</p>
+<ul>
+<li><strong>RED（Rate / Errors / Duration）</strong> 面向<strong>请求 / 服务</strong>：每秒多少请求、多少失败、耗时多少。适合监控 API、微服务。</li>
+<li><strong>USE（Utilization / Saturation / Errors）</strong> 面向<strong>资源</strong>：CPU、内存、磁盘、网卡的使用率、饱和度（排队程度）、错误数。适合监控机器和硬件。</li>
+</ul>
+<p>实践里两者互补：服务层用 RED 看用户体验，资源层用 USE 找根因。</p>
+</blockquote>
+<hr />
+<h2 id="9-地理与位置">9. 地理与位置</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>经度 / 纬度</td>
+<td>Longitude / Latitude</td>
+<td>描述地球上一个点的坐标，经度是东西、纬度是南北。</td>
+</tr>
+<tr>
+<td>WGS84</td>
+<td>WGS84（World Geodetic System 1984）</td>
+<td>GPS 使用的全球大地坐标系统，是所有地理坐标的基准。</td>
+</tr>
+<tr>
+<td>地图投影</td>
+<td>Map Projection</td>
+<td>把球面展开成平面的数学变换，任何投影都会产生形变。</td>
+</tr>
+<tr>
+<td>墨卡托投影</td>
+<td>Web Mercator</td>
+<td>网络地图的标准投影，保角（形状不变）但高纬度面积严重失真。</td>
+</tr>
+<tr>
+<td>等面积投影</td>
+<td>Equal-Area Projection</td>
+<td>保证面积比例正确的投影，代价是形状会变形。</td>
+</tr>
+<tr>
+<td>地理编码</td>
+<td>Geocoding</td>
+<td>把地址文字（&quot;北京市海淀区…&quot;）转成经纬度。</td>
+</tr>
+<tr>
+<td>反向地理编码</td>
+<td>Reverse Geocoding</td>
+<td>把经纬度转成人类可读的地址。</td>
+</tr>
+<tr>
+<td>GeoHash</td>
+<td>GeoHash</td>
+<td>把经纬度编码成一串可比较的字符串，前缀相同代表位置相近。</td>
+</tr>
+<tr>
+<td>四叉树</td>
+<td>Quadtree</td>
+<td>不断把二维空间四等分，直到每个格子里点数足够少，用于空间索引。</td>
+</tr>
+<tr>
+<td>R 树</td>
+<td>R-Tree</td>
+<td>用最小外接矩形组织空间对象，适合范围查询。</td>
+</tr>
+<tr>
+<td>均匀网格</td>
+<td>Even Grid</td>
+<td>把地图切成等大格子做索引，实现简单但格子大小不好选。</td>
+</tr>
+<tr>
+<td>空间索引</td>
+<td>Spatial Index</td>
+<td>让&quot;查找附近的点&quot;不用全表扫描的数据结构总称。</td>
+</tr>
+<tr>
+<td>最小外接矩形</td>
+<td>MBR（Minimum Bounding Rectangle）</td>
+<td>包住一个空间对象的最小矩形，空间索引的基本单元。</td>
+</tr>
+<tr>
+<td>瓦片</td>
+<td>Tiling</td>
+<td>把地图切成小块图片，按需加载而不是一次给整张地图。</td>
+</tr>
+<tr>
+<td>瓦片坐标</td>
+<td>Z/X/Y</td>
+<td>缩放级别 Z 决定精度，X/Y 是该级别下的行列号。</td>
+</tr>
+<tr>
+<td>栅格瓦片</td>
+<td>Raster Tile</td>
+<td>预先渲染好的图片瓦片，兼容性好但体积大、不能改样式。</td>
+</tr>
+<tr>
+<td>矢量瓦片</td>
+<td>Vector Tile</td>
+<td>传输几何数据、由客户端渲染，体积小、可动态改样式。</td>
+</tr>
+<tr>
+<td>超级瓦片</td>
+<td>Super Tile</td>
+<td>把多个瓦片合并成一个大瓦片，减少请求数。</td>
+</tr>
+<tr>
+<td>地理围栏</td>
+<td>Geofencing</td>
+<td>判断用户是否进入 / 离开某个虚拟区域。</td>
+</tr>
+<tr>
+<td>邻近服务</td>
+<td>Proximity Service</td>
+<td>回答&quot;我附近有哪些商家 / 地点&quot;这类查询的服务。</td>
+</tr>
+<tr>
+<td>基于位置的服务</td>
+<td>LBS（Location-Based Service）</td>
+<td>一切依赖用户地理位置的服务的总称。</td>
+</tr>
+<tr>
+<td>在线状态</td>
+<td>Presence</td>
+<td>记录用户是否在线、最近一次活跃时间。</td>
+</tr>
+<tr>
+<td>附近好友</td>
+<td>Nearby Friends</td>
+<td>持续推送&quot;好友离你多近&quot;的实时位置服务。</td>
+</tr>
+<tr>
+<td>路网</td>
+<td>Road Network</td>
+<td>把道路抽象成图的节点和边，用于路径规划。</td>
+</tr>
+<tr>
+<td>最短路径</td>
+<td>Shortest Path</td>
+<td>在路网上找代价最小的路线。</td>
+</tr>
+<tr>
+<td>分层路由</td>
+<td>Hierarchical Routing</td>
+<td>长途走高速主干、短途走小路，避免在全球图上跑搜索。</td>
+</tr>
+<tr>
+<td>路由瓦片</td>
+<td>Routing Tile</td>
+<td>按瓦片预计算和存储路网数据，减少单次搜索的图规模。</td>
+</tr>
+<tr>
+<td>收缩层级</td>
+<td>CH（Contraction Hierarchies）</td>
+<td>通过预计算捷径边加速最短路径查询的经典算法。</td>
+</tr>
+<tr>
+<td>多级 Dijkstra</td>
+<td>Multi-Level Dijkstra</td>
+<td>结合分层和 Dijkstra 的路由算法，适合大规模路网。</td>
+</tr>
+<tr>
+<td>旅行商问题</td>
+<td>TSP（Travelling Salesman Problem）</td>
+<td>找一条经过所有点且总路程最短的回路，多途经点导航的核心难题。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆geohash-vs-瓦片索引">易混淆：GeoHash vs 瓦片索引</h3>
+<blockquote>
+<p>两者都能把二维空间压成一维，但<strong>用途完全不同</strong>：</p>
+<ul>
+<li><strong>GeoHash</strong> 是<strong>搜索用的索引</strong>。它回答&quot;我附近有哪些点&quot;，靠前缀匹配快速缩小范围。</li>
+<li><strong>瓦片 Z/X/Y</strong> 是<strong>渲染用的索引</strong>。它回答&quot;屏幕上这块区域该画哪张图&quot;，靠层级和行列号定位要加载的图片。</li>
+</ul>
+<p>一个查数据，一个取图片。另外 GeoHash 有一个必须知道的缺陷：<strong>它是&quot;前缀相同 ⇒ 位置相近&quot;的单向保证，反过来不成立</strong>——两个物理上很近的点可能被分到相邻但前缀完全不同的格子里（边界问题）。所以查询时<strong>必须连同周围 8 个格子一起查</strong>，只查自己所在的格子会漏结果。</p>
+</blockquote>
+<hr />
+<h2 id="10-交易与金融">10. 交易与金融</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>复式记账</td>
+<td>Double-Entry Bookkeeping</td>
+<td>每笔交易同时记借方和贷方，两边永远相等，账目天然可自查。</td>
+</tr>
+<tr>
+<td>总账</td>
+<td>Ledger</td>
+<td>记录所有资金变动的账本，是资金状态的唯一真相来源。</td>
+</tr>
+<tr>
+<td>日记账分录</td>
+<td>Journal Entry</td>
+<td>复式记账中一笔交易对应的借贷记录。</td>
+</tr>
+<tr>
+<td>借方</td>
+<td>Debit</td>
+<td>复式记账中资金流入的一方。</td>
+</tr>
+<tr>
+<td>贷方</td>
+<td>Credit</td>
+<td>复式记账中资金流出的一方。</td>
+</tr>
+<tr>
+<td>最小货币单位</td>
+<td>Minor Units</td>
+<td>用最小单位（如分）存金额，避免浮点误差。</td>
+</tr>
+<tr>
+<td>支付状态机</td>
+<td>Payment State Machine</td>
+<td>支付单只能按固定方向流转，防止状态回退造成重复扣款。</td>
+</tr>
+<tr>
+<td>未知状态</td>
+<td>UNKNOWN</td>
+<td>支付结果暂时无法确定的状态，是最重要的一个状态，处理原则是&quot;宁可稍后确认，也不能当成失败重试&quot;。</td>
+</tr>
+<tr>
+<td>补偿事务</td>
+<td>Compensating Transaction</td>
+<td>已完成的步骤在后续失败时，执行一个反向操作把它抵消。</td>
+</tr>
+<tr>
+<td>空回滚</td>
+<td>Empty Rollback</td>
+<td>Try 还没执行就收到 Cancel，需要识别并直接忽略。</td>
+</tr>
+<tr>
+<td>悬挂</td>
+<td>Suspension</td>
+<td>Cancel 先于 Try 到达，导致 Cancel 白做、Try 又生效，需要状态机拦截。</td>
+</tr>
+<tr>
+<td>对账</td>
+<td>Reconciliation</td>
+<td>比对自己的账和第三方 / 银行的账，找出并修复差异。</td>
+</tr>
+<tr>
+<td>结算</td>
+<td>Settlement</td>
+<td>真正完成资金划转的过程。</td>
+</tr>
+<tr>
+<td>清算</td>
+<td>Clearing</td>
+<td>结算之前，核对和计算各方应收应付的过程。</td>
+</tr>
+<tr>
+<td>悬空账户</td>
+<td>Suspense Account</td>
+<td>暂时无法归属的资金先记在这里，待人工或后续流程处理。</td>
+</tr>
+<tr>
+<td>退款</td>
+<td>Refund</td>
+<td>把已收的钱退还给用户。</td>
+</tr>
+<tr>
+<td>拒付</td>
+<td>Chargeback</td>
+<td>持卡人向银行申诉要求撤销交易，钱被强制划走。</td>
+</tr>
+<tr>
+<td>风控</td>
+<td>Risk Check</td>
+<td>交易前后检查是否可疑，决定放行还是拦截。</td>
+</tr>
+<tr>
+<td>风险引擎</td>
+<td>Risk Engine</td>
+<td>执行风控规则的系统，通常位于交易关键路径上。</td>
+</tr>
+<tr>
+<td>反洗钱</td>
+<td>AML（Anti-Money Laundering）</td>
+<td>识别和阻止通过交易洗白非法资金的合规要求。</td>
+</tr>
+<tr>
+<td>了解你的客户</td>
+<td>KYC（Know Your Customer）</td>
+<td>开户前验证客户真实身份的合规流程。</td>
+</tr>
+<tr>
+<td>支付服务商</td>
+<td>PSP（Payment Service Provider）</td>
+<td>替你处理支付和卡数据的第三方，如 Stripe。</td>
+</tr>
+<tr>
+<td>卡组织</td>
+<td>Card Schemes</td>
+<td>Visa、Mastercard 这类制定卡规则并清算的网络。</td>
+</tr>
+<tr>
+<td>主账号</td>
+<td>PAN（Primary Account Number）</td>
+<td>银行卡号，属于必须严格保护的敏感数据。</td>
+</tr>
+<tr>
+<td>交易</td>
+<td>Transaction</td>
+<td>一次资金或订单的完整操作。</td>
+</tr>
+<tr>
+<td>撮合引擎</td>
+<td>Matching Engine</td>
+<td>交易所的心脏，按规则把买单和卖单配对成交。</td>
+</tr>
+<tr>
+<td>订单簿</td>
+<td>Order Book</td>
+<td>记录当前所有未成交买单和卖单的账本，按价格排序。</td>
+</tr>
+<tr>
+<td>限价单</td>
+<td>Limit Order</td>
+<td>指定价格才成交的订单。</td>
+</tr>
+<tr>
+<td>市价单</td>
+<td>Market Order</td>
+<td>以当前最优价格立刻成交的订单。</td>
+</tr>
+<tr>
+<td>买价 / 卖价</td>
+<td>Bid / Ask</td>
+<td>买方愿意出的最高价 / 卖方愿意接受的最低价。</td>
+</tr>
+<tr>
+<td>价差</td>
+<td>Spread</td>
+<td>买价和卖价之间的差额，是流动性的直接体现。</td>
+</tr>
+<tr>
+<td>成交</td>
+<td>Execution / Fill</td>
+<td>一笔订单实际完成配对。</td>
+</tr>
+<tr>
+<td>部分成交</td>
+<td>Partial Fill</td>
+<td>订单只成交了一部分，剩余部分继续挂在订单簿上。</td>
+</tr>
+<tr>
+<td>定序器</td>
+<td>Sequencer</td>
+<td>给所有订单打上全局唯一序号，保证全市场顺序一致。</td>
+</tr>
+<tr>
+<td>订单管理器</td>
+<td>Order Manager</td>
+<td>管理订单从创建到成交 / 撤销的完整生命周期。</td>
+</tr>
+<tr>
+<td>客户端网关</td>
+<td>Client Gateway</td>
+<td>机构客户端接入交易所的入口，负责协议转换和鉴权。</td>
+</tr>
+<tr>
+<td>价格优先时间优先</td>
+<td>Price-Time Priority</td>
+<td>撮合规则：价格更优的先成交，价格相同时先到的先成交。</td>
+</tr>
+<tr>
+<td>集合竞价</td>
+<td>Call Auction</td>
+<td>在一段时间内收集订单，到点统一撮合出一个价格。</td>
+</tr>
+<tr>
+<td>连续竞价</td>
+<td>Continuous Auction</td>
+<td>订单随时到达随时撮合，是盘中主要模式。</td>
+</tr>
+<tr>
+<td>价格带</td>
+<td>Price Band</td>
+<td>限制单日价格波动范围的保护机制。</td>
+</tr>
+<tr>
+<td>指定做市商</td>
+<td>DMM（Designated Market Maker）</td>
+<td>被交易所指定、有义务持续提供买卖报价的机构。</td>
+</tr>
+<tr>
+<td>自动做市商</td>
+<td>AMM（Automated Market Maker）</td>
+<td>用数学公式而非订单簿来定价的做市方式，DeFi 的核心。</td>
+</tr>
+<tr>
+<td>去中心化金融</td>
+<td>DeFi</td>
+<td>建立在区块链上的金融服务。</td>
+</tr>
+<tr>
+<td>事件溯源</td>
+<td>Event Sourcing</td>
+<td>不存当前状态，只存导致状态变化的事件序列，需要时重放得到状态。</td>
+</tr>
+<tr>
+<td>命令查询职责分离</td>
+<td>CQRS</td>
+<td>把写模型和读模型分开，各自优化。</td>
+</tr>
+<tr>
+<td>行情数据</td>
+<td>Market Data</td>
+<td>报价、成交等市场信息，分为 L1 / L2 / L3 不同深度。</td>
+</tr>
+<tr>
+<td>行情发布器</td>
+<td>Market Data Publisher</td>
+<td>把撮合结果广播给所有市场参与者的组件。</td>
+</tr>
+<tr>
+<td>K 线图</td>
+<td>Candlestick</td>
+<td>用开盘、收盘、最高、最低四个价格描述一段时间行情的图表。</td>
+</tr>
+<tr>
+<td>FIX 协议</td>
+<td>FIX（Financial Information eXchange）</td>
+<td>金融行业标准的交易报文协议。</td>
+</tr>
+<tr>
+<td>抢跑</td>
+<td>Front-Running</td>
+<td>利用提前获知的大单信息抢先交易获利，属于违规行为。</td>
+</tr>
+<tr>
+<td>订单拆分</td>
+<td>Order Splitting</td>
+<td>把大单拆成小单分批下单，减少对市场价格的冲击。</td>
+</tr>
+<tr>
+<td>胖手指检查</td>
+<td>Fat-Finger Check</td>
+<td>拦截明显输错的超大数量或错误价格的订单。</td>
+</tr>
+<tr>
+<td>延迟确定性</td>
+<td>Latency Determinism</td>
+<td>不追求平均快，而是保证最坏情况也快，避免偶发长尾。</td>
+</tr>
+<tr>
+<td>内存环形缓冲</td>
+<td>Disruptor</td>
+<td>用无锁环形缓冲区在组件间高速传递事件的技术。</td>
+</tr>
+<tr>
+<td>伪共享</td>
+<td>False Sharing</td>
+<td>两个 CPU 核心修改同一缓存行里的不同变量，导致性能骤降。</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="易混淆复式记账-vs-单纯改余额">易混淆：复式记账 vs 单纯改余额</h3>
+<blockquote>
+<p>初学者最容易写出的支付逻辑是&quot;用户余额减 100，商户余额加 100&quot;。这有两个致命问题：<strong>中间任何一步失败，钱就凭空消失或凭空产生</strong>；而且<strong>没有任何记录能证明账目对不对</strong>。</p>
+<p>复式记账的做法是：每笔交易同时产生一条借方和一条贷方分录，<strong>所有分录的借贷总额永远相等</strong>。这样任何时刻都能做一次全局校验——如果借贷不平衡，就一定出了问题。</p>
+<p>一句话记法：<strong>改余额只记录&quot;结果&quot;，复式记账记录&quot;因果&quot;，并且自带对账能力</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="11-安全与合规">11. 安全与合规</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>端到端加密</td>
+<td>E2EE（End-to-End Encryption）</td>
+<td>只有通信双方能解密，连服务端都看不到明文。</td>
+</tr>
+<tr>
+<td>前向保密</td>
+<td>Forward Secrecy</td>
+<td>长期密钥泄露也无法解密历史会话，因为每次会话用的都是临时密钥。</td>
+</tr>
+<tr>
+<td>双棘轮算法</td>
+<td>Double Ratchet</td>
+<td>让每条消息都用不同的密钥，实现前向保密和后向安全。</td>
+</tr>
+<tr>
+<td>信号协议</td>
+<td>Signal Protocol</td>
+<td>被广泛采用的端到端加密协议，WhatsApp 等都在用。</td>
+</tr>
+<tr>
+<td>证书固定</td>
+<td>Certificate Pinning</td>
+<td>客户端只信任预先内置的证书，防止被伪造证书中间人攻击。</td>
+</tr>
+<tr>
+<td>中间人攻击</td>
+<td>MITM（Man-in-the-Middle Attack）</td>
+<td>攻击者插入通信双方之间，窃听或篡改数据。</td>
+</tr>
+<tr>
+<td>重放攻击</td>
+<td>Replay Attack</td>
+<td>把截获的合法请求重新发送，冒用身份或重复执行操作。</td>
+</tr>
+<tr>
+<td>令牌</td>
+<td>Token</td>
+<td>代表用户身份或权限的凭证。</td>
+</tr>
+<tr>
+<td>个人身份信息</td>
+<td>PII（Personally Identifiable Information）</td>
+<td>能单独或组合识别到具体个人的数据，受法律严格保护。</td>
+</tr>
+<tr>
+<td>匿名化</td>
+<td>Anonymization</td>
+<td>彻底移除可识别信息，处理后不再属于个人信息。</td>
+</tr>
+<tr>
+<td>假名化</td>
+<td>Pseudonymization</td>
+<td>用代号替换真实身份，但保留可还原的映射关系。</td>
+</tr>
+<tr>
+<td>数据保护影响评估</td>
+<td>DPIA（Data Protection Impact Assessment）</td>
+<td>处理高风险个人数据前必须做的合规评估。</td>
+</tr>
+<tr>
+<td>被遗忘权</td>
+<td>Right to Erasure</td>
+<td>用户有权要求删除自己的个人数据。</td>
+</tr>
+<tr>
+<td>通用数据保护条例</td>
+<td>GDPR</td>
+<td>欧盟的个人数据保护法规，适用范围覆盖全球。</td>
+</tr>
+<tr>
+<td>个人信息保护法</td>
+<td>PIPL</td>
+<td>中国的个人信息保护法律。</td>
+</tr>
+<tr>
+<td>支付卡行业数据安全标准</td>
+<td>PCI DSS</td>
+<td>处理信用卡数据必须遵守的安全标准，代价高昂，所以很多公司选择&quot;干脆不存卡号&quot;。</td>
+</tr>
+<tr>
+<td>发件人策略框架</td>
+<td>SPF</td>
+<td>通过 DNS 声明哪些服务器有权代表你的域名发邮件。</td>
+</tr>
+<tr>
+<td>域名密钥识别邮件</td>
+<td>DKIM</td>
+<td>用数字签名证明邮件确实来自该域名且未被篡改。</td>
+</tr>
+<tr>
+<td>基于域的消息认证</td>
+<td>DMARC</td>
+<td>告诉收件方 SPF / DKIM 失败时该怎么处理，并接收报告。</td>
+</tr>
+<tr>
+<td>邮件认证</td>
+<td>Email Authentication</td>
+<td>SPF、DKIM、DMARC 三者的统称。</td>
+</tr>
+<tr>
+<td>发件人信誉</td>
+<td>Sender Reputation</td>
+<td>收件方根据历史行为给发件 IP / 域名打的信任分。</td>
+</tr>
+<tr>
+<td>IP 预热</td>
+<td>IP Warming</td>
+<td>新 IP 从小量发信开始，逐步建立信誉。</td>
+</tr>
+<tr>
+<td>灰名单</td>
+<td>Greylisting</td>
+<td>首次收到的邮件先临时拒收，正常的邮件服务器会重试，垃圾邮件通常不会。</td>
+</tr>
+<tr>
+<td>黑名单</td>
+<td>DNSBL</td>
+<td>记录已知垃圾邮件来源的名单，收件方据此拒收。</td>
+</tr>
+<tr>
+<td>垃圾邮件陷阱</td>
+<td>Spam Trap</td>
+<td>故意放置的邮箱地址，谁发信给它就说明在乱发垃圾邮件。</td>
+</tr>
+<tr>
+<td>退信</td>
+<td>Bounce</td>
+<td>邮件无法投递时的回执，用于清理无效地址。</td>
+</tr>
+<tr>
+<td>贝叶斯过滤</td>
+<td>Bayesian Filtering</td>
+<td>用统计模型判断邮件是垃圾邮件的概率。</td>
+</tr>
+<tr>
+<td>钓鱼</td>
+<td>Phishing</td>
+<td>伪装成可信方骗取账号密码或资金。</td>
+</tr>
+<tr>
+<td>分布式拒绝服务</td>
+<td>DDoS</td>
+<td>用海量流量把服务打瘫。</td>
+</tr>
+<tr>
+<td>速率检查</td>
+<td>Velocity Checks</td>
+<td>检查短时间内同一用户 / 卡 / IP 的操作频率是否异常。</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="12-算法与数据结构">12. 算法与数据结构</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>中文名</th>
+<th>英文名</th>
+<th>一句话解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>哈希函数</td>
+<td>Hash Function</td>
+<td>把任意输入映射成固定长度摘要，要求分布均匀且不可逆。</td>
+</tr>
+<tr>
+<td>哈希表</td>
+<td>Hash Table</td>
+<td>用哈希值定位数据的键值结构，平均 O(1) 查找。</td>
+</tr>
+<tr>
+<td>哈希碰撞</td>
+<td>Collision</td>
+<td>两个不同输入得到同一个哈希值。</td>
+</tr>
+<tr>
+<td>一致性哈希</td>
+<td>Consistent Hashing</td>
+<td>把节点和数据都放到哈希环上，加减节点时只迁移相邻区间，避免全量重分布。</td>
+</tr>
+<tr>
+<td>虚拟节点</td>
+<td>Virtual Nodes</td>
+<td>给每个物理节点在环上放多个副本位置，让数据分布更均匀。</td>
+</tr>
+<tr>
+<td>最小化重分布</td>
+<td>Minimized Redistribution</td>
+<td>增删节点时只搬动必要的数据，是一致性哈希的核心收益。</td>
+</tr>
+<tr>
+<td>最高随机权重</td>
+<td>HRW（Rendezvous Hashing）</td>
+<td>每个 key 选哈希权重最高的节点，无需维护环结构。</td>
+</tr>
+<tr>
+<td>跳转一致性哈希</td>
+<td>Jump Consistent Hash</td>
+<td>用极小的内存和极快的计算实现均匀分布，但只支持编号节点。</td>
+</tr>
+<tr>
+<td>布隆过滤器</td>
+<td>Bloom Filter</td>
+<td>用位数组判断&quot;一定不存在 / 可能存在&quot;，有假阳性但无假阴性。</td>
+</tr>
+<tr>
+<td>计数布隆过滤器</td>
+<td>Counting Bloom Filter</td>
+<td>支持删除元素的布隆过滤器变体。</td>
+</tr>
+<tr>
+<td>计数最小草图</td>
+<td>Count-Min Sketch</td>
+<td>用固定内存估算元素出现频次，常用于找热点。</td>
+</tr>
+<tr>
+<td>超对数</td>
+<td>HyperLogLog</td>
+<td>用极小内存估算去重后的基数，误差约 2%。</td>
+</tr>
+<tr>
+<td>前缀树</td>
+<td>Trie</td>
+<td>按字符逐层组织的树，天然支持前缀匹配和自动补全。</td>
+</tr>
+<tr>
+<td>压缩前缀树</td>
+<td>Radix Tree</td>
+<td>把只有一个子节点的路径压缩，节省 Trie 的空间。</td>
+</tr>
+<tr>
+<td>双数组 Trie</td>
+<td>Double-Array Trie</td>
+<td>用两个数组表示 Trie，查询快、内存省，常用于词典。</td>
+</tr>
+<tr>
+<td>有限状态转换器</td>
+<td>FST（Finite State Transducer）</td>
+<td>更紧凑的前缀结构，Lucene 用它存词典。</td>
+</tr>
+<tr>
+<td>有序集合</td>
+<td>Sorted Set</td>
+<td>每个元素带一个分数、按分数排序的集合，排行榜的基础。</td>
+</tr>
+<tr>
+<td>跳表</td>
+<td>Skip List</td>
+<td>多级索引的链表，实现简单且支持范围查询。</td>
+</tr>
+<tr>
+<td>红黑树</td>
+<td>Red-Black Tree</td>
+<td>自平衡二叉搜索树，保证最坏情况也是 O(log n)。</td>
+</tr>
+<tr>
+<td>二叉堆</td>
+<td>Heap</td>
+<td>能快速取到最大 / 最小元素的结构，用于优先队列。</td>
+</tr>
+<tr>
+<td>环形缓冲</td>
+<td>Ring Buffer</td>
+<td>首尾相接的固定大小缓冲区，读写无锁且不分配内存。</td>
+</tr>
+<tr>
+<td>双向链表</td>
+<td>Doubly Linked List</td>
+<td>每个节点同时指向前后，LRU 靠它实现 O(1) 移动。</td>
+</tr>
+<tr>
+<td>位图</td>
+<td>Bitmap</td>
+<td>用一个 bit 表示一个状态，极度节省内存。</td>
+</tr>
+<tr>
+<td>莫顿码</td>
+<td>Morton Code</td>
+<td>把二维坐标交错编码成一个整数，保留空间局部性。</td>
+</tr>
+<tr>
+<td>SimHash</td>
+<td>SimHash</td>
+<td>把文档压成一个指纹，相似文档的指纹汉明距离小，用于查重。</td>
+</tr>
+<tr>
+<td>MinHash</td>
+<td>MinHash</td>
+<td>用多个哈希的最小值估计两个集合的相似度。</td>
+</tr>
+<tr>
+<td>感知哈希</td>
+<td>Perceptual Hashing</td>
+<td>对图片内容而非字节做哈希，用于识别近似图片。</td>
+</tr>
+<tr>
+<td>TF-IDF</td>
+<td>TF-IDF</td>
+<td>用词频和逆文档频率衡量一个词对文档的重要程度。</td>
+</tr>
+<tr>
+<td>BM25</td>
+<td>BM25</td>
+<td>比 TF-IDF 更成熟的检索相关性打分函数。</td>
+</tr>
+<tr>
+<td>芬威克树</td>
+<td>Fenwick Tree</td>
+<td>支持前缀和查询与单点更新的高效结构，用于排名统计。</td>
+</tr>
+<tr>
+<td>广度优先搜索</td>
+<td>BFS</td>
+<td>逐层扩展的图遍历，用于求无权图最短路径。</td>
+</tr>
+<tr>
+<td>Dijkstra 算法</td>
+<td>Dijkstra</td>
+<td>求带权图单源最短路径的经典算法。</td>
+</tr>
+<tr>
+<td>Base62 编码</td>
+<td>Base 62 Conversion</td>
+<td>用 0-9、a-z、A-Z 表示数字，用于生成短链接。</td>
+</tr>
+<tr>
+<td>雪花 ID</td>
+<td>Snowflake ID</td>
+<td>由时间戳 + 机器 ID + 序列号拼成的趋势递增唯一 ID。</td>
+</tr>
+<tr>
+<td>通用唯一标识符</td>
+<td>UUID</td>
+<td>128 位随机 / 结构化 ID，全球唯一但无序。</td>
+</tr>
+<tr>
+<td>字典序可排序唯一 ID</td>
+<td>ULID</td>
+<td>兼顾随机性和时间有序性的 ID 方案。</td>
+</tr>
+<tr>
+<td>生日悖论</td>
+<td>Birthday Paradox</td>
+<td>随机取值时，出现碰撞所需的数量远小于取值范围，是 ID 长度设计的依据。</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="附最容易混淆的术语一览">附：最容易混淆的术语一览</h2>
+<p>把全文里单独展开过的易混淆点汇总在这里，方便快速回看：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>容易混的一组</th>
+<th>一句话区分</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>缓存穿透 / 击穿 / 雪崩</td>
+<td>数据不存在 / 一个热点过期 / 一批同时过期或缓存整体挂了</td>
+</tr>
+<tr>
+<td>Fan-out on Write / on Read</td>
+<td>写扩散读快写贵 / 读扩散写快读贵</td>
+</tr>
+<tr>
+<td>事件时间 / 处理时间</td>
+<td>事件真实发生的时刻 / 系统处理到它的时刻</td>
+</tr>
+<tr>
+<td>2PC / 3PC / TCC / Saga</td>
+<td>强一致阻塞 / 教材方案 / 业务补偿 / 长事务拆分</td>
+</tr>
+<tr>
+<td>At-Most-Once / At-Least-Once / Exactly-Once</td>
+<td>可能丢 / 可能重 / 靠幂等近似做到</td>
+</tr>
+<tr>
+<td>强一致 / 线性一致 / 最终一致</td>
+<td>能读到新值 / 像只有一份数据且按真实时间 / 迟早一致</td>
+</tr>
+<tr>
+<td>ACID 的 C / CAP 的 C</td>
+<td>业务约束不被破坏 / 多副本看到同一份数据</td>
+</tr>
+<tr>
+<td>耐久性 / 可用性</td>
+<td>数据不丢 / 服务能用</td>
+</tr>
+<tr>
+<td>Cache-Aside / Read-Through / Write-Through / Write-Back</td>
+<td>应用管 / 缓存回源 / 同步写 / 异步写</td>
+</tr>
+<tr>
+<td>LRU / LFU</td>
+<td>看多久没访问 / 看总共访问几次</td>
+</tr>
+<tr>
+<td>令牌桶 / 漏桶</td>
+<td>允许突发 / 输出绝对匀速</td>
+</tr>
+<tr>
+<td>本地限流 / 全局限流</td>
+<td>配额不准但快 / 配额准确但多一次网络往返</td>
+</tr>
+<tr>
+<td>悲观锁 / 乐观锁</td>
+<td>先加锁 / 先读版本号再校验</td>
+</tr>
+<tr>
+<td>推 / 拉</td>
+<td>broker 主动送 / 消费者主动取</td>
+</tr>
+<tr>
+<td>RED / USE</td>
+<td>面向请求 / 面向资源</td>
+</tr>
+<tr>
+<td>GeoHash / 瓦片 Z-X-Y</td>
+<td>搜索用索引 / 渲染用索引</td>
+</tr>
+<tr>
+<td>复式记账 / 改余额</td>
+<td>记录因果且自带对账 / 只记录结果</td>
+</tr>
+<tr>
+<td>匿名化 / 假名化</td>
+<td>不可还原 / 可还原</td>
+</tr>
+</tbody>
+</table></div>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../ch/28/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">股票交易所</span></a><a class="next" href="errata.html"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">勘误与补充汇总</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#这份表怎么用">这份表怎么用</a>
+<a class="lv2" href="#1-基础与架构">1. 基础与架构</a>
+<a class="lv3" href="#易混淆限流算法的四种写法">易混淆：限流算法的四种写法</a>
+<a class="lv3" href="#易混淆本地限流-vs-全局限流">易混淆：本地限流 vs 全局限流</a>
+<a class="lv3" href="#易混淆写扩散-vs-读扩散">易混淆：写扩散 vs 读扩散</a>
+<a class="lv2" href="#2-存储与数据库">2. 存储与数据库</a>
+<a class="lv3" href="#易混淆耐久性-vs-可用性">易混淆：耐久性 vs 可用性</a>
+<a class="lv3" href="#易混淆四种存储语义">易混淆：四种存储语义</a>
+<a class="lv2" href="#3-缓存">3. 缓存</a>
+<a class="lv3" href="#易混淆缓存穿透-vs-击穿-vs-雪崩必看">易混淆：缓存穿透 vs 击穿 vs 雪崩（必看）</a>
+<a class="lv3" href="#易混淆lru-vs-lfu">易混淆：LRU vs LFU</a>
+<a class="lv2" href="#4-一致性理论">4. 一致性理论</a>
+<a class="lv3" href="#易混淆强一致-vs-线性一致-vs-最终一致">易混淆：强一致 vs 线性一致 vs 最终一致</a>
+<a class="lv3" href="#易混淆acid-的-c-vs-cap-的-c">易混淆：ACID 的 C vs CAP 的 C</a>
+<a class="lv2" href="#5-分布式协调">5. 分布式协调</a>
+<a class="lv3" href="#易混淆2pc-3pc-tcc-saga">易混淆：2PC / 3PC / TCC / Saga</a>
+<a class="lv2" href="#6-消息与流处理">6. 消息与流处理</a>
+<a class="lv3" href="#易混淆at-most-once-at-least-once-exactly-once">易混淆：at-most-once / at-least-once / exactly-once</a>
+<a class="lv3" href="#易混淆事件时间-vs-处理时间">易混淆：事件时间 vs 处理时间</a>
+<a class="lv3" href="#易混淆推-vs-拉">易混淆：推 vs 拉</a>
+<a class="lv2" href="#7-网络与协议">7. 网络与协议</a>
+<a class="lv2" href="#8-运维与可观测性">8. 运维与可观测性</a>
+<a class="lv3" href="#易混淆red-vs-use">易混淆：RED vs USE</a>
+<a class="lv2" href="#9-地理与位置">9. 地理与位置</a>
+<a class="lv3" href="#易混淆geohash-vs-瓦片索引">易混淆：GeoHash vs 瓦片索引</a>
+<a class="lv2" href="#10-交易与金融">10. 交易与金融</a>
+<a class="lv3" href="#易混淆复式记账-vs-单纯改余额">易混淆：复式记账 vs 单纯改余额</a>
+<a class="lv2" href="#11-安全与合规">11. 安全与合规</a>
+<a class="lv2" href="#12-算法与数据结构">12. 算法与数据结构</a>
+<a class="lv2" href="#附最容易混淆的术语一览">附：最容易混淆的术语一览</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../"};</script>
+<script src="../assets/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>第 13 章：设计搜索自动补全系统 · 系统设计中文精讲</title>
+<meta name="description" content="面向初级开发者的系统设计教程：28 章中文精讲、127 条勘误、182 条补充。">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234493f8'/%3E%3Ctext x='16' y='23' font-size='15' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E">
+<script>try{var t=localStorage.getItem('sdg-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="topbar">
+  <button class="icon-btn" id="navToggle" aria-label="打开目录" title="目录">&#9776;</button>
+  <a class="brand" href="../../"><span class="logo">SD</span><span class="t">系统设计中文精讲</span></a>
+  <div class="topbar-spacer"></div>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="搜索章节 / 术语 / 关键词…" autocomplete="off" spellcheck="false" aria-label="搜索">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <a class="icon-btn" href="https://github.com/castorhrio/system-design-guide" target="_blank" rel="noopener" title="GitHub 仓库" aria-label="GitHub 仓库">GH</a>
+  <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="切换主题">&#9788;</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+<a class="nav-home" href="../../">&#9751;&nbsp;首页</a>
+<div class="nav-group"><div class="nav-group-title">开始学习</div><a class="nav-item" href="../../guide/">学习指南</a><a class="nav-item" href="../../guide/prerequisites.html">前置知识清单</a><a class="nav-item" href="../../guide/roadmap.html">学习路线图</a></div>
+<div class="nav-group"><div class="nav-group-title">第一部分　基础功<span class="nav-range">第 1–3 章</span></div><a class="nav-item" href="../01/"><span class="nav-num">01</span>从零到百万用户</a><a class="nav-item" href="../02/"><span class="nav-num">02</span>粗略估算</a><a class="nav-item" href="../03/"><span class="nav-num">03</span>系统设计框架</a></div>
+<div class="nav-group"><div class="nav-group-title">第二部分　核心组件<span class="nav-range">第 4–7 章</span></div><a class="nav-item" href="../04/"><span class="nav-num">04</span>限流器</a><a class="nav-item" href="../05/"><span class="nav-num">05</span>一致性哈希</a><a class="nav-item" href="../06/"><span class="nav-num">06</span>键值存储</a><a class="nav-item" href="../07/"><span class="nav-num">07</span>分布式唯一 ID</a></div>
+<div class="nav-group"><div class="nav-group-title">第三部分　经典题型<span class="nav-range">第 8–15 章</span></div><a class="nav-item" href="../08/"><span class="nav-num">08</span>URL 短链</a><a class="nav-item" href="../09/"><span class="nav-num">09</span>网络爬虫</a><a class="nav-item" href="../10/"><span class="nav-num">10</span>通知系统</a><a class="nav-item" href="../11/"><span class="nav-num">11</span>信息流系统</a><a class="nav-item" href="../12/"><span class="nav-num">12</span>聊天系统</a><a class="nav-item active" href="./"><span class="nav-num">13</span>搜索自动补全</a><a class="nav-item" href="../14/"><span class="nav-num">14</span>YouTube</a><a class="nav-item" href="../15/"><span class="nav-num">15</span>Google Drive</a></div>
+<div class="nav-group"><div class="nav-group-title">第四部分　大型系统<span class="nav-range">第 16–28 章</span></div><a class="nav-item" href="../16/"><span class="nav-num">16</span>附近服务</a><a class="nav-item" href="../17/"><span class="nav-num">17</span>附近的朋友</a><a class="nav-item" href="../18/"><span class="nav-num">18</span>Google Maps</a><a class="nav-item" href="../19/"><span class="nav-num">19</span>分布式消息队列</a><a class="nav-item" href="../20/"><span class="nav-num">20</span>监控告警系统</a><a class="nav-item" href="../21/"><span class="nav-num">21</span>广告点击聚合</a><a class="nav-item" href="../22/"><span class="nav-num">22</span>酒店预订系统</a><a class="nav-item" href="../23/"><span class="nav-num">23</span>分布式邮件服务</a><a class="nav-item" href="../24/"><span class="nav-num">24</span>类 S3 对象存储</a><a class="nav-item" href="../25/"><span class="nav-num">25</span>实时游戏排行榜</a><a class="nav-item" href="../26/"><span class="nav-num">26</span>支付系统</a><a class="nav-item" href="../27/"><span class="nav-num">27</span>数字钱包</a><a class="nav-item" href="../28/"><span class="nav-num">28</span>股票交易所</a></div>
+<div class="nav-group"><div class="nav-group-title">附录</div><a class="nav-item" href="../../appendix/glossary.html">术语表</a><a class="nav-item" href="../../appendix/errata.html">勘误与补充汇总</a><a class="nav-item" href="../../appendix/interview.html">高频面试题速查</a></div>
+  </aside>
+  <main class="content" id="main">
+    <article class="md">
+<h1 id="第-13-章设计搜索自动补全系统">第 13 章：设计搜索自动补全系统</h1>
+<blockquote>
+<p>原章节：Design a Search Autocomplete System · 原项目路径 <code>13. Search Autocomplete/</code></p>
+</blockquote>
+<h2 id="本章导读">本章导读</h2>
+<p>你在搜索框里敲下 &quot;t&quot;，还没敲第二个字母，下拉框里就已经列出了 &quot;taobao&quot;、&quot;twitter&quot;、&quot;天气&quot;。这个功能叫自动补全（Autocomplete），也叫即时搜索（Typeahead）或增量搜索（Incremental Search）。</p>
+<p>它看起来是个&quot;小功能&quot;，但它有一个非常苛刻的约束：<strong>每一次按键都要触发一次查询，而且必须在 100 毫秒内返回结果。</strong> 当你每天有 1000 万用户在搜索框里敲字时，这意味着每秒几万次的请求，全部要打在一个能在毫秒级返回&quot;最热门的 5 条建议&quot;的系统上。</p>
+<p>这一章要解决的核心问题是：<strong>如何用前缀树（Trie）在内存里存下上亿条查询，并让每一次按键都能在 100 毫秒内拿到 Top-K 结果？</strong></p>
+<p>学完这一章，你应该能回答：为什么必须在 Trie 的每个节点上缓存 Top-K？一个 Trie 怎么塞进内存？&quot;刚刚火起来的搜索词&quot;怎么能几分钟内出现在补全里，而不是等一天？个性化推荐和用户隐私为什么天然冲突？</p>
+<h2 id="你将学到">你将学到</h2>
+<ul>
+<li>自动补全系统的两个核心服务：数据采集（Data Gathering）与查询（Query）</li>
+<li><strong>Trie（前缀树）<strong>的原理，以及</strong>在每个节点缓存 Top-K 结果</strong>这一关键优化</li>
+<li>存储优化：双数组 Trie、前缀压缩、序列化 + 内存映射（mmap）</li>
+<li>从批处理到流式：如何让热搜词在几分钟内出现（双层 Trie / Lambda 架构）</li>
+<li>分片策略与负载均衡</li>
+<li>个性化与隐私的冲突及其设计原则</li>
+</ul>
+<hr />
+<h2 id="1-需求与规模">1. 需求与规模</h2>
+<h3 id="功能需求">功能需求</h3>
+<p>原笔记给出的约束：</p>
+<ul>
+<li>最多返回 <strong>5 条</strong>自动补全结果；</li>
+<li>按**查询热度（频率）**排序；</li>
+<li>只支持<strong>小写英文字母</strong>；</li>
+<li>响应时间 <strong>&lt; 100 毫秒</strong>，且系统可扩展。</li>
+</ul>
+<h3 id="规模估算">规模估算</h3>
+<p>原笔记给出了三个数字，但<strong>没有给出推导过程</strong>。我们把它算一遍——因为这三个数字决定了整个架构。</p>
+<p><strong>① QPS 是怎么来的？</strong></p>
+<pre><code>假设：
+  日活用户（DAU）= 10,000,000
+  每人每天搜索次数 ≈ 10 次
+  每次搜索平均敲 ≈ 20 个字符
+  → 每一次按键都触发一次补全请求
+
+日请求量 = 10,000,000 × 10 × 20 = 2,000,000,000（20 亿次）
+平均 QPS = 2,000,000,000 / 86,400 ≈ 23,148
+峰值 QPS = 23,148 × 2 ≈ 46,296 ≈ 48,000
+</code></pre>
+<blockquote>
+<p><strong>为什么&quot;每次按键都请求一次&quot;是合理的假设？</strong>
+因为这是自动补全的<strong>用户体验要求</strong>。如果只在用户停下打字 300 毫秒后才请求（这叫<strong>防抖 / Debounce</strong>），那响应会显得迟钝。真实系统通常是&quot;防抖 + 立即请求&quot;的混合策略：用户快速连续输入时防抖，停顿后立即发请求。所以量级估算按&quot;每次按键一次请求&quot;是合理的上界。</p>
+<p><strong>注意峰值倍数只有 2 倍</strong>——这和其他系统（常用 3 倍）不同。原因是<strong>搜索行为本身就分散在全天</strong>，不像电商下单那样集中在几个时间点。</p>
+</blockquote>
+<p><strong>② 存储增长</strong></p>
+<p>原笔记说每天新增 <strong>0.4 GB</strong> 查询数据。我们来算一下长期累积：</p>
+<pre><code>一年 = 0.4 GB × 365 = 146 GB
+十年 = 0.4 GB × 365 × 10 = 1,460 GB ≈ 1.46 TB
+</code></pre>
+<p><strong>1.46 TB 的原始查询日志</strong>——如果全量塞进内存，成本无法接受。所以<strong>必须裁剪（Pruning）</strong>：</p>
+<blockquote>
+<p>关键洞察：<strong>只有热门的查询才值得出现在补全建议里。</strong> 一个只被搜过一次的冷门查询，永远不会有人看到它的建议。</p>
+<p>所以：<strong>只保留 Top 1 亿条热门查询</strong>。假设每条查询平均 50 字节：</p>
+<pre><code>100,000,000 × 50 字节 = 5,000,000,000 字节 ≈ 5 GB
+</code></pre>
+<p><strong>5 GB</strong>——这就完全可以放进几台机器的内存里了。<strong>从 1.46 TB 压到 5 GB，靠的就是&quot;只留 Top-K&quot;这一条裁剪规则。</strong> 这是本章最重要的设计思想之一，后面 Trie 的节点 Top-K 缓存也是同一个思路的延伸。</p>
+</blockquote>
+<p><strong>③ 高可用</strong></p>
+<p>系统不能因为故障而停机（原笔记的 &quot;High Availability&quot; 要求）。这意味着 Trie 要有副本，查询服务要能容灾。</p>
+<hr />
+<h2 id="2-高层设计两个服务">2. 高层设计：两个服务</h2>
+<p>系统可以拆成两个相对独立的服务：</p>
+<p><strong>① 数据采集服务（Data Gathering Service）</strong></p>
+<ul>
+<li>收集用户查询，聚合成频率数据；</li>
+<li>负责构建 Trie。</li>
+</ul>
+<p><strong>② 查询服务（Query Service）</strong></p>
+<ul>
+<li>根据用户输入的前缀，返回 Top-K 建议。</li>
+</ul>
+<p>原笔记有一句很诚实的说明：</p>
+<blockquote>
+<p>Real-time processing is not practical for large data sets; however, it is a good starting point.</p>
+</blockquote>
+<p>意思是&quot;大数据集下实时处理不现实，但作为起点是可以的&quot;。<strong>这句话的结论是对的（实时全量重建 Trie 不可行），但表述有点绝对</strong>——现代系统通过&quot;双层 Trie&quot;做到了准实时。这个我们放到第 8 节详细讲。</p>
+<h3 id="21-数据采集服务">2.1 数据采集服务</h3>
+<div align="center"><img src="./images/data-gathering.png" alt="数据采集服务：从分析日志聚合查询频率" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li>从<strong>分析日志（Analytics Logs）<strong>里聚合查询数据，更新</strong>频率表（Frequency Table）</strong>；</li>
+<li>定期（原笔记说每周）处理历史数据，构建 Trie。</li>
+</ul>
+<h3 id="22-查询服务">2.2 查询服务</h3>
+<div align="center"><img src="./images/frequency-table.png" alt="频率表：查询与频率的映射" width="400" loading="lazy" decoding="async"></div>
+<div align="center"><img src="./images/basic-search-suggestions.png" alt="搜索建议：输入 tw 显示 Top 5 结果" width="360" loading="lazy" decoding="async"></div>
+<ul>
+<li>使用数据采集服务产出的频率表；</li>
+<li>根据用户输入，从 Trie 里取出 Top-K 建议；</li>
+<li>用缓存和高效数据结构优化查询速度。</li>
+</ul>
+<p>比如用户输入 <code>tw</code>，系统返回：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>排名</th>
+<th>查询</th>
+<th>频率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>twitter</td>
+<td>1,000,000</td>
+</tr>
+<tr>
+<td>2</td>
+<td>twitch</td>
+<td>800,000</td>
+</tr>
+<tr>
+<td>3</td>
+<td>twilio</td>
+<td>500,000</td>
+</tr>
+<tr>
+<td>4</td>
+<td>twitch tv</td>
+<td>300,000</td>
+</tr>
+<tr>
+<td>5</td>
+<td>twenty one pilots</td>
+<td>200,000</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>这里有一个隐含的要求</strong>：返回的必须是<strong>按频率降序排列的前 5 名</strong>，而不是&quot;前 5 个匹配的&quot;。这意味着系统不能只是&quot;找到所有以 <code>tw</code> 开头的查询&quot;，还必须<strong>排序</strong>。如果每次查询都要遍历整个子树再排序，性能会很差——<strong>这正是&quot;节点缓存 Top-K&quot;要解决的问题</strong>（见第 4.2 节）。</p>
+</blockquote>
+<hr />
+<h2 id="3-深入设计trie前缀树">3. 深入设计：Trie（前缀树）</h2>
+<h3 id="31-trie-是什么">3.1 Trie 是什么</h3>
+<p><strong>Trie（前缀树 / 字典树）<strong>是一棵</strong>树形数据结构</strong>，用来高效地存储和检索字符串。</p>
+<p>它的核心思想是：<strong>把字符串的公共前缀合并到同一条路径上。</strong></p>
+<p>假设要存 <code>tree</code>、<code>try</code>、<code>true</code> 三个词：</p>
+<pre><code>        (root)
+          |
+          t
+          |
+          r
+         / \
+        e   y  ← &quot;try&quot; 结束
+        |
+        e
+        |
+        e  ← &quot;tree&quot; 结束
+        |
+        u
+        |
+        e  ← &quot;true&quot; 结束
+</code></pre>
+<p>可以看到：<code>tr</code> 这个前缀只存了一次，三个词共享它。</p>
+<p><strong>Trie 的两个关键特性</strong>（原笔记提到的）：</p>
+<ol>
+<li><strong>紧凑存储（Compact Storage）</strong>：分层表示前缀，最大程度减少冗余。存 N 个词的总节点数，远小于所有词的字符数之和。</li>
+<li><strong>频率信息（Frequency Information）</strong>：可以在节点上存储查询的热度。</li>
+</ol>
+<div align="center"><img src="./images/trie-structure.png" alt="Trie 结构：节点存储频率信息" width="520" loading="lazy" decoding="async"></div>
+<h3 id="32-关键优化在每个节点缓存-top-k">3.2 关键优化：在每个节点缓存 Top-K</h3>
+<p>原笔记提到了这一点，但只有一句话：</p>
+<blockquote>
+<p>Cache top-k queries at each node to speed up retrieval and avoid traversing the whole trie.</p>
+</blockquote>
+<p><strong>这一句话是整个系统的性能关键，必须展开讲透。</strong></p>
+<p><strong>先看&quot;不缓存&quot;会怎样。</strong></p>
+<p>用户输入 <code>t</code>，你要返回以 <code>t</code> 开头的 Top 5 查询。朴素做法是：</p>
+<ol>
+<li>走到 <code>t</code> 节点；</li>
+<li><strong>遍历 <code>t</code> 的整个子树</strong>，收集所有以 <code>t</code> 开头的查询；</li>
+<li>按频率排序，取前 5 个。</li>
+</ol>
+<p>问题在于：<strong>以 <code>t</code> 开头的查询可能有上千万条。</strong> 遍历这个子树要访问上千万个节点，耗时可能是几百毫秒甚至几秒——<strong>远超 100 毫秒的预算</strong>。</p>
+<p>而且更糟的是：<strong>这个成本是&quot;每敲一个字母就要付一次&quot;</strong>。用户输入 <code>twitter</code> 的 7 个字母，就要做 7 次这样的遍历。</p>
+<p><strong>缓存 Top-K 的做法。</strong></p>
+<p>在<strong>每个节点上</strong>预先存好&quot;以该节点为前缀的 Top-K 查询&quot;：</p>
+<pre><code>节点 't'  →  [twitter, twitch, twilio, taobao, tumblr]
+节点 'tw' →  [twitter, twitch, twilio, twitch tv, twenty one pilots]
+节点 'twi'→  [twitter, twitch, twilio, twitch tv, twitch prime]
+</code></pre>
+<p>于是查询变成了：</p>
+<ol>
+<li>沿着前缀走到目标节点（<code>t</code> → <code>w</code>，共 2 步）；</li>
+<li><strong>直接读出该节点缓存的 Top-5 列表</strong>，返回。</li>
+</ol>
+<p><strong>复杂度从&quot;遍历子树 + 排序&quot;（O(子树大小)）降到&quot;走前缀长度 + 读 K 条&quot;（O(前缀长度 + K)）。</strong> 对于 <code>tw</code> 这个前缀，就是 2 步 + 读 5 条——<strong>微秒级</strong>。</p>
+<div align="center"><img src="./images/cached-trie.png" alt="缓存 Top-K 的 Trie：每个节点存该前缀下最热门的查询" width="520" loading="lazy" decoding="async"></div>
+<p><strong>代价是什么？内存。</strong></p>
+<pre><code>Top-K 缓存内存 ≈ 节点数 × K × 每条记录的字节数
+</code></pre>
+<p>粗略估算：假设压缩后的 Trie 有约 1 亿个节点，K = 5，每条记录存一个 4 字节的查询 ID：</p>
+<pre><code>100,000,000 × 5 × 4 字节 = 2,000,000,000 字节 ≈ 2 GB
+</code></pre>
+<p><strong>仅仅是 Top-K 缓存就要 2 GB</strong>，再加上树结构本身（每个节点要有子节点指针、字符等），总内存可能到 5–10 GB。</p>
+<p><strong>这就是为什么必须做存储优化（第 5 节）和分片（第 7 节）。</strong></p>
+<blockquote>
+<p><strong>一个实用技巧：不是每个节点都值得缓存。</strong></p>
+<ul>
+<li><strong>浅层节点</strong>（<code>a</code>、<code>b</code>、<code>t</code>）被查询的频率极高，<strong>必须缓存</strong>；</li>
+<li><strong>深层节点</strong>（比如 <code>twitterscriptsyntax</code> 的第 15 层）可能一个月都没人查到，<strong>缓存它纯属浪费内存</strong>。</li>
+<li>优化做法：只给&quot;访问频率超过阈值&quot;或&quot;深度小于某个值&quot;的节点建缓存。也可以按访问频率动态决定（类似缓存的 LRU 思想）。</li>
+</ul>
+</blockquote>
+<h3 id="33-trie-的三种操作">3.3 Trie 的三种操作</h3>
+<p>原笔记把 Trie 的操作分成创建、更新、删除：</p>
+<p><strong>① 创建（Create）</strong></p>
+<ul>
+<li>定期（原笔记说每周）用聚合后的查询数据构建；</li>
+<li>数据来源是分析日志或数据库。</li>
+</ul>
+<p><strong>② 更新（Update）</strong></p>
+<ul>
+<li>原笔记说&quot;很少实时更新，每周替换旧数据&quot;。</li>
+</ul>
+<blockquote>
+<p><strong>这个说法在今天是过时的</strong>——现代系统通过流式管道 + 双层 Trie 做到了准实时更新。详见第 8 节。</p>
+</blockquote>
+<p><strong>③ 删除（Delete）</strong></p>
+<div align="center"><img src="./images/delete-kv.png" alt="删除：通过过滤层移除不想要的建议" width="520" loading="lazy" decoding="async"></div>
+<ul>
+<li>用**过滤层（Filter Layer）**移除不想要的或有害的建议（比如仇恨言论、色情内容、侵权内容）；</li>
+<li><strong>过滤层的价值在于灵活性</strong>：可以根据不同的规则动态调整，不需要重建整个 Trie；</li>
+<li>不想要的建议会<strong>异步地</strong>从数据库中物理删除。</li>
+</ul>
+<blockquote>
+<p><strong>为什么要有&quot;过滤层&quot;而不是直接改 Trie？</strong>
+因为 Trie 是<strong>批量构建、只读</strong>的（每构建一次成本很高）。如果每次要删一个词就改 Trie，代价太大。所以做法是：</p>
+<ul>
+<li>Trie 保持不动；</li>
+<li>维护一个<strong>黑名单（Blocklist）</strong>，查询时过滤掉黑名单里的词；</li>
+<li>定期重建 Trie 时，才把这些词物理移除。</li>
+</ul>
+<p><strong>但这里有一个坑</strong>：如果 Trie 节点上缓存的是 Top-5，而其中 2 个被黑名单过滤了，你只能返回 3 条——<strong>用户看到的建议数量不足</strong>。</p>
+<p><strong>解法是&quot;超额取（Over-fetch）&quot;</strong>：节点上缓存 <strong>Top-(K + F)</strong>，其中 F 是预估的过滤比例。查询时取 K+F 条，过滤掉黑名单里的，再返回前 K 条。F 的大小要根据历史过滤率动态调整。</p>
+</blockquote>
+<hr />
+<h2 id="4-查询处理流程">4. 查询处理流程</h2>
+<p>把前面的设计串起来，一次查询的完整流程是：</p>
+<ol>
+<li>
+<p><strong>前缀查找（Prefix Search）</strong></p>
+<ul>
+<li>从 Trie 根节点开始，沿着用户输入的每个字符往下走，定位到前缀节点。</li>
+<li>如果中途走不通（前缀不存在），直接返回空结果。</li>
+</ul>
+</li>
+<li>
+<p><strong>取 Top-K</strong></p>
+<ul>
+<li><strong>如果节点有 Top-K 缓存</strong>：直接读取，O(1)。</li>
+<li><strong>如果没有缓存</strong>：遍历子树收集候选，排序后取前 K（这个路径很慢，所以要尽量避免）。</li>
+</ul>
+</li>
+<li>
+<p><strong>过滤与超额取</strong></p>
+<ul>
+<li>对候选应用过滤规则（黑名单、敏感词、合规要求）；</li>
+<li>因为过滤会减少结果数，所以要超额取 K+F 条。</li>
+</ul>
+</li>
+<li>
+<p><strong>组装响应</strong></p>
+<ul>
+<li>返回结果，通常包含建议文本、以及可选的元数据（比如是否是个&quot;实体&quot;、跳转链接）。</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>原笔记在&quot;查询处理流程&quot;这一节写的是&quot;遍历子树收集有效建议&quot;，而在&quot;优化&quot;一节写的是&quot;缓存 Top-K 避免遍历&quot;——这两处是矛盾的。</strong> 正确流程是：<strong>优先走 Top-K 缓存，遍历子树只作为兜底。</strong> 详见文末勘误 1。</p>
+</blockquote>
+<hr />
+<h2 id="5-存储优化如何把-trie-塞进内存">5. 存储优化：如何把 Trie 塞进内存</h2>
+<p>原笔记完全没有涉及这一块，但它是自动补全系统的<strong>工程核心</strong>——Trie 能不能放进内存，直接决定了系统的成本和延迟。</p>
+<h3 id="51-优化一双数组-triedouble-array-trie">5.1 优化一：双数组 Trie（Double-Array Trie）</h3>
+<p><strong>问题</strong>：朴素的 Trie 用指针连接节点。在 64 位系统上，一个指针就是 8 字节；一个节点如果有多个子节点，还要用数组或哈希表存子节点——<strong>指针的开销比数据本身还大</strong>，而且<strong>指针跳转对 CPU 缓存极不友好</strong>（每次跳转都可能是一次缓存未命中）。</p>
+<p><strong>双数组 Trie 的解法</strong>：用<strong>两个整数数组</strong> <code>base[]</code> 和 <code>check[]</code> 表示整棵树，完全不用指针。</p>
+<p><strong>状态转移规则</strong>：</p>
+<pre><code>从状态 s 出发，读入字符 c，到达下一个状态 t：
+
+    t = base[s] + c
+
+如果 check[t] == s，则 t 是合法状态；
+否则说明这条转移不存在。
+</code></pre>
+<p><strong>为什么这样设计？</strong></p>
+<ul>
+<li><strong>O(1) 转移</strong>：一次加法 + 一次数组访问，没有指针追踪。</li>
+<li><strong>内存紧凑</strong>：两个 <code>int</code> 数组，每个节点只占 8 字节（相比指针 + 哈希表的几十字节，节省数倍）。</li>
+<li><strong>缓存友好</strong>：数组是连续内存，CPU 预取器能有效工作。</li>
+</ul>
+<p><strong>代价</strong>：</p>
+<ul>
+<li><strong>构建困难</strong>。要在两个数组里&quot;塞&quot;下所有节点，同时保证 <code>base[s] + c</code> 不冲突，这是一个约束满足问题，构建算法相当复杂（经典算法是 Aho-Corasick 和 Darts 的实现）。</li>
+<li><strong>不适合频繁动态插入</strong>。构建是一次性的离线过程，正好符合&quot;Trie 定期重建&quot;的需求。</li>
+</ul>
+<blockquote>
+<p><strong>工业界的实际使用</strong>：双数组 Trie 被广泛用于中日文分词器（如 MeCab、HanLP）、输入法词库、以及一些搜索引擎的词表实现。<strong>它的前提是&quot;词典相对静态、查询极频繁&quot;——这正是自动补全的场景。</strong></p>
+</blockquote>
+<h3 id="52-优化二前缀压缩path-compression-radix-tree">5.2 优化二：前缀压缩（Path Compression / Radix Tree）</h3>
+<p><strong>问题</strong>：Trie 里有很多&quot;独生子节点链&quot;。比如 <code>unbelievable</code> 这个词，从 <code>u</code> 到结尾有 12 层，每层只有一个子节点——<strong>这些节点除了&quot;往下走&quot;没有任何信息量</strong>，白白占用 11 个节点的空间。</p>
+<p><strong>前缀压缩的解法</strong>：<strong>把只有一个子节点的连续链，合并成一条边，边上标注整段字符串。</strong></p>
+<pre><code>压缩前：                     压缩后：
+  u                            u
+  |                            |
+  n                       &quot;nbelievable&quot;
+  |                     ← 一条边，标签是整段字符串
+  b
+  |
+  e
+  ...
+</code></pre>
+<p><strong>效果</strong>：</p>
+<ul>
+<li><strong>节点数大幅减少</strong>。对于自然语言词表，通常能减少 50%–90% 的节点。</li>
+<li><strong>查询深度降低</strong>，但每次比较的是字符串而不是单个字符（需要字符串比较）。</li>
+</ul>
+<p><strong>代价</strong>：实现更复杂；插入和删除时要处理边的分裂（split）和合并。</p>
+<blockquote>
+<p><strong>这就是&quot;压缩前缀树（Compressed Trie）&quot;或&quot;基数树（Radix Tree）&quot;</strong>。Redis 的 Stream 内部就用基数树存消息 ID；Lucene 的 **FST（Finite State Transducer，有限状态转换器）**是它的进一步推广（不仅压缩前缀，还压缩后缀，能共享公共后缀）。</p>
+</blockquote>
+<h3 id="53-优化三序列化-内存映射mmap">5.3 优化三：序列化 + 内存映射（mmap）</h3>
+<p><strong>问题</strong>：Trie 可能有好几 GB。如果每个查询服务进程都在自己堆内存里重建一份，会：</p>
+<ul>
+<li><strong>启动慢</strong>：构建一次要几分钟到几十分钟；</li>
+<li><strong>内存浪费</strong>：10 个进程就占 10 份内存；</li>
+<li><strong>GC 压力大</strong>：几 GB 的堆对象会让 GC 停顿变得不可接受。</li>
+</ul>
+<p><strong>解法</strong>：<strong>离线构建 → 序列化成扁平文件 → 查询服务用 mmap 映射进来。</strong></p>
+<p>流程：</p>
+<pre><code>批量任务构建 Trie
+   ↓
+序列化为无指针的扁平文件（用偏移量代替指针）
+   ↓
+存入对象存储 / 本地磁盘
+   ↓
+查询服务 mmap 映射（不拷贝，直接读）
+</code></pre>
+<p><strong>为什么 mmap 这么好用？</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>好处</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>进程间共享物理内存</strong></td>
+<td>10 个进程 mmap 同一个文件，操作系统只保留<strong>一份物理内存</strong>（页缓存），全部共享</td>
+</tr>
+<tr>
+<td><strong>按需加载</strong></td>
+<td>只有被访问到的页才会从磁盘读入内存。冷门的子树永远不占内存</td>
+</tr>
+<tr>
+<td><strong>启动瞬时</strong></td>
+<td>不需要解析和构建，映射即可用</td>
+</tr>
+<tr>
+<td><strong>无 GC 压力</strong></td>
+<td>数据在堆外，GC 完全不感知</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>一个必须满足的前提</strong>：<strong>序列化后的结构必须&quot;无指针&quot;</strong>。因为 mmap 的虚拟地址在不同进程、不同次启动时是不一样的，所以不能用绝对指针，只能用<strong>相对于文件起始位置的偏移量（offset）</strong>。</p>
+<blockquote>
+<p><strong>这不是什么冷门技巧</strong>——<strong>Lucene 的 FST 就是这么做的</strong>：把词表（term dictionary）构建成 FST，序列化到索引文件，查询时 mmap 进来。这是搜索引擎的标准做法。<strong>你的 Trie 完全可以照搬这个思路。</strong></p>
+</blockquote>
+<h3 id="54-优化四kv-存储方案原笔记提到但要说清代价">5.4 优化四：KV 存储方案（原笔记提到，但要说清代价）</h3>
+<p>原笔记提到另一种存储方案：</p>
+<blockquote>
+<p>Key-Value Store: Maps prefixes to node data for fast access. Every prefix in the trie is mapped to a key in a hash table.</p>
+</blockquote>
+<p>也就是：<strong>把所有前缀都作为 key 存进一个 KV 存储（比如 Redis）</strong>，value 是节点数据。</p>
+<div align="center"><img src="./images/trie-db.png" alt="Trie DB：前缀映射到 KV 存储的 key" width="520" loading="lazy" decoding="async"></div>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><strong>实现简单</strong>：不用自己写数据结构，直接用现成的 KV 存储（Redis、RocksDB）；</li>
+<li><strong>天然可扩展</strong>：KV 存储自带分片能力。</li>
+</ul>
+<p><strong>代价（原笔记没说）</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>代价</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>失去前缀共享</strong></td>
+<td>Trie 的核心优势是&quot;<code>tr</code> 只存一次&quot;。而 KV 方案里，<code>t</code>、<code>tr</code>、<code>tre</code>、<code>tree</code> 是<strong>四个独立的 key</strong>。存储量会膨胀到 Trie 的数倍</td>
+</tr>
+<tr>
+<td><strong>每次查询一次网络往返</strong></td>
+<td>走 Trie 是本地内存操作（微秒级）；查 KV 是<strong>网络调用</strong>（毫秒级）。用户敲 7 个字母就是 7 次网络往返，100 毫秒预算很紧张</td>
+</tr>
+<tr>
+<td><strong>KV 存储本身也要分片</strong></td>
+<td>分片后，&quot;前缀在哪一片&quot;又成了新问题</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>所以正确的定位是</strong>：</p>
+<ul>
+<li><strong>KV 方案适合&quot;查询量不大、想快速上线&quot;的场景</strong>（工程成本低）；</li>
+<li><strong>自建 Trie + mmap 适合&quot;查询量极大、对延迟和成本敏感&quot;的场景</strong>（工程成本高，但性能最优）。</li>
+</ul>
+<p><strong>这不是&quot;哪个更好&quot;的问题，而是&quot;在什么规模下选哪个&quot;的问题。</strong></p>
+<hr />
+<h2 id="6-数据采集管道">6. 数据采集管道</h2>
+<p>原笔记在高层设计里假设&quot;用户每次搜索就实时更新数据&quot;，然后指出这不实际：</p>
+<blockquote>
+<p>Users may enter billions of queries per day. Updating the trie on every query is not feasible.
+Top suggestions may not change much once the trie is built.</p>
+</blockquote>
+<p>这两条理由都成立。<strong>注意第二条</strong>：一旦 Trie 建好，Top 建议<strong>短期内不会有大的变化</strong>——今天的 &quot;twitter&quot; 和昨天的 &quot;twitter&quot; 都在第一名。所以<strong>不需要每次查询都更新</strong>。</p>
+<h3 id="61-更新后的设计批处理管道">6.1 更新后的设计（批处理管道）</h3>
+<div align="center"><img src="./images/data-gathering-flow.png" alt="数据采集流程：分析日志 → 聚合器 → worker → Trie 缓存 / Trie 数据库" width="520" loading="lazy" decoding="async"></div>
+<p>原笔记的管道有四个环节：</p>
+<p><strong>① 分析日志（Analytics Logs）</strong></p>
+<ul>
+<li>存储原始查询数据，供后续聚合；</li>
+<li><strong>日志是追加写的（append-only）、不建索引</strong>——这是关键。因为日志只需要顺序写入和批量读取，不建索引能极大提升写入吞吐（呼应第 1 章讲的&quot;顺序写比随机写快几个数量级&quot;）。</li>
+</ul>
+<p><strong>② 聚合器（Aggregators）</strong></p>
+<ul>
+<li>把日志处理成<strong>频率表（Frequency Table）</strong>，供构建 Trie 使用；</li>
+<li><strong>聚合频率取决于业务</strong>：Twitter 这种实时性要求高的场景，聚合间隔要短；普通场景每周一次就够。</li>
+</ul>
+<p><strong>③ Worker</strong></p>
+<ul>
+<li>异步服务，负责重建 Trie 并存入持久化存储。</li>
+</ul>
+<p><strong>④ 存储（Storage）</strong></p>
+<ul>
+<li><strong>Trie 缓存（Trie Cache）</strong>：分布式缓存，把 Trie 放在内存里供快速读取；</li>
+<li><strong>Trie 数据库（Trie DB）</strong>：
+<ul>
+<li><strong>文档存储（如 MongoDB）</strong>：因为 Trie 每周重建一次，可以定期对它做<strong>快照（snapshot）</strong>，序列化后存进数据库；</li>
+<li><strong>KV 存储</strong>：前缀 → 节点数据的映射（见第 5.4 节）。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>这套管道的延迟是&quot;小时级到天级&quot;的</strong>：日志写入 → 定期聚合 → 重建 Trie → 发布。如果每周重建一次，一个新出现的热搜词可能要<strong>等上一周</strong>才能出现在补全里。这在今天的产品标准下是不可接受的（想象一下&quot;某地突发地震&quot;这种词要等一周才出现）。
+<strong>第 8 节会讲怎么把它压缩到分钟级。</strong></p>
+</blockquote>
+<hr />
+<h2 id="7-扩展性分片与负载均衡">7. 扩展性：分片与负载均衡</h2>
+<div align="center"><img src="./images/sharding.png" alt="分片：按前缀范围（a-m / n-z）分布 Trie 节点" width="520" loading="lazy" decoding="async"></div>
+<p>一个 Trie 可能有几 GB 到几十 GB，单机放不下、也扛不住 48,000 QPS。所以要<strong>分片（Sharding）</strong>。</p>
+<h3 id="71-按前缀范围分片">7.1 按前缀范围分片</h3>
+<p>原笔记的方案是：<strong>按前缀的首字母范围分片</strong>：</p>
+<pre><code>分片 1：a – m
+分片 2：n – z
+</code></pre>
+<p><strong>为什么这样分？</strong> 因为一次前缀查询<strong>只会命中一个分片</strong>——查 <code>tw</code> 只需要去 <code>n-z</code> 那片，不需要跨分片查询。<strong>这是前缀分片最大的优势：查询不需要广播。</strong></p>
+<h3 id="72-但首字母分布极不均匀">7.2 但首字母分布极不均匀</h3>
+<p><strong>英文单词的首字母分布严重倾斜</strong>：<code>s</code>、<code>c</code>、<code>p</code>、<code>a</code> 开头的词远多于 <code>x</code>、<code>z</code>、<code>q</code>。如果把 26 个字母平均分成两片，两片的负载可能相差好几倍。</p>
+<p>所以原笔记提出了<strong>二级分片</strong>：</p>
+<pre><code>第一级：a-m / n-z
+第二级（在负载高的前缀内再分）：
+  aa-ag / ah-an / ...
+</code></pre>
+<p><strong>核心思想：分片粒度要能自适应数据分布，而不是简单地按字母表切。</strong></p>
+<blockquote>
+<p><strong>分片键怎么选，是分片方案成败的关键</strong>（第 1 章讲过）。这里的分片键是&quot;前缀字符串&quot;，它天然满足两个要求：</p>
+<ul>
+<li><strong>查询局部性</strong>：同一个前缀只在一片上；</li>
+<li><strong>可再细分</strong>：一个前缀太热，可以继续往下切。</li>
+</ul>
+<p>但要注意：<strong>前缀分片也意味着&quot;负载会随时间漂移&quot;</strong>——今天 <code>s</code> 开头的查询多，明天可能 <code>c</code> 开头多。所以分片边界需要<strong>定期重新评估</strong>。</p>
+</blockquote>
+<h3 id="73-分片映射管理器shard-map-manager">7.3 分片映射管理器（Shard Map Manager）</h3>
+<p>请求要路由到正确的分片，需要一个<strong>分片映射管理器</strong>：</p>
+<pre><code>客户端请求 &quot;tw&quot; → 分片映射管理器 → &quot;tw 在分片 2&quot; → 转发到分片 2
+</code></pre>
+<p><strong>这里有两个工程细节</strong>（原笔记没说）：</p>
+<ol>
+<li><strong>分片映射管理器不能是单点，也不能是每次请求都调用。</strong> 如果每次查询都问一次映射管理器，那它就成了瓶颈（48,000 QPS 全打到它身上）。做法是<strong>客户端缓存分片映射表</strong>，只在分片拓扑变化时才刷新。</li>
+<li><strong>映射表本身就是一份配置</strong>，可以用 ZooKeeper / etcd 这类协调服务来维护和推送（呼应第 12 章的服务发现）。</li>
+</ol>
+<hr />
+<h2 id="8-实时性让热搜词几分钟内出现">8. 实时性：让热搜词几分钟内出现</h2>
+<p>这是原笔记最大的缺口。它的批处理管道是<strong>小时级到天级</strong>的延迟，而现实要求是<strong>分钟级</strong>。</p>
+<h3 id="81-为什么需要实时">8.1 为什么需要实时</h3>
+<p>考虑这几个场景：</p>
+<ul>
+<li><strong>突发事件</strong>：&quot;某地地震&quot;、&quot;某航班失联&quot;——这类查询会在几分钟内爆发，如果补全系统一周后才收录，用户体验就很差。</li>
+<li><strong>实时热点</strong>：一场球赛、一个综艺节目、一次发布会，热度可能在几小时内冲上顶峰然后消退。</li>
+<li><strong>电商大促</strong>：&quot;双十一红包&quot;这种词，只在特定时间点有热度。</li>
+</ul>
+<p><strong>补全系统如果不能反映实时热点，它的价值就大打折扣。</strong></p>
+<h3 id="82-双层-trielambda-架构">8.2 双层 Trie（Lambda 架构）</h3>
+<p><strong>核心思路：不要试图实时重建整个 Trie，而是维护一个&quot;基础层 + 热点层&quot;。</strong></p>
+<pre><code>┌─────────────────────────────────────────┐
+│  基础层（Base Trie）                      │
+│  · 全量 Top 1 亿查询                       │
+│  · 天级 / 周级批量重建                      │
+│  · 稳定、覆盖全面、体积大                    │
+└─────────────────────────────────────────┘
+                  +
+┌─────────────────────────────────────────┐
+│  热点层（Hot Layer）                      │
+│  · 只含最近几分钟 / 几小时突增的查询          │
+│  · 秒级 / 分钟级流式更新                     │
+│  · 体积小（几千到几万条）、放在内存 / Redis    │
+└─────────────────────────────────────────┘
+                  ↓
+        查询时合并两层的结果
+</code></pre>
+<p><strong>查询时的合并逻辑</strong>：</p>
+<ol>
+<li>先去<strong>热点层</strong>查这个前缀（数据量小，极快）；</li>
+<li>再去<strong>基础层</strong>查（走 Top-K 缓存）；</li>
+<li><strong>合并两个列表，去重，按分数排序，取 Top-K</strong>。</li>
+</ol>
+<p><strong>为什么这个设计成立？</strong> 因为它<strong>把&quot;全量重建&quot;这个昂贵操作，替换成了&quot;小规模增量更新&quot;</strong>——热点层只有几千到几万条，更新它只需要毫秒级，可以做到秒级刷新。而基础层保持天级重建，成本可控。</p>
+<blockquote>
+<p>这正是**Lambda 架构（批处理层 + 速度层）**的思想：<strong>用批处理层保证&quot;全和准&quot;，用速度层保证&quot;快&quot;</strong>，查询时合并两者。</p>
+</blockquote>
+<h3 id="83-流式管道怎么搭">8.3 流式管道怎么搭</h3>
+<pre><code>用户查询 → Kafka（消息队列）
+              ↓
+        流处理（Flink / Spark Streaming / Kafka Streams）
+              ↓
+     滑动窗口计数（最近 5 分钟 / 1 小时）
+              ↓
+        热度超过阈值？
+              ↓ 是
+        写入热点层（Redis）
+</code></pre>
+<p><strong>几个关键设计点</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>设计点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>滑动窗口（Sliding Window）</strong></td>
+<td>统计&quot;最近 5 分钟&quot;和&quot;最近 1 小时&quot;的频率。用多个窗口能同时捕捉&quot;瞬时爆发&quot;和&quot;持续热门&quot;</td>
+</tr>
+<tr>
+<td><strong>近似计数（Count-Min Sketch）</strong></td>
+<td>精确统计几亿个查询的频率需要巨大内存。<strong>Count-Min Sketch</strong> 是一个概率数据结构，用固定的小内存就能估算频率（可能有轻微高估，但不会漏掉高频项）。<strong>这是流式频率统计的标准工具</strong></td>
+</tr>
+<tr>
+<td><strong>阈值 + 防抖</strong></td>
+<td>只有&quot;热度超过阈值&quot;的查询才进热点层，避免噪声（比如某个爬虫刷了几百次同一个词）污染建议</td>
+</tr>
+<tr>
+<td><strong>时间衰减（Decay）</strong></td>
+<td>热点会过期。分数要按时间指数衰减，否则一个月前的热点还会挂在补全里。过期后自动从热点层移除</td>
+</tr>
+<tr>
+<td><strong>幂等写入</strong></td>
+<td>流处理可能重放（至少一次语义），写入热点层要幂等（直接覆盖分数，而不是累加）</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一个必须注意的边界</strong>：<strong>热点层的内容仍然要过过滤层（黑名单）</strong>。突发事件往往会伴随大量恶意查询（比如针对某个人的人身攻击），如果不加过滤，这些内容会立刻出现在所有人的补全建议里。<strong>实时性和合规必须同时满足。</strong></p>
+</blockquote>
+<h3 id="84-批处理-vs-流式怎么选">8.4 批处理 vs 流式：怎么选</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>纯批处理</th>
+<th>双层（批 + 流）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>新词出现延迟</td>
+<td>小时～天级</td>
+<td>秒～分钟级</td>
+</tr>
+<tr>
+<td>实现复杂度</td>
+<td>低</td>
+<td>高（需要 Kafka + 流处理 + 热点层）</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>低</td>
+<td>高（多一套实时链路）</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>查询分布稳定的产品</td>
+<td>有实时热点的产品（搜索、社交、新闻）</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>建议</strong>：<strong>先做批处理，把基础层做稳；当业务确实需要实时热点时，再加热点层。</strong> 不要一上来就上流式——那会显著增加复杂度和运维成本。</p>
+<hr />
+<h2 id="9-个性化与隐私">9. 个性化与隐私</h2>
+<p>原笔记完全没有涉及这个话题，但现代搜索的补全<strong>几乎都是个性化的</strong>，而个性化和隐私之间存在天然冲突。</p>
+<h3 id="91-个性化的层次">9.1 个性化的层次</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>层次</th>
+<th>依据</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>全局</strong></td>
+<td>全站热度</td>
+<td>输入 <code>tw</code> → <code>twitter</code></td>
+</tr>
+<tr>
+<td><strong>群体（Cohort）</strong></td>
+<td>地域、语言、设备</td>
+<td>中文用户输入 <code>tw</code> → 可能优先给 <code>推特</code>；日本用户 → <code>twitter</code> 仍是第一</td>
+</tr>
+<tr>
+<td><strong>个人</strong></td>
+<td>用户自己的搜索历史</td>
+<td>你经常搜&quot;Python 教程&quot;，输入 <code>py</code> → 优先给 <code>python tutorial</code> 而不是 <code>pytorch</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>架构上怎么支持？</strong></p>
+<ul>
+<li><strong>全局层</strong>：就是第 3 节的 Trie，所有用户共享；</li>
+<li><strong>群体层</strong>：按地域 / 语言建多棵 Trie（原笔记在&quot;多语言支持&quot;里提到了&quot;为不同国家构建独立的 Trie&quot;）；</li>
+<li><strong>个人层</strong>：<strong>不放进 Trie</strong>，而是单独存（比如 Redis 里 <code>user_id → 最近 N 条查询</code>，带 TTL），查询时和全局结果合并。</li>
+</ul>
+<p><strong>为什么个人层不能进 Trie？</strong> 因为 Trie 是<strong>所有用户共享</strong>的。如果把某个用户的私人查询写进全局 Trie，<strong>它就会变成所有人的补全建议</strong>——这是严重的隐私泄露。</p>
+<blockquote>
+<p><strong>这是一条铁律：个性化数据必须与全局频率数据物理隔离。</strong> 个性化数据只能存在&quot;用户自己的读路径&quot;上，绝不能回流到全局统计里。</p>
+</blockquote>
+<h3 id="92-隐私风险">9.2 隐私风险</h3>
+<p>自动补全的隐私风险比想象中严重：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>风险</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>共享设备泄露</strong></td>
+<td>家里的共用电脑，你搜过&quot;离婚律师&quot;，下一个人输入 <code>离</code> 就看到这个建议。<strong>这是真实的隐私泄露</strong></td>
+</tr>
+<tr>
+<td><strong>敏感查询污染全局</strong></td>
+<td>如果敏感查询（医疗、财务、性相关）进入了全局频率表，它们会变成所有人的建议。<strong>必须有过敏感词过滤</strong></td>
+</tr>
+<tr>
+<td><strong>个性化即追踪</strong></td>
+<td>要个性化就必须记录用户历史。这些历史本身就是敏感的画像数据，受 GDPR 等法规约束</td>
+</tr>
+<tr>
+<td><strong>名誉侵权（Defamation）</strong></td>
+<td>这是<strong>真实发生过的法律问题</strong>：多国法院（德国、法国、日本等）曾判决要求 Google 移除某些自动补全建议，因为输入某人姓名时会出现&quot;骗子&quot;&quot;罪犯&quot;等诽谤性联想。Google 为此建立了人工审核和移除流程</td>
+</tr>
+<tr>
+<td><strong>搜索引擎投毒</strong></td>
+<td>攻击者可以通过大量刷同一个查询（比如&quot;某品牌 骗局&quot;），把它刷进补全建议里，达到抹黑目的。<strong>这就是为什么热点层要有阈值和反刷机制</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="93-设计原则">9.3 设计原则</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>原则</th>
+<th>做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认不用个人历史做补全</strong></td>
+<td>或至少需要用户<strong>明确同意</strong>（opt-in）</td>
+</tr>
+<tr>
+<td><strong>敏感类别永久排除</strong></td>
+<td>医疗、财务、性相关、自伤等类别，无论多热都不进全局建议</td>
+</tr>
+<tr>
+<td><strong>提供&quot;清除历史&quot;入口</strong></td>
+<td>GDPR 的&quot;被遗忘权&quot;要求；清除后个性化建议立即失效</td>
+</tr>
+<tr>
+<td><strong>群体优先于个人</strong></td>
+<td>能用&quot;同地区同语言用户的热搜&quot;解决，就不要用&quot;这个用户的历史&quot;——前者隐私风险低得多</td>
+</tr>
+<tr>
+<td><strong>实时热点也要过滤</strong></td>
+<td>热点层同样要过黑名单（第 8.3 节）</td>
+</tr>
+<tr>
+<td><strong>可申诉的移除流程</strong></td>
+<td>对名誉侵权类投诉，要有明确的人工审核和移除机制</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>一句话总结</strong>：<strong>自动补全的每一个建议，都是&quot;用户想搜什么&quot;的一次公开投票。</strong> 把私人投票变成公开结果，就必须极其谨慎。<strong>技术上的最优（个性化）未必是产品上的最优（隐私）。</strong></p>
+</blockquote>
+<hr />
+<h2 id="10-高级特性">10. 高级特性</h2>
+<h3 id="101-多语言支持">10.1 多语言支持</h3>
+<p>原笔记的两点：</p>
+<ol>
+<li><strong>用 Unicode 支持非英文语言</strong>：Unicode 能覆盖全球几乎所有书写系统；</li>
+<li><strong>按国家 / 地区构建独立的 Trie</strong>：不同语言、不同地区的热词完全不同，分开建 Trie 既能提升相关性，也能减小单棵树的规模。</li>
+</ol>
+<blockquote>
+<p><strong>补充：非拉丁语系（中文、日文、韩文）的额外挑战。</strong></p>
+<ul>
+<li><strong>分词问题</strong>：英文天然按空格分词，而中文&quot;北京大学&quot;是一个词还是&quot;北京&quot;+&quot;大学&quot;？需要分词器。这会影响&quot;前缀&quot;的切分方式。</li>
+<li><strong>前缀的粒度</strong>：中文的&quot;前缀&quot;可以是字符级，也可以是拼音级。很多中文输入法同时支持&quot;拼音前缀&quot;（输入 <code>bjdx</code> → &quot;北京大学&quot;），这相当于<strong>在 Trie 上挂了一棵拼音映射树</strong>。</li>
+<li><strong>Unicode 的存储开销</strong>：一个中文字符在 UTF-8 里占 3 字节，而英文字母只占 1 字节。所以中文 Trie 的内存开销明显更高，存储优化（第 5 节）更关键。</li>
+</ul>
+</blockquote>
+<h3 id="102-热门查询trending-queries">10.2 热门查询（Trending Queries）</h3>
+<p>原笔记的处理方式是：<strong>动态更新 Trie 节点，或者给最近的查询更高的权重。</strong></p>
+<p><strong>这本质上就是第 8 节讲的&quot;双层 Trie + 时间衰减&quot;。</strong> 一个具体的权重设计：</p>
+<pre><code>score(query) = Σ (每次搜索的权重 × 时间衰减因子)
+
+时间衰减因子 = exp(-λ × (now - search_time))
+</code></pre>
+<ul>
+<li><code>λ</code> 越大，衰减越快，热搜更新越灵敏；</li>
+<li><code>λ</code> 越小，越平滑，热搜更稳定。</li>
+</ul>
+<p><strong>这个公式的好处</strong>：不需要&quot;定期清零&quot;，<strong>老查询的分数会自然衰减到可忽略</strong>。这和 Redis 的 LFU 淘汰、以及各种热度排行榜的实现是同一个思路。</p>
+<hr />
+<h2 id="11-其他优化原笔记列出">11. 其他优化（原笔记列出）</h2>
+<ol>
+<li><strong>节点缓存 Top-K</strong>：避免冗余遍历（第 3.2 节已详述）。</li>
+<li><strong>限制前缀长度</strong>：原笔记说&quot;限制到 50 个字符&quot;。见文末勘误 3。</li>
+<li><strong>AJAX 请求</strong>：用轻量的异步请求实现实时响应。<strong>这是最基础的一环</strong>——如果用同步请求，每次按键都要刷新页面，体验灾难。</li>
+<li><strong>浏览器缓存</strong>：把常搜词的补全结果缓存在浏览器里。</li>
+</ol>
+<blockquote>
+<p><strong>补充：浏览器缓存的正确做法</strong>
+原笔记说&quot;把补全结果存进浏览器缓存&quot;，但没说怎么存。正确做法是<strong>在响应上设置 HTTP 缓存头</strong>：</p>
+<pre><code class="language-http">Cache-Control: public, max-age=60
+</code></pre>
+<p>这样同一个前缀（比如 <code>tw</code>）在 60 秒内重复请求会直接命中浏览器缓存，不打到服务端。</p>
+<p><strong>两个注意点</strong>：</p>
+<ul>
+<li><strong>前缀不同，缓存不能混用</strong>。<code>tw</code> 和 <code>twi</code> 是两份缓存，所以 key 必须包含完整前缀。</li>
+<li><strong>个性化结果不能设公开缓存</strong>。如果建议里混了用户私人的搜索历史，<code>Cache-Control: public</code> 会导致<strong>代理服务器把 A 的个性化结果返回给 B</strong>——这是严重的安全漏洞。个性化结果必须用 <code>Cache-Control: private</code>，或者干脆不缓存。</li>
+<li><strong>缓存时间不能太长</strong>。热点词要实时反映，<code>max-age</code> 设太长会让用户看到过期的建议。60 秒是一个常见的折中。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="勘误与补充">勘误与补充</h2>
+<h3 id="勘误-1查询流程自相矛盾遍历子树-vs-不遍历">勘误 1：查询流程自相矛盾（遍历子树 vs 不遍历）</h3>
+<ul>
+<li><strong>原文说法</strong>：Query Processing Flow 一节写 <code>Prefix Search: Traverse the subtree to collect valid suggestions</code>；而 Optimizations 一节写 <code>Cache at Each Node: Store the top-k queries to avoid redundant traversals</code>。</li>
+<li><strong>问题</strong>：这两处<strong>互相矛盾</strong>。如果已经缓存了 Top-K，就不需要遍历子树；如果要遍历子树，缓存就没意义了。原笔记把&quot;朴素做法&quot;和&quot;优化做法&quot;并列在流程里，会让初学者搞不清到底该怎么做。</li>
+<li><strong>正确说法</strong>：<strong>主路径是&quot;走前缀 → 直接读节点缓存的 Top-K&quot;</strong>（O(前缀长度 + K)）；遍历子树只作为<strong>兜底</strong>（节点没有缓存时），而且要尽量避免走到这条路径。</li>
+<li><strong>延伸</strong>：这提醒我们，原笔记里的&quot;流程&quot;和&quot;优化&quot;两节是分开写的，可能存在内部不一致。读的时候要把它们对齐。</li>
+</ul>
+<h3 id="勘误-2实时处理不现实是过时的表述">勘误 2：&quot;实时处理不现实&quot;是过时的表述</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Real-time processing is not practical for large data sets; however, it is a good starting point.</code>；Trie 的 Update 操作写 <code>Rarely updated in real-time; weekly updates replace old data.</code></li>
+<li><strong>问题</strong>：<strong>&quot;实时全量重建 Trie&quot;确实不现实，但&quot;实时更新建议&quot;完全可行。</strong> 现代系统用&quot;基础层 + 热点层&quot;的双层结构，让热点词在<strong>秒到分钟级</strong>就能出现在补全里。原笔记的表述容易让初学者以为&quot;补全系统只能是小时/天级延迟&quot;，这是不对的。</li>
+<li><strong>正确说法</strong>：用 <strong>Lambda 架构</strong>——基础层天级/周级批量重建（保证全和准），热点层秒级/分钟级流式更新（保证快），查询时合并两层。详见第 8 节。</li>
+<li><strong>延伸</strong>：这也是一个&quot;原笔记反映的是它写作年代实践&quot;的例子。技术在演进，读书笔记的结论也要跟着更新。</li>
+</ul>
+<h3 id="勘误-3限制前缀长度到-50-的数字和理由都不严谨">勘误 3：&quot;限制前缀长度到 50&quot; 的数字和理由都不严谨</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Limit prefix length to reduce search space as users rarely type a loong search query (say 50).</code></li>
+<li><strong>问题</strong>：① 数字 50 非常随意。用户在搜索框里敲 50 个字符的情况几乎不存在，真实的分界点在 <strong>20–30 个字符</strong>左右；② 理由不完整。&quot;用户很少打长查询&quot;只是表象，<strong>真正的原因是：超过一定长度后，补全建议基本收敛（只剩 1–2 个候选），继续建深层节点是纯浪费</strong>。而且限制深度能直接<strong>给 Trie 的大小设一个上界</strong>，这对内存规划很重要。</li>
+<li><strong>正确说法</strong>：限制前缀长度的目的是<strong>给 Trie 深度设上界、控制内存</strong>，而不只是&quot;用户不打长词&quot;。实践中的阈值通常在 20–30 字符之间，具体取决于语言（中文按字符计，阈值更低）。</li>
+<li><strong>延伸</strong>：任何&quot;经验数字&quot;都要问清楚&quot;为什么是这个数&quot;。面试时说&quot;限制前缀长度&quot;是加分项，但如果说不出理由，反而会被追问。</li>
+</ul>
+<h3 id="勘误-4kv-存储方案被当成了等价选项其实代价很大">勘误 4：KV 存储方案被当成了等价选项，其实代价很大</h3>
+<ul>
+<li><strong>原文说法</strong>：<code>Storage Options: Trie DB — Document Store (e.g., MongoDB) / Key-Value Store: Maps prefixes to node data for fast access.</code></li>
+<li><strong>问题</strong>：把 KV 存储和 Trie 并列成&quot;两种存储选项&quot;，没有说明它们<strong>性能特征完全不同</strong>。KV 方案会<strong>失去前缀共享</strong>（<code>t</code>、<code>tr</code>、<code>tre</code> 是三个独立 key，存储量膨胀数倍），而且<strong>每次查询是一次网络往返</strong>（用户敲 7 个字母就是 7 次），在 100 毫秒的预算下很紧张。</li>
+<li><strong>正确说法</strong>：KV 方案适合<strong>查询量不大、想快速上线</strong>的场景（工程成本低）；<strong>自建 Trie + mmap</strong> 适合<strong>查询量极大、对延迟和成本敏感</strong>的场景。两者是&quot;规模不同阶段的取舍&quot;，不是等价的。</li>
+<li><strong>延伸</strong>：这一点和第 1 章&quot;选 SQL 还是 NoSQL&quot;的思路一致——<strong>没有绝对更优的方案，只有更适合当前约束的方案。</strong></li>
+</ul>
+<h3 id="补充-1节点缓存-top-k-的细节与内存代价">补充 1：节点缓存 Top-K 的细节与内存代价</h3>
+<p>原笔记只有一句话。详见第 3.2 节。<strong>核心要点</strong>：把&quot;遍历子树 + 排序&quot;（O(子树大小)）降为&quot;走前缀 + 读 K 条&quot;（O(前缀长度 + K)）；代价是内存（约 1 亿节点 × 5 × 4 字节 ≈ 2 GB）；<strong>浅层热节点必须缓存，深层冷节点可以按访问频率选择性缓存</strong>。</p>
+<h3 id="补充-2trie-的内存优化四招">补充 2：Trie 的内存优化四招</h3>
+<p>原笔记完全没讲。详见第 5 节。<strong>核心要点</strong>：</p>
+<ol>
+<li><strong>双数组 Trie</strong>：用 <code>base[]</code> + <code>check[]</code> 两个整数数组代替指针，O(1) 转移、内存紧凑、缓存友好（代价是构建复杂）。</li>
+<li><strong>前缀压缩（Radix Tree）</strong>：把独生子节点链合并成一条带字符串标签的边，节点数可减少 50%–90%。</li>
+<li><strong>序列化 + mmap</strong>：离线构建、序列化成<strong>无指针</strong>的扁平文件（用偏移量代替指针），查询时 mmap 映射，实现<strong>进程间共享物理内存 + 按需加载 + 零 GC 压力</strong>。Lucene 的 FST 就是这么做的。</li>
+<li><strong>KV 存储方案</strong>：实现简单但失去前缀共享、每次查询一次网络往返（见勘误 4）。</li>
+</ol>
+<h3 id="补充-3流式实时性双层-trie-lambda-架构">补充 3：流式实时性（双层 Trie / Lambda 架构）</h3>
+<p>原笔记的管道是小时/天级延迟。详见第 8 节。<strong>核心要点</strong>：基础层（天级批量重建，保证全和准）+ 热点层（秒/分钟级流式更新，保证快），查询时合并；流处理用 Kafka + Flink/Spark Streaming，频率统计用 <strong>Count-Min Sketch</strong> 省内存，热度用<strong>时间衰减</strong>自动过期，写入要<strong>幂等</strong>，热点层同样要过<strong>黑名单过滤</strong>。</p>
+<h3 id="补充-4个性化与隐私">补充 4：个性化与隐私</h3>
+<p>原笔记完全没提。详见第 9 节。<strong>核心要点</strong>：个性化分全局/群体/个人三层；<strong>个人层绝不能写进全局 Trie</strong>（否则私人查询变成所有人的建议）；共享设备、敏感查询、名誉侵权（多国法院曾判 Google 移除诽谤性补全建议）、搜索引擎投毒都是真实风险；设计上要&quot;默认不个性化 + 敏感类别永久排除 + 提供清除历史 + 群体优先于个人&quot;。</p>
+<h3 id="补充-5过滤层与-top-k-缓存的交互超额取">补充 5：过滤层与 Top-K 缓存的交互（超额取）</h3>
+<p>原笔记的过滤层和 Top-K 缓存是分开讲的，没说它们会互相影响。<strong>问题</strong>：如果节点缓存 Top-5，其中 2 条被黑名单过滤掉，用户只能看到 3 条建议。<strong>解法</strong>：节点缓存 <strong>Top-(K+F)</strong>，查询时取 K+F 条、过滤后返回前 K 条；F 根据历史过滤率动态调整。详见第 3.3 节。</p>
+<h3 id="补充-6qps-48000-的推导">补充 6：QPS 48,000 的推导</h3>
+<p>原笔记直接给出了 48,000 的峰值 QPS，没有推导。详见第 1 节。<strong>推导</strong>：1000 万 DAU × 每人 10 次搜索 × 每次 20 次按键 = 20 亿请求/天 → 平均 23,148 QPS → 峰值（2 倍）≈ 46,296 ≈ 48,000。<strong>注意峰值倍数只有 2 倍</strong>，因为搜索行为分散在全天。</p>
+<hr />
+<h2 id="常见误区">常见误区</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误区</th>
+<th>为什么错</th>
+<th>正确理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>每次查询都遍历 Trie 子树找 Top-K</td>
+<td>以 <code>t</code> 开头的查询可能上千万条，遍历一次几百毫秒，而且每敲一个字母都要付一次</td>
+<td><strong>在每个节点缓存 Top-K</strong>，查询降为 O(前缀长度 + K)</td>
+</tr>
+<tr>
+<td>每个节点都缓存 Top-K 就行</td>
+<td>深层冷节点可能一个月没人查，缓存它是纯浪费内存</td>
+<td>浅层热节点必须缓存；深层按访问频率选择性缓存</td>
+</tr>
+<tr>
+<td>Trie 的 Top-K 缓存不需要考虑过滤层</td>
+<td>缓存 Top-5 里若有 2 条被黑名单过滤，用户只看到 3 条</td>
+<td><strong>超额取（Over-fetch）Top-(K+F)</strong>，过滤后再截取 K 条</td>
+</tr>
+<tr>
+<td>补全系统只能做到小时/天级延迟</td>
+<td>双层 Trie 可以做到秒/分钟级</td>
+<td>基础层批量重建 + 热点层流式更新，查询时合并（Lambda 架构）</td>
+</tr>
+<tr>
+<td>用 KV 存储存所有前缀和自建 Trie 等价</td>
+<td>KV 方案失去前缀共享（存储膨胀数倍），且每次查询一次网络往返</td>
+<td>小规模用 KV 快速上线，大规模用 Trie + mmap</td>
+</tr>
+<tr>
+<td>Trie 直接放进每个进程的堆内存就行</td>
+<td>几 GB × 10 个进程 = 几十 GB 内存，启动慢、GC 停顿严重</td>
+<td><strong>序列化 + mmap</strong>：进程间共享物理内存、按需加载、零 GC 压力（前提是结构无指针）</td>
+</tr>
+<tr>
+<td>限制前缀长度只是为了&quot;用户不打长词&quot;</td>
+<td>真正原因是&quot;超过一定长度建议会收敛&quot;以及&quot;给 Trie 深度设上界&quot;</td>
+<td>阈值取 20–30 字符（按语言调整），目的是控制内存</td>
+</tr>
+<tr>
+<td>个性化建议就是把用户历史加进去</td>
+<td>如果把用户私人查询写进全局 Trie，它会变成<strong>所有人</strong>的建议</td>
+<td>个性化数据必须与全局数据<strong>物理隔离</strong>，只走用户自己的读路径</td>
+</tr>
+<tr>
+<td>敏感查询只要不热门就不会有问题</td>
+<td>敏感查询一旦进入全局频率表，就会出现在所有人的补全里</td>
+<td>敏感类别（医疗/财务/性相关）要<strong>永久排除</strong>，与热度无关</td>
+</tr>
+<tr>
+<td>个性化补全结果可以设 <code>Cache-Control: public</code></td>
+<td>代理服务器会把 A 的个性化结果返回给 B，是严重的安全漏洞</td>
+<td>个性化结果必须 <code>private</code> 或不缓存</td>
+</tr>
+<tr>
+<td>热点层可以不过滤，先快速上线</td>
+<td>突发事件常伴随大量恶意查询，不滤就会把攻击内容推给所有人</td>
+<td>热点层<strong>必须</strong>同样过黑名单过滤</td>
+</tr>
+<tr>
+<td>用精确计数统计实时频率就行</td>
+<td>几亿个查询的精确频率需要巨大内存</td>
+<td>用 <strong>Count-Min Sketch</strong> 近似计数，固定小内存即可</td>
+</tr>
+<tr>
+<td>热搜词进了 Trie 就一直在</td>
+<td>一个月前的热点还挂在补全里，体验很差</td>
+<td>分数要<strong>按时间指数衰减</strong>，过期自动移除</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="面试速记">面试速记</h2>
+<ul>
+<li>
+<p><strong>一句话概括</strong>：自动补全系统是一个<strong>用 Trie 把&quot;前缀 → Top-K&quot;预计算好、靠内存 + 分片扛住高 QPS</strong> 的读密集型系统，核心矛盾是&quot;低延迟&quot;与&quot;海量数据&quot;。</p>
+</li>
+<li>
+<p><strong>必答要点</strong>：</p>
+<ol>
+<li><strong>两个服务</strong>：数据采集服务（聚合查询、构建 Trie）+ 查询服务（按前缀返回 Top-K）。</li>
+<li><strong>Trie + 节点 Top-K 缓存</strong>：把查询从&quot;遍历子树 + 排序&quot;降到&quot;走前缀 + 读 K 条&quot;，这是 100 毫秒预算能达标的关键。</li>
+<li><strong>数据裁剪</strong>：只保留 Top 1 亿热门查询（约 5 GB），而不是全量日志（十年约 1.46 TB）。</li>
+<li><strong>分片</strong>：按前缀范围分片（<code>a-m</code> / <code>n-z</code>），因为一次前缀查询只命中一个分片，不需要跨分片；首字母分布不均，所以要二级分片。</li>
+<li><strong>存储选型</strong>：小规模用 KV 存储快速上线；大规模用自建 Trie + 序列化 + mmap。</li>
+</ol>
+</li>
+<li>
+<p><strong>加分项</strong>：</p>
+<ol>
+<li>主动给出 <strong>QPS 48,000 的推导</strong>（1000 万 × 10 次 × 20 键 = 20 亿/天 → 峰值 48k）。</li>
+<li>主动讲 <strong>Trie 的内存优化</strong>：双数组 Trie、前缀压缩、序列化 + mmap（无指针结构、进程间共享、零 GC）。</li>
+<li>主动提出**双层 Trie（Lambda 架构）**解决实时性：基础层批量重建 + 热点层流式更新。</li>
+<li>主动指出<strong>个性化数据绝不能进全局 Trie</strong>，并讨论隐私风险（共享设备、名誉侵权、投毒）。</li>
+<li>主动提到<strong>过滤层与 Top-K 缓存的交互</strong>（超额取 K+F）。</li>
+<li>主动提到<strong>时间衰减</strong>让热搜自动过期。</li>
+</ol>
+</li>
+<li>
+<p><strong>高频追问</strong>：</p>
+<ol>
+<li><em>&quot;Trie 怎么保证 100 毫秒内返回？&quot;</em>
+→ 每个节点缓存 Top-K，查询是&quot;走前缀长度 + 读 K 条&quot;，微秒级；再用分片把单机数据量和 QPS 压下来；再加浏览器 / CDN 缓存层。</li>
+<li><em>&quot;一个 Trie 有几十 GB，怎么放进内存？&quot;</em>
+→ 四招：前缀压缩减少节点数；双数组 Trie 去掉指针开销；只保留 Top-K 热门查询（5 GB 而不是 1.46 TB）；序列化 + mmap（多进程共享物理内存 + 按需加载 + 零 GC）。放不下的部分再分片。</li>
+<li><em>&quot;怎么让刚火起来的词马上出现在补全里？&quot;</em>
+→ 双层 Trie：基础层天级重建保证全量覆盖，热点层用 Kafka + Flink 做滑动窗口计数（Count-Min Sketch 省内存），秒级写入 Redis；查询时合并两层结果。热点层同样要过黑名单，并用时间衰减自动过期。</li>
+<li><em>&quot;个性化补全会泄露隐私吗？&quot;</em>
+→ 会。三个真实风险：共享设备上你的私人搜索会被下一个人看到；个性化数据若流入全局 Trie 会变成所有人的建议；补全建议本身可能构成名誉侵权（多国法院有判例）。原则是&quot;默认不个性化 + 敏感类别永久排除 + 数据物理隔离 + 提供清除历史&quot;。</li>
+<li><em>&quot;为什么要用双数组 Trie？&quot;</em>
+→ 朴素 Trie 的指针开销比数据本身还大，且指针跳转对 CPU 缓存不友好。双数组用 <code>base[]</code> + <code>check[]</code> 两个整数数组实现 O(1) 状态转移，内存紧凑、缓存友好。代价是构建复杂、不适合频繁动态插入——但 Trie 本来就是定期批量重建的，正好契合。</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<ul>
+<li><a href="https://bytebytego.com/courses/system-design-interview" target="_blank" rel="noopener noreferrer">ByteByteGo 系统设计面试课程</a> — 原笔记的来源</li>
+<li><a href="https://blog.mikemccandless.com/2010/12/using-finite-state-transducers-in.html" target="_blank" rel="noopener noreferrer">Lucene FST（Finite State Transducer）</a> — 序列化 + mmap 压缩 Trie 的工业级实现</li>
+<li><a href="https://github.com/taku910/mecab" target="_blank" rel="noopener noreferrer">Darts: Double-ARray Trie System</a> — 双数组 Trie 的经典实现（MeCab 词库）</li>
+<li><a href="https://en.wikipedia.org/wiki/Count%E2%80%93min_sketch" target="_blank" rel="noopener noreferrer">Count-Min Sketch 原理</a> — 流式频率统计的概率数据结构</li>
+<li><a href="https://support.google.com/websearch/answer/7368877" target="_blank" rel="noopener noreferrer">Google：Autocomplete 政策与移除请求</a> — 补全建议的合规与申诉流程</li>
+<li><a href="https://flink.apache.org/" target="_blank" rel="noopener noreferrer">Apache Flink 官方文档</a> — 滑动窗口与流式聚合</li>
+<li><a href="https://gdpr-info.eu/" target="_blank" rel="noopener noreferrer">GDPR 官方全文</a> — 个性化数据的同意与删除要求</li>
+</ul>
+
+    </article>
+    <nav class="pager"><a class="prev" href="../12/"><span class="pg-label">&larr; 上一页</span><span class="pg-title">聊天系统</span></a><a class="next" href="../14/"><span class="pg-label">下一页 &rarr;</span><span class="pg-title">YouTube</span></a></nav>
+    <footer class="sitefoot">
+      <p>本页整理自 <a href="https://github.com/castorhrio/system-design-guide">castorhrio/system-design-guide</a>；原项目 <a href="https://github.com/liquidslr/system-design-notes">liquidslr/system-design-notes</a> 未附带开源许可证，本仓库定位为个人学习笔记的中文整理，仅供学习交流。</p>
+      <p>文中 392 张图片均来自原项目，版权归原作者 / 出版方所有。具体数字只作量级参考，生产决策请以官方文档与压测为准。</p>
+    </footer>
+  </main>
+  <aside class="toc">
+<div class="toc-title">本页目录</div>
+<a class="lv2" href="#本章导读">本章导读</a>
+<a class="lv2" href="#你将学到">你将学到</a>
+<a class="lv2" href="#1-需求与规模">1. 需求与规模</a>
+<a class="lv3" href="#功能需求">功能需求</a>
+<a class="lv3" href="#规模估算">规模估算</a>
+<a class="lv2" href="#2-高层设计两个服务">2. 高层设计：两个服务</a>
+<a class="lv3" href="#21-数据采集服务">2.1 数据采集服务</a>
+<a class="lv3" href="#22-查询服务">2.2 查询服务</a>
+<a class="lv2" href="#3-深入设计trie前缀树">3. 深入设计：Trie（前缀树）</a>
+<a class="lv3" href="#31-trie-是什么">3.1 Trie 是什么</a>
+<a class="lv3" href="#32-关键优化在每个节点缓存-top-k">3.2 关键优化：在每个节点缓存 Top-K</a>
+<a class="lv3" href="#33-trie-的三种操作">3.3 Trie 的三种操作</a>
+<a class="lv2" href="#4-查询处理流程">4. 查询处理流程</a>
+<a class="lv2" href="#5-存储优化如何把-trie-塞进内存">5. 存储优化：如何把 Trie 塞进内存</a>
+<a class="lv3" href="#51-优化一双数组-triedouble-array-trie">5.1 优化一：双数组 Trie（Double-Array Trie）</a>
+<a class="lv3" href="#52-优化二前缀压缩path-compression-radix-tree">5.2 优化二：前缀压缩（Path Compression / Radix Tree）</a>
+<a class="lv3" href="#53-优化三序列化-内存映射mmap">5.3 优化三：序列化 + 内存映射（mmap）</a>
+<a class="lv3" href="#54-优化四kv-存储方案原笔记提到但要说清代价">5.4 优化四：KV 存储方案（原笔记提到，但要说清代价）</a>
+<a class="lv2" href="#6-数据采集管道">6. 数据采集管道</a>
+<a class="lv3" href="#61-更新后的设计批处理管道">6.1 更新后的设计（批处理管道）</a>
+<a class="lv2" href="#7-扩展性分片与负载均衡">7. 扩展性：分片与负载均衡</a>
+<a class="lv3" href="#71-按前缀范围分片">7.1 按前缀范围分片</a>
+<a class="lv3" href="#72-但首字母分布极不均匀">7.2 但首字母分布极不均匀</a>
+<a class="lv3" href="#73-分片映射管理器shard-map-manager">7.3 分片映射管理器（Shard Map Manager）</a>
+<a class="lv2" href="#8-实时性让热搜词几分钟内出现">8. 实时性：让热搜词几分钟内出现</a>
+<a class="lv3" href="#81-为什么需要实时">8.1 为什么需要实时</a>
+<a class="lv3" href="#82-双层-trielambda-架构">8.2 双层 Trie（Lambda 架构）</a>
+<a class="lv3" href="#83-流式管道怎么搭">8.3 流式管道怎么搭</a>
+<a class="lv3" href="#84-批处理-vs-流式怎么选">8.4 批处理 vs 流式：怎么选</a>
+<a class="lv2" href="#9-个性化与隐私">9. 个性化与隐私</a>
+<a class="lv3" href="#91-个性化的层次">9.1 个性化的层次</a>
+<a class="lv3" href="#92-隐私风险">9.2 隐私风险</a>
+<a class="lv3" href="#93-设计原则">9.3 设计原则</a>
+<a class="lv2" href="#10-高级特性">10. 高级特性</a>
+<a class="lv3" href="#101-多语言支持">10.1 多语言支持</a>
+<a class="lv3" href="#102-热门查询trending-queries">10.2 热门查询（Trending Queries）</a>
+<a class="lv2" href="#11-其他优化原笔记列出">11. 其他优化（原笔记列出）</a>
+<a class="lv2" href="#勘误与补充">勘误与补充</a>
+<a class="lv3" href="#勘误-1查询流程自相矛盾遍历子树-vs-不遍历">勘误 1：查询流程自相矛盾（遍历子树 vs 不遍历）</a>
+<a class="lv3" href="#勘误-2实时处理不现实是过时的表述">勘误 2：&quot;实时处理不现实&quot;是过时的表述</a>
+<a class="lv3" href="#勘误-3限制前缀长度到-50-的数字和理由都不严谨">勘误 3：&quot;限制前缀长度到 50&quot; 的数字和理由都不严谨</a>
+<a class="lv3" href="#勘误-4kv-存储方案被当成了等价选项其实代价很大">勘误 4：KV 存储方案被当成了等价选项，其实代价很大</a>
+<a class="lv3" href="#补充-1节点缓存-top-k-的细节与内存代价">补充 1：节点缓存 Top-K 的细节与内存代价</a>
+<a class="lv3" href="#补充-2trie-的内存优化四招">补充 2：Trie 的内存优化四招</a>
+<a class="lv3" href="#补充-3流式实时性双层-trie-lambda-架构">补充 3：流式实时性（双层 Trie / Lambda 架构）</a>
+<a class="lv3" href="#补充-4个性化与隐私">补充 4：个性化与隐私</a>
+<a class="lv3" href="#补充-5过滤层与-top-k-缓存的交互超额取">补充 5：过滤层与 Top-K 缓存的交互（超额取）</a>
+<a class="lv3" href="#补充-6qps-48000-的推导">补充 6：QPS 48,000 的推导</a>
+<a class="lv2" href="#常见误区">常见误区</a>
+<a class="lv2" href="#面试速记">面试速记</a>
+<a class="lv2" href="#延伸阅读">延伸阅读</a>
+  </aside>
+</div>
+<div id="scrim"></div>
+<button id="toTop" aria-label="回到顶部" title="回到顶部">&#8593;</button>
+<script>window.SDG_SITE={prefix:"../../"};</script>
+<script src="../../assets/app.js" defer></script>
+</body>
+</html>
